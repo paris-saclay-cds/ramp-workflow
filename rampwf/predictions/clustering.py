@@ -4,15 +4,12 @@ from .base_prediction import BasePrediction
 
 class Predictions(BasePrediction):
 
-    def __init__(self, labels=None, y_pred=None, y_true=None, f_name=None,
-                 n_samples=None):
+    def __init__(self, labels=None, y_pred=None, y_true=None, n_samples=None):
         self.labels = labels
         if y_pred is not None:
             self.y_pred = np.array(y_pred)
         elif y_true is not None:
             self.y_pred = np.array(y_true)
-        elif f_name is not None:
-            self.y_pred = np.load(f_name)
         elif n_samples is not None:
             self.y_pred = np.empty((n_samples, 2))
             self.y_pred.fill(np.nan)

@@ -6,8 +6,7 @@ import databoard.regression_prediction as regression_prediction
 
 class Predictions(BasePrediction):
 
-    def __init__(self, labels=None, y_pred=None, y_true=None, f_name=None,
-                 n_samples=None):
+    def __init__(self, labels=None, y_pred=None, y_true=None, n_samples=None):
         self.labels = labels
         # multiclass_prediction.labels = labels
         if y_pred is not None:
@@ -16,12 +15,6 @@ class Predictions(BasePrediction):
             self.regression_prediction = regression_prediction.Predictions(
                 labels=self.labels, y_pred=y_pred[:, -1])
         elif y_true is not None:
-            self.multiclass_prediction = multiclass_prediction.Predictions(
-                labels=self.labels, y_true=y_true[:, 0])
-            self.regression_prediction = regression_prediction.Predictions(
-                labels=self.labels, y_true=y_true[:, 1])
-        elif f_name is not None:
-            y_true = np.load(f_name)
             self.multiclass_prediction = multiclass_prediction.Predictions(
                 labels=self.labels, y_true=y_true[:, 0])
             self.regression_prediction = regression_prediction.Predictions(

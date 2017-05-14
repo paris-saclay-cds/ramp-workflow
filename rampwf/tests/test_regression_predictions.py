@@ -12,17 +12,6 @@ def test_init():
     assert_array_equal(predictions.y_pred, y_pred)
 
 
-def test_save_and_load():
-    y_pred = [0.7, 0.1, 0.2]
-    predictions = Predictions(y_pred=y_pred)
-    f_name = op.join(tempfile.gettempdir(), 'predictions.npy')
-    predictions.save(f_name)
-    loaded_predictions = Predictions(f_name=f_name)
-    assert_array_equal(predictions.y_pred, loaded_predictions.y_pred)
-    assert_equal(predictions.n_samples, 3)
-    os.remove(f_name)
-
-
 def test_set_valid_in_train():
     y_pred = [0.7, 0.1, 0.2]
     predictions = Predictions(y_pred=y_pred)

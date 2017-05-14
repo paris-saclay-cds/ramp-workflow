@@ -5,8 +5,7 @@ from databoard.base_prediction import BasePrediction
 class Predictions(BasePrediction):
 
     def __init__(self, labels=None, y_pred=None, y_pred_labels=None,
-                 y_pred_indexes=None, y_true=None, f_name=None,
-                 n_samples=None):
+                 y_pred_indexes=None, y_true=None, n_samples=None):
         self.labels = labels
         if y_pred is not None:
             self.y_proba = np.array(y_pred)
@@ -14,8 +13,6 @@ class Predictions(BasePrediction):
             self._init_from_pred_labels(y_pred_labels)
         elif y_true is not None:
             self._init_from_pred_labels(y_true)
-        elif f_name is not None:
-            self.y_proba = np.load(f_name)
         elif n_samples is not None:
             self.y_proba = np.empty(
                 (n_samples, len(self.labels)), dtype=np.float64)
