@@ -1,0 +1,7 @@
+build
+dist
+*.pyc
+.DS_Store
+rampwf.egg-info
+.coverage
+ramp_workflow.egg-info
