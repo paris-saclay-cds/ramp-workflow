@@ -25,28 +25,5 @@ class Predictions(BasePrediction):
         return ~np.isnan(self.y_pred[:, 1])
 
     @property
-    def y_pred_comb(self):
-        """Return an array which can be combined by taking means."""
-        return self.y_pred
-
-    @property
     def n_samples(self):
         return self.y_pred.shape[0]
-
-    # def combine(self, indexes=[]):
-        # Not yet used
-
-        # usually the class contains arrays corresponding to predictions
-        # for a set of different data points. Here we assume that it is
-        # a list of predictions produced by different functions on the same
-        # data point. We return a single PrdictionType
-
-        # Just saving here in case we want to go back there how to
-        # combine based on simply ranks, k = len(indexes)
-        # n = len(y_preds[0])
-        # n_ones = n * k - y_preds[indexes].sum() # number of zeros
-        # if len(indexes) == 0:  # we combine the full list
-        #    indexes = range(len(self.y_probas_array))
-        # combined_y_preds = self.y_preds_array.mean()
-        # combined_prediction = PredictionType(combined_y_preds)
-        # return combined_prediction
