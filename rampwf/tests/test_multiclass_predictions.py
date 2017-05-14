@@ -1,7 +1,7 @@
 import os
 import tempfile
 import os.path as op
-from rampwf.predictions.multiclass_prediction import Predictions
+from rampwf.predictions.multiclass import Predictions
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 

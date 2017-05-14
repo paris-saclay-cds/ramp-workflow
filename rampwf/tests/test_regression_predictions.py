@@ -2,7 +2,7 @@ import os
 import numpy as np
 import tempfile
 import os.path as op
-from rampwf.predictions.regression_prediction import Predictions
+from rampwf.predictions.regression import Predictions
 from numpy.testing import assert_equal, assert_array_equal
 
 
