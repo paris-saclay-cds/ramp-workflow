@@ -27,7 +27,7 @@ def score_function(ground_truths, predictions, valid_indexes=None):
         The predicted cluster assignment (predicted cluster_id)
     """
     if valid_indexes is None:
-        valid_indexes = range(ground_truths.n_samples)
+        valid_indexes = range(len(ground_truths.y_pred))
     y_pred = predictions.y_pred[valid_indexes]
     y_true = ground_truths.y_pred[valid_indexes]
 

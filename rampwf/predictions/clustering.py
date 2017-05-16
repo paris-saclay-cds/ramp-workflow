@@ -1,17 +1,17 @@
 import numpy as np
-from .base_prediction import BasePrediction
+from .base import BasePrediction
 
 
 class Predictions(BasePrediction):
 
-    def __init__(self, labels=None, y_pred=None, y_true=None, n_samples=None):
+    def __init__(self, labels=None, y_pred=None, y_true=None, shape=None):
         self.labels = labels
         if y_pred is not None:
             self.y_pred = np.array(y_pred)
         elif y_true is not None:
             self.y_pred = np.array(y_true)
-        elif n_samples is not None:
-            self.y_pred = np.empty((n_samples, 2))
+        elif shape is not None:
+            self.y_pred = np.empty((shape[0], 2))
             self.y_pred.fill(np.nan)
         else:
             raise ValueError("Missing init argument: y_pred, y_true, f_name "
@@ -23,7 +23,3 @@ class Predictions(BasePrediction):
     @property
     def valid_indexes(self):
         return ~np.isnan(self.y_pred[:, 1])
-
-    @property
-    def n_samples(self):
-        return self.y_pred.shape[0]

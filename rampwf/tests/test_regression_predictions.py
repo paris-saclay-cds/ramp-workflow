@@ -24,5 +24,5 @@ def test_set_valid_in_train():
 
 
 def test_init_to_nan():
-    predictions = Predictions(n_samples=3)
+    predictions = Predictions(shape=3)
     assert_array_equal(predictions.y_pred, np.array([np.nan, np.nan, np.nan]))

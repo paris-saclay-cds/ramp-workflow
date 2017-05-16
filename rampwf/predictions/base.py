@@ -9,10 +9,6 @@ class BasePrediction(object):
     def __str__(self):
         return "y_pred = ".format(self.y_pred)
 
-    @property
-    def n_samples(self):
-        return len(self.y_pred)
-
     @classmethod
     def combine(cls, predictions_list, index_list=None):
         """Combine predictions in predictions_list[index_list].

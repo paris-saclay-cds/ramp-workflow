@@ -1,11 +1,11 @@
-import rampwf.score_types.mare_mixed as mare
-import rampwf.score_types.error_mixed as error
+from rampwf.score_types import mare_mixed
+from rampwf.score_types import error_mixed
 
 
 def score_function(ground_truths, predictions, valid_indexes=None):
-    return 2. / 3 * error.score_function(
+    return 2. / 3 * error_mixed.score_function(
         ground_truths, predictions, valid_indexes) +\
-        1. / 3 * mare.score_function(
+        1. / 3 * mare_mixed.score_function(
             ground_truths, predictions, valid_indexes)
 
 # default display precision in n_digits
