@@ -1,4 +1,4 @@
-import rampwf.score_types.mare as mare
+from . import mare
 
 
 def score_function(ground_truths, predictions, valid_indexes=None):

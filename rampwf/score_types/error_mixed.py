@@ -1,4 +1,4 @@
-from rampwf.score_types import error
+from . import error
 
 
 def score_function(ground_truths, predictions, valid_indexes=None):
