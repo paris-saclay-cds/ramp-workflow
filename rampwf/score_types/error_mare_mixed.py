@@ -1,5 +1,5 @@
-from rampwf.score_types import mare_mixed
-from rampwf.score_types import error_mixed
+from . import mare_mixed
+from . import error_mixed
 
 
 def score_function(ground_truths, predictions, valid_indexes=None):
