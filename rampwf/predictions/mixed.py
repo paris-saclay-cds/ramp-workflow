@@ -1,3 +1,16 @@
+"""Mixed classification/regression prediction predictions.
+
+The first shape[1] - 1 columns are classification posteriors, the
+last column is a regression.
+
+Alternatively, we would need to define workflows with multiple outputs,
+and let scores handle them separately.
+
+"""
+
+# Author: Balazs Kegl <balazs.kegl@gmail.com>
+# License: BSD 3 clause
+
 import numpy as np
 from .base import BasePrediction
 from . import multiclass
@@ -5,7 +18,6 @@ from . import regression
 
 
 class Predictions(BasePrediction):
-
     def __init__(self, labels=None, y_pred=None, y_true=None, shape=None):
         self.labels = labels
         # multiclass.labels = labels

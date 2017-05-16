@@ -1,9 +1,19 @@
+"""Clustering predictions.
+
+Predictions have two columns: event_id and cluster_id. event_id
+comes from the first column of X when test is called. See
+``rampwf.workflows.clustering``.
+
+"""
+
+# Author: Balazs Kegl <balazs.kegl@gmail.com>
+# License: BSD 3 clause
+
 import numpy as np
 from .base import BasePrediction
 
 
 class Predictions(BasePrediction):
-
     def __init__(self, labels=None, y_pred=None, y_true=None, shape=None):
         self.labels = labels
         if y_pred is not None:
@@ -16,9 +26,6 @@ class Predictions(BasePrediction):
         else:
             raise ValueError("Missing init argument: y_pred, y_true, f_name "
                              "or n_samples")
-
-    def set_valid_in_train(self, predictions, test_is):
-        self.y_pred[test_is] = predictions.y_pred
 
     @property
     def valid_indexes(self):

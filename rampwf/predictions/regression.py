@@ -1,3 +1,11 @@
+"""Regression predictions.
+
+y_pred can be one or two-dimensional (for multi-target regression)
+"""
+
+# Author: Balazs Kegl <balazs.kegl@gmail.com>
+# License: BSD 3 clause
+
 import numpy as np
 from .base import BasePrediction
 
@@ -16,11 +24,3 @@ class Predictions(BasePrediction):
         else:
             raise ValueError("Missing init argument: y_pred, y_true, f_name "
                              "or n_samples")
-
-    def set_valid_in_train(self, predictions, test_is):
-        """Set a cross validation slice."""
-        self.y_pred[test_is] = predictions.y_pred
-
-    @property
-    def valid_indexes(self):
-        return ~np.isnan(self.y_pred)

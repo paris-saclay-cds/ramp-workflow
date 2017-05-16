@@ -1,3 +1,23 @@
+"""Base wrapper of scikit-learn-style numpy array predictions.
+
+Functionalities:
+- Hiding implementation details of prediction types (e.g., number of
+  dimensions, semantics of columns).
+- Providing a numpy array view through ``y_pred``. The ``y_pred`` view is
+  used in ``rampwf.score``s as input, and in the default implementation
+  of combining
+- Handling cross-validation slices through ``set_valid_in_train`` and
+  ``valid_indexes``.
+- Combining ``Prediction``s (for CV bagging and ensembling). The default is
+  to take the (nan)mean of the ``y_pred``s, but it can be overridden in
+  derived classes.
+Derived classes should all implement ``Prediction`` because we implement
+polymorphism through importing ``Prediction`` from the particular file.
+"""
+
+# Author: Balazs Kegl <balazs.kegl@gmail.com>
+# License: BSD 3 clause
+
 import numpy as np
 
 
@@ -7,7 +27,16 @@ class BasePrediction(object):
         self.y_pred = y_pred
 
     def __str__(self):
-        return "y_pred = ".format(self.y_pred)
+        return 'y_pred = {}'.format(self.y_pred)
+
+    @property
+    def valid_indexes(self):
+        """Return valid indices (e.g., a cross-validation slice)."""
+        return ~np.isnan(self.y_pred)
+
+    def set_valid_in_train(self, predictions, test_is):
+        """Set a cross-validation slice."""
+        self.y_pred[test_is] = predictions.y_pred
 
     @classmethod
     def combine(cls, predictions_list, index_list=None):
