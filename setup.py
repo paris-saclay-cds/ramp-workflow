@@ -59,7 +59,9 @@ if __name__ == "__main__":
           platforms='any',
           packages=[
               'rampwf',
+              'rampwf.score_types',
               'rampwf.tests',
               'rampwf.predictions',
+              'rampwf.workflows',
           ],
-    )
+          )
