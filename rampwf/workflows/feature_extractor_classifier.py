@@ -1,5 +1,5 @@
-from feature_extractor_workflow import FeatureExtractor
-from classifier_workflow import Classifier
+from .feature_extractor import FeatureExtractor
+from .classifier import Classifier
 
 
 class FeatureExtractorClassifier(object):
