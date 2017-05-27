@@ -8,5 +8,5 @@ from . import f1_above
 from . import mare
 from . import mare_mixed
 from . import negative_log_likelihood
-from . import relative_rmse
-from . import rmse
+from .relative_rmse import RelativeRMSE
+from .rmse import RMSE
