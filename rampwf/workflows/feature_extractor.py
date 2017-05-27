@@ -4,7 +4,6 @@ from importlib import import_module
 class FeatureExtractor(object):
     def __init__(self, workflow_element_names=['feature_extractor']):
         self.workflow_element_names = workflow_element_names
-        print self.workflow_element_names
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
         if train_is is None:

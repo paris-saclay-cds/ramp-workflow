@@ -20,5 +20,4 @@ class Classifier(object):
         y_proba = clf.predict_proba(X_array)
         return y_proba
 
-
 workflow = Classifier()
