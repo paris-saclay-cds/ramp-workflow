@@ -7,7 +7,7 @@ class FeatureExtractor(object):
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
         if train_is is None:
-            train_is = range(len(y_array))
+            train_is = slice(None, None, None)
         submitted_feature_extractor_module = '.{}'.format(
             self.workflow_element_names[0])
         feature_extractor = import_module(

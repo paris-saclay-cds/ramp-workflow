@@ -7,7 +7,7 @@ class Classifier(object):
 
     def train_submission(self, module_path, X_array, y_array, train_is=None):
         if train_is is None:
-            train_is = range(len(y_array))
+            train_is = slice(None, None, None)
         submitted_classifier_module = '.{}'.format(
             self.workflow_element_names[0])
         classifier = import_module(submitted_classifier_module, module_path)
