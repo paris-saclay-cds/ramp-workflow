@@ -1,4 +1,4 @@
-"""Mixed classification/regression prediction predictions.
+"""Mixed classification/regression predictions.
 
 The first shape[1] - 1 columns are classification posteriors, the
 last column is a regression.

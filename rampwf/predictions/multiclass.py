@@ -1,3 +1,13 @@
+"""Multiclass predictions.
+
+``y_pred`` should be two dimensional (n_samples x n_classes).
+For now we have labels, essentially because of this prediction type.
+
+"""
+
+# Author: Balazs Kegl <balazs.kegl@gmail.com>
+# License: BSD 3 clause
+
 import numpy as np
 from .base import BasePrediction
 

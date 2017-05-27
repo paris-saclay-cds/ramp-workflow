@@ -1,5 +1,6 @@
 from . import air_passengers
 from . import classifier
+from . import clusterer
 from . import drug_spectra
 from . import feature_extractor
 from . import feature_extractor_classifier
