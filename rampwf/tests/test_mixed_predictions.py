@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 
 import numpy as np
-from ..predictions.mixed import Predictions
+from rampwf.predictions.mixed import Predictions
 from numpy.testing import assert_array_equal
 
 
