@@ -1,4 +1,4 @@
-from . import predictions
+from . import prediction_types
 from . import score_types
 from . import workflows
 
