@@ -64,4 +64,5 @@ if __name__ == "__main__":
               'rampwf.prediction_types',
               'rampwf.workflows',
           ],
+          scripts=['bin/test_submission']
           )
