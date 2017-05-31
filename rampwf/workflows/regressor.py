@@ -4,6 +4,7 @@ import imp
 class Regressor(object):
     def __init__(self, workflow_element_names=['regressor']):
         self.workflow_element_names = workflow_element_names
+        self.name = 'regressor_workflow'  # temporary
 
     def train_submission(self, module_path, X_array, y_array, train_is=None):
         if train_is is None:
@@ -19,3 +20,6 @@ class Regressor(object):
         reg = trained_model
         y_pred = reg.predict(X_array)
         return y_pred
+
+
+workflow = Regressor()

@@ -6,3 +6,4 @@ from . import feature_extractor
 from . import feature_extractor_classifier
 from . import feature_extractor_regressor
 from .regressor import Regressor
+from .classifier import Classifier
