@@ -25,9 +25,12 @@ for fold_i, (train_is, test_is) in enumerate(cv):
     for score_type_i, score_type in enumerate(score_types):
         score = score_type.score_function(ground_truth, predictions)
         scoress[fold_i, score_type_i] = score
-        print('\t{} = {}'.format(score_type.name, score))
+        print('\t{} = {}'.format(
+            score_type.name, round(score, score_type.precision)))
 print('----------------------------')
 means = scoress.mean(axis=0)
 stds = scoress.std(axis=0)
 for mean, std, score_type in zip(means, stds, score_types):
-    print('{} = {} ± {}'.format(score_type.name, mean, std))
+    print('{} = {} ± {}'.format(
+        score_type.name, round(mean, score_type.precision),
+        round(std, score_type.precision + 1)))
