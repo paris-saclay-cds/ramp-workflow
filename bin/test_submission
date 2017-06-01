@@ -6,7 +6,7 @@ import numpy as np
 problem = imp.load_source('', 'problem.py')
 print('Testing {}'.format(problem.problem_title))
 print('Reading file ...')
-X, y = problem.get_train_data()
+X, y = problem.get_data()
 prediction_labels = problem.prediction_labels
 score_types = problem.score_types
 print('Training model ...')
