@@ -10,6 +10,7 @@ from . import mare_mixed
 from . import negative_log_likelihood
 from .accuracy import Accuracy
 from .classification_error import ClassificationError
+from .f1_above import F1Above
 from .negative_log_likelihood import NegativeLogLikelihood
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE

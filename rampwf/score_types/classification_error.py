@@ -9,7 +9,7 @@ class ClassificationError(BaseScoreType):
         # n_columns = 2: binary classification
         self.n_columns = n_columns
         self.is_lower_the_better = True
-        self.minimum = 0.0,
+        self.minimum = 0.0
         self.maximum = 1.0
 
     def score_function(self, ground_truths, predictions, valid_indexes=None):

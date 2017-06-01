@@ -8,7 +8,7 @@ class RMSE(BaseScoreType):
         self.precision = precision
         self.n_columns = n_columns
         self.is_lower_the_better = True
-        self.minimum = 0.0,
+        self.minimum = 0.0
         self.maximum = float('inf')
 
     def score_function(self, ground_truths, predictions, valid_indexes=None):

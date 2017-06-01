@@ -1,10 +1,4 @@
 class BaseScoreType(object):
-    def worst(self):
-        if self.is_lower_the_better:
-            return self.maximum
-        else:
-            return self.minimum
-
     def check(self, y_true, y_pred):
         if self.n_columns == 0:
             assert len(y_true.shape) == 1
@@ -15,3 +9,10 @@ class BaseScoreType(object):
             assert y_true.shape[0] == self.n_columns
             assert y_pred.shape[0] == self.n_columns
         assert len(y_true) == len(y_pred)
+
+    @property
+    def worst(self):
+        if self.is_lower_the_better:
+            return self.maximum
+        else:
+            return self.minimum
