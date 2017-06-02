@@ -19,12 +19,8 @@ install:
     - cd ..
 script:
     - nosetests --with-coverage rampwf/tests
-    - cd kits/boston_housing
-    - coverage run ../../rampwf/test_submission.py
-    - cd ../..
-    - cd kits/iris
-    - coverage run ../../rampwf/test_submission.py
-    - cd ../..
+    - coverage run rampwf/test_submission.py kits/boston_housing
+    - coverage run rampwf/test_submission.py kits/iris
 after_success:
     - codecov
 notifications:

@@ -19,8 +19,8 @@ inplace:
 
 test:
 	nosetests rampwf/tests
-	cd ../ramp-kits/boston_housing; test_submission
-	cd ../ramp-kits/iris; test_submission
+	python rampwf/test_submission.py ../ramp-kits/boston_housing
+	python rampwf/test_submission.py ../ramp-kits/iris
 
 test-all: test
 

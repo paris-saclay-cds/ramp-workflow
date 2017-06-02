@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+import sys
 import imp
 import numpy as np
 
-problem = imp.load_source('', 'problem.py')
+if len(sys.argv) > 1:
+    subdir = sys.argv[1]
+else:
+    subdir = '.'
+problem = imp.load_source('', subdir + '/problem.py')
 print('Testing {}'.format(problem.problem_title))
 print('Reading file ...')
-X, y = problem.get_data()
+X, y = problem.get_data(path=subdir)
 prediction_labels = problem.prediction_labels
 score_types = problem.score_types
 print('Training model ...')
 cv = list(problem.get_cv(X, y))
-module_path = 'submissions/starting_kit'
+module_path = subdir + '/submissions/starting_kit'
 scoress = np.empty((len(cv), len(score_types)))
 for fold_i, (train_is, test_is) in enumerate(cv):
     trained_workflow = problem.workflow.train_submission(
