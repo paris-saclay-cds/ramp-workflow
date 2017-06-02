@@ -1,11 +1,21 @@
+"""Multiclass predictions.
+
+``y_pred`` should be two dimensional (n_samples x n_classes).
+For now we have labels, essentially because of this prediction type.
+
+"""
+
+# Author: Balazs Kegl <balazs.kegl@gmail.com>
+# License: BSD 3 clause
+
 import numpy as np
-from databoard.base_prediction import BasePrediction
+from .base import BasePrediction
 
 
 class Predictions(BasePrediction):
 
     def __init__(self, labels=None, y_pred=None, y_pred_labels=None,
-                 y_pred_indexes=None, y_true=None, n_samples=None):
+                 y_pred_indexes=None, y_true=None, shape=None):
         self.labels = labels
         if y_pred is not None:
             self.y_proba = np.array(y_pred)
@@ -13,9 +23,9 @@ class Predictions(BasePrediction):
             self._init_from_pred_labels(y_pred_labels)
         elif y_true is not None:
             self._init_from_pred_labels(y_true)
-        elif n_samples is not None:
+        elif shape is not None:
             self.y_proba = np.empty(
-                (n_samples, len(self.labels)), dtype=np.float64)
+                (shape[0], len(self.labels)), dtype=np.float64)
             self.y_proba.fill(np.nan)
         else:
             raise ValueError('Missing init argument: y_pred, y_pred_labels, '
