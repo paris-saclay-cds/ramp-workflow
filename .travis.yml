@@ -14,10 +14,15 @@ install:
     - mkdir kits
     - cd kits
     - git clone https://github.com/ramp-kits/boston_housing.git
+    - git clone https://github.com/ramp-kits/iris.git
     - cd ..
 script:
     - nosetests rampwf/tests
     - cd kits/boston_housing
     - test_submission
+    - cd ../..
+    - cd kits/iris
+    - test_submission
+    - cd ../..
 notifications:
   email: true
