@@ -18,12 +18,12 @@ install:
     - git clone https://github.com/ramp-kits/iris.git
     - cd ..
 script:
-    - coverage run nosetests rampwf/tests
+    - nosetests --with-coverage rampwf/tests
     - cd kits/boston_housing
-    - coverage run test_submission
+    - coverage run -m test_submission
     - cd ../..
     - cd kits/iris
-    - coverage run test_submission
+    - coverage run -m test_submission
     - cd ../..
 after_success:
     - codecov
