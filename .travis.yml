@@ -20,10 +20,10 @@ install:
 script:
     - nosetests --with-coverage rampwf/tests
     - cd kits/boston_housing
-    - coverage run ../../ramp-workflow/rampwf/test_submission
+    - coverage run ../../ramp-workflow/rampwf/test_submission.py
     - cd ../..
     - cd kits/iris
-    - coverage run ../../ramp-workflow/rampwf/test_submission
+    - coverage run ../../ramp-workflow/rampwf/test_submission.py
     - cd ../..
 after_success:
     - codecov
