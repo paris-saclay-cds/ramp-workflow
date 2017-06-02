@@ -6,10 +6,10 @@ before_install:
     - export PATH=/home/travis/miniconda/bin:$PATH
     - conda update --yes --quiet conda
 install:
-    - pip install codecov
     - conda create -n testenv --yes pip python=3.6
     - source activate testenv
     - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas nose
+    - pip install codecov
     - pip install -q flake8
     - python setup.py install
     - mkdir kits
