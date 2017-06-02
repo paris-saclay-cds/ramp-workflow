@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 
 import numpy as np
-from rampwf.predictions.multiclass import Predictions
+from rampwf.prediction_types.multiclass import Predictions
 from numpy.testing import assert_array_equal
 
 

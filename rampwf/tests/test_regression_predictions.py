@@ -4,7 +4,7 @@
 # License: BSD 3 clause
 
 import numpy as np
-from rampwf.predictions.regression import Predictions
+from rampwf.prediction_types.regression import Predictions
 from numpy.testing import assert_array_equal
 
 
