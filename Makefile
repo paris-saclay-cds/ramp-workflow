@@ -19,6 +19,8 @@ inplace:
 
 test:
 	nosetests rampwf/tests
+	cd ../ramp-kits/boston_housing; test_submission
+	cd ../ramp-kits/iris; test_submission
 
 test-all: test
 
