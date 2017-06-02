@@ -2,10 +2,10 @@
 
 # Copyright (C) 2017 Balazs Kegl
 
-import os.path as op
 import os
 
-import setuptools  # noqa; we are using a setuptools namespace
+# we are using a setuptools namespace
+import setuptools  # noqa
 from numpy.distutils.core import setup
 
 version = None
