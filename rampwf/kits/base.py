@@ -1,5 +1,5 @@
-from os import environ
-from os.path import expanduser, join, exists, makedirs
+from os import environ, makedirs
+from os.path import expanduser, join, exists
 
 
 def get_data_home(ramp_kits_home=None):

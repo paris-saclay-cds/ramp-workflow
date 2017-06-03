@@ -8,7 +8,7 @@ before_install:
 install:
     - conda create -n testenv --yes pip python=3.6
     - source activate testenv
-    - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas nose
+    - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas nose gitpython
     - pip install codecov
     - pip install -q flake8
     - python setup.py install
@@ -18,9 +18,7 @@ install:
     - git clone https://github.com/ramp-kits/iris.git
     - cd ..
 script:
-    - nosetests --with-coverage rampwf/tests
-    - coverage run rampwf/test_submission.py kits/boston_housing
-    - coverage run rampwf/test_submission.py kits/iris
+    - nosetests --with-coverage --cover-package=rampwf rampwf
 after_success:
     - codecov
 notifications:
