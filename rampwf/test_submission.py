@@ -4,10 +4,10 @@ import sys
 import imp
 import numpy as np
 
+subdir = '.'
 if len(sys.argv) > 1:
     subdir = sys.argv[1]
-else:
-    subdir = '.'
+
 problem = imp.load_source('', subdir + '/problem.py')
 print('Testing {}'.format(problem.problem_title))
 print('Reading file ...')
