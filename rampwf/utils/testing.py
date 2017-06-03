@@ -4,11 +4,12 @@
 from __future__ import print_function
 
 import imp
+from os.path import join
 
 import numpy as np
 
 
-def assert_submission(ramp_kit_dir='.'):
+def assert_submission(ramp_kit_dir='./'):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -21,7 +22,7 @@ def assert_submission(ramp_kit_dir='.'):
     None
 
     """
-    problem = imp.load_source('', ramp_kit_dir + '/problem.py')
+    problem = imp.load_source('', join(ramp_kit_dir + 'problem.py'))
     print('Testing {}'.format(problem.problem_title))
     print('Reading file ...')
     X, y = problem.get_data(path=ramp_kit_dir)
@@ -29,7 +30,7 @@ def assert_submission(ramp_kit_dir='.'):
     score_types = problem.score_types
     print('Training model ...')
     cv = list(problem.get_cv(X, y))
-    module_path = ramp_kit_dir + '/submissions/starting_kit'
+    module_path = join(ramp_kit_dir, 'submissions/starting_kit')
     scoress = np.empty((len(cv), len(score_types)))
     for fold_i, (train_is, test_is) in enumerate(cv):
         trained_workflow = problem.workflow.train_submission(
@@ -54,7 +55,7 @@ def assert_submission(ramp_kit_dir='.'):
             round(std, score_type.precision + 1)))
 
 
-def assert_backend(ramp_kit_dir='.'):
+def assert_backend(ramp_kit_dir='./'):
     """Helper to test the backend from a ramp-kit.
 
     Parameters
