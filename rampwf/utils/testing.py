@@ -68,7 +68,7 @@ def assert_backend(ramp_kit_dir='./'):
     None
 
     """
-    problem = imp.load_source('', ramp_kit_dir + '/backend.py')
+    problem = imp.load_source('', join(ramp_kit_dir, 'backend.py'))
     print('Preparing {} data'.format(problem.problem_title))
     problem.prepare_data()
     print('Testing {} backend'.format(problem.problem_title))
@@ -79,7 +79,7 @@ def assert_backend(ramp_kit_dir='./'):
     score_types = problem.score_types
     print('Training model ...')
     cv = list(problem.get_cv(X_train, y_train))
-    module_path = ramp_kit_dir + '/submissions/starting_kit'
+    module_path = join(ramp_kit_dir, 'submissions/starting_kit')
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
     test_scoress = np.empty((len(cv), len(score_types)))
