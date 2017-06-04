@@ -23,7 +23,6 @@ install:
 script:
     - nosetests --with-coverage rampwf/tests
     - coverage run rampwf/test_submission.py kits/boston_housing
-    - coverage run rampwf/test_submission.py kits/iris
 after_success:
     - codecov
 notifications:

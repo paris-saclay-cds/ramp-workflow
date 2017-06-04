@@ -20,7 +20,6 @@ inplace:
 test:
 	nosetests --with-coverage rampwf/tests
 	coverage run rampwf/test_submission.py ../ramp-kits/boston_housing
-	coverage run rampwf/test_submission.py ../ramp-kits/iris
 
 test-all: test
 
