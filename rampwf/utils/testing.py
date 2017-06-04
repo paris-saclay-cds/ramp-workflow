@@ -30,7 +30,7 @@ def assert_submission(ramp_kit_dir='./'):
     score_types = problem.score_types
     print('Training model ...')
     cv = list(problem.get_cv(X, y))
-    module_path = join(ramp_kit_dir, 'submissions/starting_kit')
+    module_path = join(ramp_kit_dir, 'submissions', 'starting_kit')
     scoress = np.empty((len(cv), len(score_types)))
     for fold_i, (train_is, test_is) in enumerate(cv):
         trained_workflow = problem.workflow.train_submission(
@@ -79,7 +79,7 @@ def assert_backend(ramp_kit_dir='./'):
     score_types = problem.score_types
     print('Training model ...')
     cv = list(problem.get_cv(X_train, y_train))
-    module_path = join(ramp_kit_dir, 'submissions/starting_kit')
+    module_path = join(ramp_kit_dir, 'submissions', 'starting_kit')
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
     test_scoress = np.empty((len(cv), len(score_types)))
