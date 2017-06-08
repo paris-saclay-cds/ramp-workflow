@@ -67,6 +67,5 @@ if __name__ == "__main__":
         ],
         scripts=[
             'bin/test_submission',
-            'bin/test_backend',
         ]
     )
