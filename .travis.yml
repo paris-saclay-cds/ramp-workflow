@@ -36,7 +36,7 @@ script:
     - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing
     - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing submission=random_forest_100
     - coverage run rampwf/test_submission.py unknown_arg=test
-    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing data=ramp_data/boston_housing
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing data=ramp-data/boston_housing
     - coverage run rampwf/test_submission.py path=ramp-kits/iris
 after_success:
     - codecov
