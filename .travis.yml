@@ -24,6 +24,9 @@ install:
     - cd ramp_data
     - git clone https://github.com/ramp-data/boston_housing.git
     - cd boston_housing
+    - ls -la ../..
+    - ls -la ../../ramp-kits
+    - ls -la ../../ramp-kits/data
     - export RAMP_KITS_DIR=../../ramp-kits
     - python prepare_data.py
     - cd ../..
