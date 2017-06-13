@@ -15,14 +15,14 @@ install:
     - pip install codecov
     - pip install -q flake8
     - python setup.py install
-    - mkdir ramp_kits
-    - export RAMP_KITS_DIR=$TRAVIS_BUILD_DIR/ramp_kits
-    - cd ramp_kits
+    - mkdir ramp-kits
+    - export RAMP_KITS_DIR=$TRAVIS_BUILD_DIR/ramp-kits
+    - cd ramp-kits
     - git clone https://github.com/ramp-kits/boston_housing.git
     - git clone https://github.com/ramp-kits/iris.git
     - cd ..
-    - mkdir ramp_data
-    - cd ramp_data
+    - mkdir ramp-data
+    - cd ramp-data
     - git clone https://github.com/ramp-data/boston_housing.git
     - cd boston_housing
     - python prepare_data.py
@@ -33,11 +33,11 @@ install:
     - cd ../..
 script:
     - nosetests --with-coverage rampwf/tests
-    - coverage run rampwf/test_submission.py path=ramp_kits/boston_housing
-    - coverage run rampwf/test_submission.py path=ramp_kits/boston_housing submission=random_forest_100
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing submission=random_forest_100
     - coverage run rampwf/test_submission.py unknown_arg=test
-    - coverage run rampwf/test_submission.py path=ramp_kits/boston_housing data=ramp_data/boston_housing
-    - coverage run rampwf/test_submission.py path=ramp_kits/iris
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing data=ramp_data/boston_housing
+    - coverage run rampwf/test_submission.py path=ramp-kits/iris
 after_success:
     - codecov
 notifications:
