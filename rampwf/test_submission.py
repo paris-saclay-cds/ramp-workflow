@@ -24,7 +24,6 @@ for arg in sys.argv[1:]:
 
 
 problem = imp.load_source('', os.path.join(path, 'problem.py'))
-problem.is_backend = False
 print('Testing {} backend'.format(problem.problem_title))
 print('Reading file ...')
 X_train, y_train = problem.get_train_data(path=path)
