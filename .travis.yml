@@ -22,7 +22,9 @@ install:
     - cd ..
 script:
     - nosetests --with-coverage rampwf/tests
-    - coverage run rampwf/test_submission.py kits/boston_housing
+    - coverage run rampwf/test_submission.py path=kits/boston_housing
+    - coverage run rampwf/test_submission.py path=kits/boston_housing submission=random_forest_100
+    - coverage run rampwf/test_submission.py unknown_arg=test
 after_success:
     - codecov
 notifications:
