@@ -26,6 +26,7 @@ install:
     - cd boston_housing
     - python prepare_data.py
     - cd ../..
+    - export RAMP_KITS_DIR='ramp-kits'
 script:
     - nosetests --with-coverage rampwf/tests
     - coverage run rampwf/test_submission.py path=ramp_kits/boston_housing
