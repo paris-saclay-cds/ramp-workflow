@@ -21,7 +21,9 @@ test:
 	nosetests --with-coverage rampwf/tests
 	coverage run rampwf/test_submission.py path=$(RAMP_KITS_DIR)/boston_housing
 	coverage run rampwf/test_submission.py path=$(RAMP_KITS_DIR)/boston_housing submission=random_forest_100
+	coverage run rampwf/test_submission.py unknown_arg=try
 	coverage run rampwf/test_submission.py path=$(RAMP_KITS_DIR)/boston_housing data=$(RAMP_DATA_DIR)/boston_housing
+	coverage run rampwf/test_submission.py path=$(RAMP_KITS_DIR)/iris
 
 test-all: test
 
