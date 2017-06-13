@@ -5,21 +5,35 @@ import sys
 import imp
 import numpy as np
 
-subdir = '.'
-if len(sys.argv) > 1:
-    subdir = sys.argv[1]
+# Command line parameters:
+#     path=<path>  (default: .)
+#     name=<submission_name> (default: starting_kit)
+# It will look for problem.py in <path> and workflow elements (submission)
+# in <path>/submissions/<submission_name>
+path = '.'
+submission_name = 'starting_kit'
+for arg in sys.argv[1:]:
+    tokens = arg.split('=')
+    if tokens[0] == 'path':
+        path = tokens[1]
+    elif tokens[0] == 'submission':
+        submission_name = tokens[1]
+    else:
+        print('Unknown argument {}'.format(tokens[0]))
+        exit(0)
 
-problem = imp.load_source('', os.path.join(subdir, 'problem.py'))
+
+problem = imp.load_source('', os.path.join(path, 'problem.py'))
 problem.is_backend = False
 print('Testing {} backend'.format(problem.problem_title))
 print('Reading file ...')
-X_train, y_train = problem.get_train_data(path=subdir)
-X_test, y_test = problem.get_test_data(path=subdir)
+X_train, y_train = problem.get_train_data(path=path)
+X_test, y_test = problem.get_test_data(path=path)
 prediction_labels = problem.prediction_labels
 score_types = problem.score_types
-print('Training model ...')
+print('Training {} in {}/submissions ...'.format(submission_name, path))
 cv = list(problem.get_cv(X_train, y_train))
-module_path = os.path.join(subdir, 'submissions', 'starting_kit')
+module_path = os.path.join(path, 'submissions', submission_name)
 train_train_scoress = np.empty((len(cv), len(score_types)))
 train_valid_scoress = np.empty((len(cv), len(score_types)))
 test_scoress = np.empty((len(cv), len(score_types)))

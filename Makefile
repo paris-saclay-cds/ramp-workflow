@@ -19,7 +19,8 @@ inplace:
 
 test:
 	nosetests --with-coverage rampwf/tests
-	coverage run rampwf/test_submission.py ../ramp-kits/boston_housing
+	coverage run rampwf/test_submission.py path=../ramp-kits/boston_housing
+	coverage run rampwf/test_submission.py path=../ramp-kits/boston_housing submission=random_forest_100
 
 test-all: test
 
