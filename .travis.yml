@@ -16,7 +16,6 @@ install:
     - pip install -q flake8
     - python setup.py install
     - mkdir ramp_kits
-    - export RAMP_KITS_DIR=$TRAVIS_BUILD_DIR/ramp-kits
     - cd ramp_kits
     - git clone https://github.com/ramp-kits/boston_housing.git
     - git clone https://github.com/ramp-kits/iris.git
@@ -25,6 +24,7 @@ install:
     - cd ramp_data
     - git clone https://github.com/ramp-data/boston_housing.git
     - cd boston_housing
+    - export RAMP_KITS_DIR=../../ramp-kits
     - python prepare_data.py
     - cd ../..
 script:
