@@ -102,3 +102,9 @@ for mean, std, score_type in zip(means, stds, score_types):
     print('test {} = {} ± {}'.format(
         score_type.name, round(mean, score_type.precision),
         round(std, score_type.precision + 1)))
+
+print('----------------------------')
+problem_name = os.path.abspath(path).split('/')[-1]
+print('Testing if the notebook can be converted to html')
+os.system('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
+    path, problem_name))
