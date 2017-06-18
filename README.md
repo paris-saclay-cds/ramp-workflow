@@ -13,7 +13,7 @@ The [RAMP](http://www.ramp.studio) ecosystem contains two organizations and thre
     1. describing and implementing particular data analytics workflows, score types, cross validation schemes, and data connectors, using tools from [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow), and
     2. implementing at least one workflow instantiation (submission) so the workflow can be unit tested.
 
-## Why do I need want this bundle?
+## Why do I want this bundle?
 
 ### I am a data science teacher
 
@@ -21,12 +21,27 @@ If you would like to **use one of the existing [ramp-kits](https://github.com/ra
 
 If you have your own data set and would like to **build a new starting kit and challenge** for your course, go to ["Build your own workflow"](#build-your-own-workflow).
 
-### I am a data science student / novice data scientits
+### I am a data science student or novice data scientist
 
-You can **learn about data science** by signing up to ongoing and past data challenges at [ramp.studio](http://www.ramp.studio/problems). Sign up for the site then choose a [topic]((http://www.ramp.studio/data_science_themes) or a [data domain](http://www.ramp.studio/data_domains) and sign up to the corresponding event. Most events are in "open leaderboard" mode which means that you can **browse the code** of all the submissions, including the best ones submitted by 
+You can **learn about data science** by signing up to ongoing and past data challenges at [ramp.studio](http://www.ramp.studio/problems). Sign up for the site then choose a [topic]((http://www.ramp.studio/data_science_themes) or a [data domain](http://www.ramp.studio/data_domains) and sign up to the corresponding event. Most events are in "open leaderboard" mode which means that you can **browse the code** of all the submissions, including the best ones submitted by top students or professional data scientists.
 
+### I am a practicing data scientist
 
-## How to use this library?
+You can **[build your own workflow](#build-your-own-workflow)** using the [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow) library, following examples from [ramp-kits](https://github.com/ramp-kits). You can then **train and test your models locally** and keep track of them in a simple file structure. If you want to **collaborate with your fellow team members**, you can simply commit your kit and use git.
+
+You can also use [ramp.studio](http://www.ramp.studio) to expose your kit either privately to your internal team or by lunching a public data challenge. If you are interested in these options, [contact us](mailto:admin@ramp.studio).
+
+### I am a researcher in machine learning
+
+You can **benchmark your new algorithm** against all our data challenges on [ramp.studio](http://www.ramp.studio/problems). You can start by downloading the starting kits from the repo in [ramp-kits](https://github.com/ramp-kits) that you would like to use for benchmark, and test your algorithm locally. You can then sign up at the [RAMP site](http://www.ramp.studio) and sign up to one of the events corresponding to the kit you chose. You can submit your algorithm as many times as you want. You will have access to the public leaderboard score that uses cross validation described in the starting kit.
+
+If you register with us for an official benchmarking, we will provide you a private test score for a small number of submissions of your choice, at a date of your choice (but only once).
+
+### I am a researcher in a domain science
+
+If you **have a predictive problem**, you can **submit it as a data challenge** to incite data scientists to solve your problem. First [build your own workflow](#build-your-own-workflow) using the [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow) library, following examples from [ramp-kits](https://github.com/ramp-kits), then [contact us](mailto:admin@ramp.studio) so we upload it to the [RAMP site](http://www.ramp.studio). We can then organize hackatons and use the problem in a classroom setting. We may also automatically benchmark the thousands of models that are already in the platform.
+
+## How to use this bundle?
 
 ### Build your own workflow
 
