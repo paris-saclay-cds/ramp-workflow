@@ -13,13 +13,18 @@ The [RAMP](http://www.ramp.studio) ecosystem contains two organizations and thre
     1. describing and implementing particular data analytics workflows, score types, cross validation schemes, and data connectors, using tools from [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow), and
     2. implementing at least one workflow instantiation (submission) so the workflow can be unit tested.
 
-## Why do I need this library?
+## Why do I need want this bundle?
 
 ### I am a data science teacher
 
-If you would like to use one of the existing [ramp-kits](https://github.com/ramp-kits) and the corresponding classroom data challenge, ask for a new event at the [RAMP site](http://www.ramp.studio/problems). You can browse the existing challenges by the [data science theme](http://www.ramp.studio/data_science_themes) you would like to focus on in your course, or by the [data domain](http://www.ramp.studio/data_domains) you would like to apply data science to.
+If you would like to **use one of the existing [ramp-kits](https://github.com/ramp-kits) and the corresponding data challenge in a classroom**, ask for a new event at the [RAMP site](http://www.ramp.studio/problems). You can browse the existing challenges by the [data science theme](http://www.ramp.studio/data_science_themes) you would like to focus on in your course, or by the [data domain](http://www.ramp.studio/data_domains) you would like to apply data science to.
 
-If you have your own data set and 
+If you have your own data set and would like to **build a new starting kit and challenge** for your course, go to ["Build your own workflow"](#build-your-own-workflow).
+
+### I am a data science student / novice data scientits
+
+You can **learn about data science** by signing up to ongoing and past data challenges at [ramp.studio](http://www.ramp.studio/problems). Sign up for the site then choose a [topic]((http://www.ramp.studio/data_science_themes) or a [data domain](http://www.ramp.studio/data_domains) and sign up to the corresponding event. Most events are in "open leaderboard" mode which means that you can **browse the code** of all the submissions, including the best ones submitted by 
+
 
 ## How to use this library?
 
