@@ -79,7 +79,7 @@ After submission, do not forget to give credits to the previous submissions you 
 
 The data set we use at the backend is usually different from what you find in the starting kit, so the score may be different.
 
-The usual way to work with RAMP is to explore solutions, add feature transformations, select models, perhaps do some AutoML/hyperopt, etc., locally, and checking them with `test_submission`. The script prints mean cross-validation scores, for example, in the case of iris, 
+The usual way to work with RAMP is to explore solutions, add feature transformations, select models, perhaps do some AutoML/hyperopt, etc., _locally_, and checking them with `test_submission`. The script prints mean cross-validation scores, for example, in the case of iris, 
 ```
 ----------------------------
 train acc = 0.51 ± 0.043
@@ -95,14 +95,83 @@ test err = 0.45 ± 0.131
 test nll = 0.87 ± 0.037
 test f1_70 = 0.5 ± 0.167
 ```
-The official score in iris (the first score column after "historical contributivity") is accuracy ("acc"), so the line that is relevant in the output of `test_submission` is `valid acc = 0.47 ± 0.087`. When the score is good enough, you can submit it at the RAMP.
-
+The official score in iris (the first score column after "historical contributivity" on the [leaderboard](http://www.ramp.studio/events/iris_test/leaderboard)) is accuracy ("acc"), so the line that is relevant in the output of `test_submission` is `valid acc = 0.47 ± 0.087`. When the score is good enough, you can submit it at the RAMP.
 
 ### Build your own workflow
 
-Chances are something similar already exists
+If you are a [data science teacher](#i-am-a-data-science-teacher), a [data scientist](#i-am-a-practicing-data-scientist), or a [researcher](#i-am-a-researcher-in-a-domain-science) you may have a new data set and a predictive problem for which you want to build a starting kit. In this subsection we walk you through what you need to do.
+
+Your goal is not necessarly to launch an open RAMP, you may just want to organize your local experiments, make resuable building blocks, log your local submissions, etc. But once you have a working starting kit, it is also quite easy to launch a RAMP.
+
+The basic gist is that each starting kit contains a python file `problem.py` that parametrizes the setup. It uses building blocks from this library ([ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)), like choosing from a menu. As an example, we will walk you through the [`problem.py`](https://github.com/ramp-kits/iris/blob/master/problem.py) of the iris starting kit. Other problems may use more complex workflows or cross-validation schemes, but this complexity is usually hidden in the implementation of those elements in [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow). The goal was to keep the script `problem.py` as simple as possible.
+
+1. Choose a title
+```
+problem_title = 'Iris classification'
+```
+2. Choose a prediction type from [`rampwf/prediction_types`](rampwf/prediction_types)
+```
+prediction_type = rw.prediction_types.multiclass
+``` 
+Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
+3. Choose a workflow from [`rampwf/workflows`](rampwf/workflows)
+```
+workflow = rw.workflows.Classifier()
+```
+Typical workflows are a single [`classifier`](rampwf/workflows/classifier.py) or a [feature extractor followed by a classifier](rampwf/workflows/feature_extractor_classifier.py), but we have more complex workflows, named after the first problem that used them (e.g., [`drug_spectra`](rampwf/workflows/drug_spectra.py), two feature extractors, a classifier, and a regressor; or [`air_passengers`](rampwf/workflows/air_passengers.py), a feature extractor followed by a regressor, but also an `external_data.csv` that the feature extractor can merge with the training set). Each workflow implements a class which has `train_submission` and `test_submission` member functions that train and test submissions, and a `workflow_element_names` field containing the file names that `test_submission` expects in `submissions/starting_kit` or `submissions/<new-submission_name>`.
+4. Specify the prediction labels
+```
+prediction_labels = ['setosa', 'versicolor', 'virginica']
+```
+If it is not a classification problem, set it to `None`.
+5. Choose score types (metrics) from [`rampwf/score_types`](rampwf/score_types)
+```
+score_types = [
+    rw.score_types.Accuracy(name='acc', n_columns=len(prediction_labels)),
+    rw.score_types.ClassificationError(
+        name='err', n_columns=len(prediction_labels)),
+    rw.score_types.NegativeLogLikelihood(
+        name='nll', n_columns=len(prediction_labels)),
+    rw.score_types.F1Above(
+        name='f1_70', n_columns=len(prediction_labels), threshold=0.7),
+]
+```
+Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`](rampwf/score_types/rmse.py). Each score type implements a class with a member function `score_function` and fields
+    1. `name`, that `test_submission` uses in the logs; also the column name in the RAMP leaderboard,
+    2. `precision`: the number of decimal digits,
+    3. `n_columns`: the number of columns in the output `y_pred` of the last workflow element (typically a classifier or a regressor),
+    4. `is_lower_the_better`: a boolean which is `True` if the score is the lower the better, `False` otherwise,
+    5. `minimum`: the smallest possible score,
+    6. `maximum`: the largest possible score.
+6. A function `get_cv` returning a cross-validation object
+```
+def get_cv(X, y):
+    cv = StratifiedShuffleSplit(n_splits=10, test_size=0.2, random_state=57)
+    return cv.split(X, y)
+```
+7. Two functions reading the training and test data sets.
+```
+def get_train_data(path='.'):
+    f_name = 'train.csv'
+    return _read_data(path, f_name)
 
 
-Workflow elements are file names. Most of them are python code files, they should have no extension. They will become editable on RAMP. Other files, e.g. external_data.csv or comments.txt whould have extensions. Editability fill be inferred from extension (e.g., txt is editable, csv is not, only uploadable). File names should contain no more than one '.'.
+def get_test_data(path='.'):
+    f_name = 'test.csv'
+    return _read_data(path, f_name)
+```
+ The convention is that these sets are found in `/data` and called `train.csv` and `test.csv`, but we kept this element flexible to accommodate a large number of possible input data connectors.
+ 
+The script is used by [`test_submission.py`](rampwf/test_submission.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is rather straightforward so we do not detail it here.
+
+### Contribute to [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)
+
+Chances are something similar already exists. In case not, pull request.
+
+
+# Draft
+Most of the elements (submission files) are python code files, they should have no extension. They will become editable on RAMP. Other files, e.g. external_data.csv or comments.txt whould have extensions. Editability fill be inferred from extension (e.g., txt is editable, csv is not, only uploadable). File names should contain no more than one '.'.
+
+
 
 Tests suppose that ramp-kits and ramp-workflows are installed in the same directory.
