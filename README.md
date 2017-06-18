@@ -6,7 +6,7 @@ The [RAMP](http://www.ramp.studio) ecosystem contains two organizations and thre
     2. [workflows and workflow elements](rampwf/workflows) (trainable data analytics modules like a classifier or a feature extractor),
     3. [cross-valudation schemes](rampwf/cv_schemes) (guiding the evaluation procedure of the workflow), and
     4. data connectors (to feed the workflows from various data sources).
-2. [databoard](https://github.com/paris-saclay-cds/databoard), a library managing the frontend and the database of the [RAMP](http://www.ramp.studio) platform. (should may be renamed ramp-board)
+2. [ramp-board](https://github.com/paris-saclay-cds/ramp-board), a library managing the frontend and the database of the [RAMP](http://www.ramp.studio) platform. (should may be renamed ramp-board)
 3. [ramp-backend](https://github.com/paris-saclay-cds/ramp-backend), a library managing the RAMP backend (training and evaluating workflow instantiations aka submissions). (doesn't exist yet)
 4. [ramp-data](https://github.com/ramp-data), an organization containing data sets on which workflows are trained and evaluated.
 5. [ramp-kits](https://github.com/ramp-kits), an organization containing *starting kits*
@@ -42,6 +42,29 @@ If you register with us for an official benchmarking, we will provide you a priv
 If you **have a predictive problem**, you can **submit it as a data challenge** to incite data scientists to solve your problem. First [build your own workflow](#build-your-own-workflow) using the [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow) library, following examples from [ramp-kits](https://github.com/ramp-kits), then [contact us](mailto:admin@ramp.studio) so we upload it to the [RAMP site](http://www.ramp.studio). We can then organize hackatons and use the problem in a classroom setting. We may also automatically benchmark the thousands of models that are already in the platform.
 
 ## How to use this bundle?
+
+Start by installing ramp-workflow (this library):
+```
+git clone https://github.com/paris-saclay-cds/ramp-workflow.git
+cd ramp-workflow
+python setup.py
+```
+
+### Get familiar with starting kits
+
+Starting kits in [ramp-kits](https://github.com/ramp-kits) are working workflows and workflow instantiations. They work out of the box. You can run them using the `test_submission` script that simply executes [`test_submission.py`](rampwf/test_submission.py) in the starting kit. For example, clone the iris starting kit and test it by
+```
+mkdir ramp-kits
+cd ramp-kits
+git clone https://github.com/ramp-kits/iris.git
+cd iris
+test_submission
+```
+When `test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Iris uses a [`classifier`](rampwf/workflows/classifier) workflow which is instantiated by a single `classifier.py` file in the submission directory (`submissions/starting_kit`). You can overwrite this file to test other classifiers, or keep it and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `test_submission submission=<submission_name>`. For example,
+```
+test_submission submission=random_forest_10_10
+```
+will test `classifier.py` found in `submissions/random_forest_10_10`.
 
 ### Build your own workflow
 
