@@ -60,22 +60,48 @@ git clone https://github.com/ramp-kits/iris.git
 cd iris
 test_submission
 ```
-When `test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Iris uses a [`classifier`](rampwf/workflows/classifier) workflow which is instantiated by a single `classifier.py` file in the submission directory (`submissions/starting_kit`). You can overwrite this file to test other classifiers, or keep it and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `test_submission submission=<submission_name>`. For example,
+When `test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Iris uses a [`classifier`](rampwf/workflows/classifier) workflow which is instantiated by a single [`classifier.py`](https://github.com/ramp-kits/iris/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite this file to test other classifiers, or keep it and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `test_submission submission=<submission_name>`. For example,
 ```
 test_submission submission=random_forest_10_10
 ```
-will test `classifier.py` found in `submissions/random_forest_10_10`.
+will test [`classifier.py`](https://github.com/ramp-kits/iris/blob/master/submissions/random_forest_10_10/classifier.py) found in `submissions/random_forest_10_10`.
+
+The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`iris_starting_kit.ipynb`](https://github.com/ramp-kits/iris/blob/master/iris_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
+
+### Submit at [ramp.studio](http://www.ramp.studio)
+
+Once you found a good workflow instantiation (submission), you can submit it at [ramp.studio](http://www.ramp.studio). First, if it is your first time using RAMP, [sign up](http://www.ramp.studio/sign_up), otherwise [log in](http://www.ramp.studio/login). Then find an open event on the particular problem, for example, the event [iris_test](http://www.ramp.studio/events/iris_test) for iris. Sign up for the event. Both signups are controled by RAMP administrators, so there **can be a delay between asking for signup and being able to submit**.
+
+Once your signup request is accepted, you can go to your [sandbox](http://www.ramp.studio/events/iris_test/sandbox) and copy-paste (or upload) `classifier.py` from `submissions/<submission_name>`. Save it, rename it, then submit it. The submission is trained and tested on our backend in the same way as `test_submission` does it locally. During your submission is waiting in the queue and being trained, you can find it in the "New submissions (pending training)" table in [my submissions](http://www.ramp.studio/events/iris_test/my_submissions). Once it is trained, you get a mail, and your submission shows up on the [public leaderboard](http://www.ramp.studio/events/iris_test/leaderboard). 
+If there is an error (despite having tested your submission locally with `test_submission`), it will show up in the "Failed submissions" table in [my submissions](http://www.ramp.studio/events/iris_test/my_submissions). You can click on the error to see part of the trace.
+
+After submission, do not forget to give credits to the previous submissions you reused or integrated into your submission.
+
+The data set we use at the backend is usually different from what you find in the starting kit, so the score may be different.
+
+The usual way to work with RAMP is to explore solutions, add feature transformations, select models, perhaps do some AutoML/hyperopt, etc., locally, and checking them with `test_submission`. The script prints mean cross-validation scores, for example, in the case of iris, 
+```
+----------------------------
+train acc = 0.51 ± 0.043
+train err = 0.49 ± 0.043
+train nll = 1.21 ± 0.485
+train f1_70 = 0.03 ± 0.1
+valid acc = 0.47 ± 0.087
+valid err = 0.53 ± 0.087
+valid nll = 1.32 ± 0.686
+valid f1_70 = 0.13 ± 0.221
+test acc = 0.55 ± 0.131
+test err = 0.45 ± 0.131
+test nll = 0.87 ± 0.037
+test f1_70 = 0.5 ± 0.167
+```
+The official score in iris (the first score column after "historical contributivity") is accuracy ("acc"), so the line that is relevant in the output of `test_submission` is `valid acc = 0.47 ± 0.087`. When the score is good enough, you can submit it at the RAMP.
+
 
 ### Build your own workflow
 
 Chances are something similar already exists
 
-### Launch your own RAMP
-
-
-This library is part of the [RAMP](http://www.ramp.studio) ecosystem.
-
-Toolkit for building analytics workflows on the top of pandas and scikit-learn. Primarily intended to feed RAMPs.
 
 Workflow elements are file names. Most of them are python code files, they should have no extension. They will become editable on RAMP. Other files, e.g. external_data.csv or comments.txt whould have extensions. Editability fill be inferred from extension (e.g., txt is editable, csv is not, only uploadable). File names should contain no more than one '.'.
 
