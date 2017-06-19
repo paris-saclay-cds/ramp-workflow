@@ -105,25 +105,29 @@ Your goal is not necessarly to launch an open RAMP, you may just want to organiz
 
 The basic gist is that each starting kit contains a python file `problem.py` that parametrizes the setup. It uses building blocks from this library ([ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)), like choosing from a menu. As an example, we will walk you through the [`problem.py`](https://github.com/ramp-kits/iris/blob/master/problem.py) of the iris starting kit. Other problems may use more complex workflows or cross-validation schemes, but this complexity is usually hidden in the implementation of those elements in [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow). The goal was to keep the script `problem.py` as simple as possible.
 
-1. Choose a title
+<ol>
+<li>Choose a title
 ```
 problem_title = 'Iris classification'
 ```
-2. Choose a prediction type from [`rampwf/prediction_types`](rampwf/prediction_types)
+<li>Choose a prediction type from [`rampwf/prediction_types`](rampwf/prediction_types)
 ```
 prediction_type = rw.prediction_types.multiclass
-``` 
+```
 Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
-3. Choose a workflow from [`rampwf/workflows`](rampwf/workflows)
+<li>Choose a workflow from [`rampwf/workflows`](rampwf/workflows)
 ```
 workflow = rw.workflows.Classifier()
 ```
 Typical workflows are a single [`classifier`](rampwf/workflows/classifier.py) or a [feature extractor followed by a classifier](rampwf/workflows/feature_extractor_classifier.py), but we have more complex workflows, named after the first problem that used them (e.g., [`drug_spectra`](rampwf/workflows/drug_spectra.py), two feature extractors, a classifier, and a regressor; or [`air_passengers`](rampwf/workflows/air_passengers.py), a feature extractor followed by a regressor, but also an `external_data.csv` that the feature extractor can merge with the training set). Each workflow implements a class which has `train_submission` and `test_submission` member functions that train and test submissions, and a `workflow_element_names` field containing the file names that `test_submission` expects in `submissions/starting_kit` or `submissions/<new-submission_name>`.
-4. Specify the prediction labels
+
+<li>Specify the prediction labels
 ```
 prediction_labels = ['setosa', 'versicolor', 'virginica']
 ```
 If it is not a classification problem, set it to `None`.
+</ol>
+
 5. Choose score types (metrics) from [`rampwf/score_types`](rampwf/score_types)
 ```
 score_types = [
@@ -163,6 +167,10 @@ def get_test_data(path='.'):
  The convention is that these sets are found in `/data` and called `train.csv` and `test.csv`, but we kept this element flexible to accommodate a large number of possible input data connectors.
  
 The script is used by [`test_submission.py`](rampwf/test_submission.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is rather straightforward so we do not detail it here.
+
+### Launching a RAMP
+
+A working starting kit is most of what we need. We will pull it on the backend and set it up. But also data: ramp-data. Test file is there, has to be private, and we need access. Alternatively the kit can be public which then controls the downloading of the private data in other ways.
 
 ### Contribute to [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)
 
