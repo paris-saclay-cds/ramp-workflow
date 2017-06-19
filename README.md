@@ -6,7 +6,7 @@ The [RAMP](http://www.ramp.studio) ecosystem contains two organizations and thre
     2. [workflows and workflow elements](rampwf/workflows) (trainable data analytics modules like a classifier or a feature extractor),
     3. [cross-valudation schemes](rampwf/cv_schemes) (guiding the evaluation procedure of the workflow), and
     4. data connectors (to feed the workflows from various data sources).
-2. [ramp-board](https://github.com/paris-saclay-cds/ramp-board), a library managing the frontend and the database of the [RAMP](http://www.ramp.studio) platform. (should may be renamed ramp-board)
+2. [ramp-board](https://github.com/paris-saclay-cds/ramp-board), a library managing the frontend and the database of the [RAMP](http://www.ramp.studio) platform.
 3. [ramp-backend](https://github.com/paris-saclay-cds/ramp-backend), a library managing the RAMP backend (training and evaluating workflow instantiations aka submissions). (doesn't exist yet)
 4. [ramp-data](https://github.com/ramp-data), an organization containing data sets on which workflows are trained and evaluated.
 5. [ramp-kits](https://github.com/ramp-kits), an organization containing *starting kits*
@@ -23,7 +23,7 @@ If you have your own data set and would like to **build a new starting kit and c
 
 ### I am a data science student or novice data scientist
 
-You can **learn about data science** by signing up to ongoing and past data challenges at [ramp.studio](http://www.ramp.studio/problems). Sign up for the site then choose a [topic]((http://www.ramp.studio/data_science_themes) or a [data domain](http://www.ramp.studio/data_domains) and sign up to the corresponding event. Most events are in "open leaderboard" mode which means that you can **browse the code** of all the submissions, including the best ones submitted by top students or professional data scientists.
+You can **learn about data science** by signing up to ongoing and past data challenges at [ramp.studio](http://www.ramp.studio/problems). Sign up for the site then choose a [topic](http://www.ramp.studio/data_science_themes) or a [data domain](http://www.ramp.studio/data_domains) and sign up to the corresponding event. Most events are in "open leaderboard" mode which means that you can **browse the code** of all the submissions, including the best ones submitted by top students or professional data scientists.
 
 ### I am a practicing data scientist
 
@@ -39,7 +39,7 @@ If you register with us for an official benchmarking, we will provide you a priv
 
 ### I am a researcher in a domain science
 
-If you **have a predictive problem**, you can **submit it as a data challenge** to incite data scientists to solve your problem. First [build your own workflow](#build-your-own-workflow) using the [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow) library, following examples from [ramp-kits](https://github.com/ramp-kits), then [contact us](mailto:admin@ramp.studio) so we upload it to the [RAMP site](http://www.ramp.studio). We can then organize hackatons and use the problem in a classroom setting. We may also automatically benchmark the thousands of models that are already in the platform.
+If you **have a predictive problem**, you can **submit it as a data challenge** to incite data scientists to solve your problem. First [build your own workflow](#build-your-own-workflow) using the [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow) library, following examples from [ramp-kits](https://github.com/ramp-kits), then [contact us](mailto:admin@ramp.studio) so we upload it to the [RAMP site](http://www.ramp.studio). We can then organize hackatons or longer data challenges, and use the problem in a classroom setting. We may also automatically benchmark the thousands of models that are already in the platform.
 
 ## How to use this bundle?
 
@@ -52,7 +52,7 @@ python setup.py
 
 ### Get familiar with starting kits
 
-Starting kits in [ramp-kits](https://github.com/ramp-kits) are working workflows and workflow instantiations. They work out of the box. You can run them using the `test_submission` script that simply executes [`test_submission.py`](rampwf/test_submission.py) in the starting kit. For example, clone the iris starting kit and test it by
+Starting kits in [ramp-kits](https://github.com/ramp-kits) are working workflows and workflow instantiations. They work out of the box. You can run them using the [`test_submission`](bin/test_submission) script that simply executes [`test_submission.py`](rampwf/test_submission.py) in the starting kit. For example, clone the iris starting kit and test it by
 ```
 mkdir ramp-kits
 cd ramp-kits
@@ -68,7 +68,7 @@ will test [`classifier.py`](https://github.com/ramp-kits/iris/blob/master/submis
 
 The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`iris_starting_kit.ipynb`](https://github.com/ramp-kits/iris/blob/master/iris_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
 
-### Submit at [ramp.studio](http://www.ramp.studio)
+### Submit to a data challenge at [ramp.studio](http://www.ramp.studio)
 
 Once you found a good workflow instantiation (submission), you can submit it at [ramp.studio](http://www.ramp.studio). First, if it is your first time using RAMP, [sign up](http://www.ramp.studio/sign_up), otherwise [log in](http://www.ramp.studio/login). Then find an open event on the particular problem, for example, the event [iris_test](http://www.ramp.studio/events/iris_test) for iris. Sign up for the event. Both signups are controled by RAMP administrators, so there **can be a delay between asking for signup and being able to submit**.
 
@@ -156,6 +156,16 @@ def get_cv(X, y):
 
 7. Two functions reading the training and test data sets.
 ```
+_target_column_name = 'species'
+
+
+def _read_data(path, f_name):
+    data = pd.read_csv(os.path.join(path, 'data', f_name))
+    y_array = data[_target_column_name].values
+    X_array = data.drop([_target_column_name], axis=1).values
+    return X_array, y_array
+
+
 def get_train_data(path='.'):
     f_name = 'train.csv'
     return _read_data(path, f_name)
@@ -167,20 +177,66 @@ def get_test_data(path='.'):
 ```
 The convention is that these sets are found in `/data` and called `train.csv` and `test.csv`, but we kept this element flexible to accommodate a large number of possible input data connectors.
  
-The script is used by [`test_submission.py`](rampwf/test_submission.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is rather straightforward so we do not detail it here.
+The script is used by [`test_submission.py`](rampwf/test_submission.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is quite straightforward so we do not detail it here.
 
-### Launching a RAMP
+### Launching your own RAMP
 
-A working starting kit is most of what we need. We will pull it on the backend and set it up. But also data: ramp-data. Test file is there, has to be private, and we need access. Alternatively the kit can be public which then controls the downloading of the private data in other ways.
+In case you built your starting kit for launching a (public or private) data challenge, here are the additional steps to follow. In fact, these steps usually _precede_ the writing of the starting kit since we partition the data into public train and private test here.
+
+1. Start by creating a repo, typically in the [ramp-data](https://github.com/ramp-data) organization, which will hold your data set. It is important to keep the data private for allowing proper cross-validation and model testing. So either keep this repo private or make sure that the privacy of the data is assured using other techniques.
+
+2. Write your `prepare_data` script. In the case of iris, [`prepare_data.py`](https://github.com/ramp-data/iris/blob/master/prepare_data.py) first reads the full data from `/data/iris.csv` and splits it into `/data/train.csv` and `/data/iris.csv`
+```
+df = pd.read_csv(os.path.join('data', 'iris.csv'))
+df_train, df_test = train_test_split(df, test_size=0.2, random_state=57)
+df_train.to_csv(os.path.join('data', 'train.csv'), index=False)
+df_test.to_csv(os.path.join('data', 'test.csv'), index=False)
+```
+`/data/test.csv` is the _private test_ data which is used to compute the scores on the private leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repo on the backend, we will test it with the same [`test_submission.py`](rampwf/test_submission.py) script as the script submitters use to test their submissions.
+
+After preparing the backend data sets, we als usually prepare the public starting kit data sets that we will upload into the starting kit repo. It is a good pracice to make the public data independent of both the training and test data on the backend, but it is also fine if the public data is the same as the training data (e.g., in case we don't have much data to spare), since "cheaters" can be caught by looking at their code and by them overfitting the public leaderboard. It is assumed that `ramp-kits` and `ramp-data` are installed in the same directory, but `prepare_data.py` also need to accept a `ramp_kits_dir` argument that specifies where to copy the public train and test files. In the case of iris, we do
+```
+df_public = df_train
+df_public_train, df_public_test = train_test_split(
+    df_public, test_size=0.2, random_state=57)
+df_public_train.to_csv(os.path.join('data', 'public_train.csv'), index=False)
+df_public_test.to_csv(os.path.join('data', 'public_test.csv'), index=False)
+
+# copy starting kit files to <ramp_kits_dir>/<ramp_name>/data
+copyfile(
+    os.path.join('data', 'public_train.csv'),
+    os.path.join(ramp_kits_dir, ramp_name, 'data', 'train.csv')
+)
+copyfile(
+    os.path.join('data', 'public_test.csv'),
+    os.path.join(ramp_kits_dir, ramp_name, 'data', 'test.csv')
+)
+```
+
+3. Make sure that the starting kit contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`iris_starting_kit.ipynb`](https://github.com/ramp-kits/iris/blob/master/iris_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization. This notebook will be rendered at the [RAMP site](http://www.ramp.studio/problems/iris).
+
+4. [Send us a message](mailto:admin@ramp.studio). In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`test_submission.py`](rampwf/test_submission.py). In the case of iris, 
+```
+mkdir ramp-data
+git clone https://github.com/ramp-data/iris.git ramp-data/iris
+mkdir ramp-kits
+git clone https://github.com/ramp-kits/iris.git ramp-kits/iris
+cd ramp-data/iris
+python prepare_data.py
+cd ../..
+test_submission data=ramp-data/iris path=ramp-kits/iris
+test_submission data=ramp-kits/iris path=ramp-kits/iris
+```
 
 ### Contribute to [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)
 
-Chances are something similar already exists. In case not, pull request.
+It is possible that some of the elements (e.g., a score or a workflow) that you need for your starting kit is missing from `ramp-workflow`. First, look around, chances are something similar already exists. Second, you can implement it in your `problem.py` file, as we did with the cross validation object in [`iris/problem.py`](https://github.com/ramp-kits/iris/blob/master/problem.py). If you feel that the missing element can be useful in other problems, fork `ramp-workflow` and send us a pull request. Add a starting kit that uses the new element to the [`Makefile`](https://github.com/paris-saclay-cds/ramp-workflow/blob/readme/Makefile) as a unit test for the particular element.
 
-
+<!---
 # Draft
 Most of the elements (submission files) are python code files, they should have no extension. They will become editable on RAMP. Other files, e.g. external_data.csv or comments.txt whould have extensions. Editability fill be inferred from extension (e.g., txt is editable, csv is not, only uploadable). File names should contain no more than one '.'.
 
 
 
 Tests suppose that ramp-kits and ramp-workflows are installed in the same directory.
+-->
