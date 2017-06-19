@@ -105,29 +105,25 @@ Your goal is not necessarly to launch an open RAMP, you may just want to organiz
 
 The basic gist is that each starting kit contains a python file `problem.py` that parametrizes the setup. It uses building blocks from this library ([ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)), like choosing from a menu. As an example, we will walk you through the [`problem.py`](https://github.com/ramp-kits/iris/blob/master/problem.py) of the iris starting kit. Other problems may use more complex workflows or cross-validation schemes, but this complexity is usually hidden in the implementation of those elements in [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow). The goal was to keep the script `problem.py` as simple as possible.
 
-<ol>
-<li>Choose a title
+1. Choose a title
 ```
 problem_title = 'Iris classification'
 ```
-<li>Choose a prediction type from [`rampwf/prediction_types`](rampwf/prediction_types)
+2. Choose a prediction type from [`rampwf/prediction_types`](rampwf/prediction_types)
 ```
 prediction_type = rw.prediction_types.multiclass
 ```
 Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
-<li>Choose a workflow from [`rampwf/workflows`](rampwf/workflows)
+3. Choose a workflow from [`rampwf/workflows`](rampwf/workflows)
 ```
 workflow = rw.workflows.Classifier()
 ```
 Typical workflows are a single [`classifier`](rampwf/workflows/classifier.py) or a [feature extractor followed by a classifier](rampwf/workflows/feature_extractor_classifier.py), but we have more complex workflows, named after the first problem that used them (e.g., [`drug_spectra`](rampwf/workflows/drug_spectra.py), two feature extractors, a classifier, and a regressor; or [`air_passengers`](rampwf/workflows/air_passengers.py), a feature extractor followed by a regressor, but also an `external_data.csv` that the feature extractor can merge with the training set). Each workflow implements a class which has `train_submission` and `test_submission` member functions that train and test submissions, and a `workflow_element_names` field containing the file names that `test_submission` expects in `submissions/starting_kit` or `submissions/<new-submission_name>`.
-
-<li>Specify the prediction labels
+4. Specify the prediction labels
 ```
 prediction_labels = ['setosa', 'versicolor', 'virginica']
 ```
 If it is not a classification problem, set it to `None`.
-</ol>
-
 5. Choose score types (metrics) from [`rampwf/score_types`](rampwf/score_types)
 ```
 score_types = [
