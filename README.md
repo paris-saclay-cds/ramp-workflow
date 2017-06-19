@@ -113,18 +113,20 @@ problem_title = 'Iris classification'
 ```
 prediction_type = rw.prediction_types.multiclass
 ```
-   
-   Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
+Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
+
 3. Choose a workflow from [`rampwf/workflows`](rampwf/workflows)
 ```
 workflow = rw.workflows.Classifier()
 ```
 Typical workflows are a single [`classifier`](rampwf/workflows/classifier.py) or a [feature extractor followed by a classifier](rampwf/workflows/feature_extractor_classifier.py), but we have more complex workflows, named after the first problem that used them (e.g., [`drug_spectra`](rampwf/workflows/drug_spectra.py), two feature extractors, a classifier, and a regressor; or [`air_passengers`](rampwf/workflows/air_passengers.py), a feature extractor followed by a regressor, but also an `external_data.csv` that the feature extractor can merge with the training set). Each workflow implements a class which has `train_submission` and `test_submission` member functions that train and test submissions, and a `workflow_element_names` field containing the file names that `test_submission` expects in `submissions/starting_kit` or `submissions/<new-submission_name>`.
+
 4. Specify the prediction labels
 ```
 prediction_labels = ['setosa', 'versicolor', 'virginica']
 ```
 If it is not a classification problem, set it to `None`.
+
 5. Choose score types (metrics) from [`rampwf/score_types`](rampwf/score_types)
 ```
 score_types = [
@@ -144,12 +146,14 @@ Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`]
     4. `is_lower_the_better`: a boolean which is `True` if the score is the lower the better, `False` otherwise,
     5. `minimum`: the smallest possible score,
     6. `maximum`: the largest possible score.
+
 6. A function `get_cv` returning a cross-validation object
 ```
 def get_cv(X, y):
     cv = StratifiedShuffleSplit(n_splits=10, test_size=0.2, random_state=57)
     return cv.split(X, y)
 ```
+
 7. Two functions reading the training and test data sets.
 ```
 def get_train_data(path='.'):
@@ -161,7 +165,7 @@ def get_test_data(path='.'):
     f_name = 'test.csv'
     return _read_data(path, f_name)
 ```
- The convention is that these sets are found in `/data` and called `train.csv` and `test.csv`, but we kept this element flexible to accommodate a large number of possible input data connectors.
+The convention is that these sets are found in `/data` and called `train.csv` and `test.csv`, but we kept this element flexible to accommodate a large number of possible input data connectors.
  
 The script is used by [`test_submission.py`](rampwf/test_submission.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is rather straightforward so we do not detail it here.
 
