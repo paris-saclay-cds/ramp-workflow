@@ -113,7 +113,8 @@ problem_title = 'Iris classification'
 ```
 prediction_type = rw.prediction_types.multiclass
 ```
-Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
+   
+   Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
 3. Choose a workflow from [`rampwf/workflows`](rampwf/workflows)
 ```
 workflow = rw.workflows.Classifier()
