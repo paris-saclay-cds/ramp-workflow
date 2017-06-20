@@ -171,12 +171,12 @@ score_types = [
 
 Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`](rampwf/score_types/rmse.py). Each score type implements a class with a member function `score_function` and fields
 
-    1. `name`, that `test_submission` uses in the logs; also the column name in the RAMP leaderboard,
-    2. `precision`: the number of decimal digits,
-    3. `n_columns`: the number of columns in the output `y_pred` of the last workflow element (typically a classifier or a regressor),
-    4. `is_lower_the_better`: a boolean which is `True` if the score is the lower the better, `False` otherwise,
-    5. `minimum`: the smallest possible score,
-    6. `maximum`: the largest possible score.
+  1. `name`, that `test_submission` uses in the logs; also the column name in the RAMP leaderboard,
+  2. `precision`: the number of decimal digits,
+  3. `n_columns`: the number of columns in the output `y_pred` of the last workflow element (typically a classifier or a regressor),
+  4. `is_lower_the_better`: a boolean which is `True` if the score is the lower the better, `False` otherwise,
+  5. `minimum`: the smallest possible score,
+  6. `maximum`: the largest possible score.
 
 #### 6. Write the cross-validation scheme.
 
