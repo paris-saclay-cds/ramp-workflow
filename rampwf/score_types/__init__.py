@@ -1,5 +1,4 @@
 from . import accuracy
-from . import auc
 from . import clustering_efficiency
 from . import classification_error
 from . import error_mare_mixed
@@ -8,6 +7,7 @@ from . import f1_above
 from . import mare
 from . import mare_mixed
 from . import negative_log_likelihood
+from .roc_auc import ROCAUC
 from .accuracy import Accuracy
 from .classification_error import ClassificationError
 from .f1_above import F1Above

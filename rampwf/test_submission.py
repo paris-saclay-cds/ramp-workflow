@@ -8,6 +8,7 @@ import numpy as np
 # Command line parameters:
 #     path=<path>  (default: .)
 #     name=<submission_name> (default: starting_kit)
+#     data=<data_path> (default: .)
 # It will look for problem.py in <path> and workflow elements (submission)
 # in <path>/submissions/<submission_name>
 path = '.'
