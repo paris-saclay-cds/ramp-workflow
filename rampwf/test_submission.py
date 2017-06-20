@@ -11,6 +11,7 @@ import numpy as np
 # It will look for problem.py in <path> and workflow elements (submission)
 # in <path>/submissions/<submission_name>
 path = '.'
+data_path = '.'
 submission_name = 'starting_kit'
 for arg in sys.argv[1:]:
     tokens = arg.split('=')
@@ -18,19 +19,23 @@ for arg in sys.argv[1:]:
         path = tokens[1]
     elif tokens[0] == 'submission':
         submission_name = tokens[1]
+    elif tokens[0] == 'data':
+        data_path = tokens[1]
     else:
         print('Unknown argument {}'.format(tokens[0]))
         exit(0)
-
+# in case path is set but not data_path, data_path falls back on path
+if data_path == '.':
+    data_path = path
 
 problem = imp.load_source('', os.path.join(path, 'problem.py'))
-print('Testing {} backend'.format(problem.problem_title))
-print('Reading file ...')
-X_train, y_train = problem.get_train_data(path=path)
-X_test, y_test = problem.get_test_data(path=path)
+print('Testing {}'.format(problem.problem_title))
+print('Reading train and test files from {}/data ...'.format(data_path))
+X_train, y_train = problem.get_train_data(path=data_path)
+X_test, y_test = problem.get_test_data(path=data_path)
 prediction_labels = problem.prediction_labels
 score_types = problem.score_types
-print('Training {} in {}/submissions ...'.format(submission_name, path))
+print('Training {}/submissions/{} ...'.format(path, submission_name))
 cv = list(problem.get_cv(X_train, y_train))
 module_path = os.path.join(path, 'submissions', submission_name)
 train_train_scoress = np.empty((len(cv), len(score_types)))
@@ -97,3 +102,9 @@ for mean, std, score_type in zip(means, stds, score_types):
     print('test {} = {} ± {}'.format(
         score_type.name, round(mean, score_type.precision),
         round(std, score_type.precision + 1)))
+
+print('----------------------------')
+problem_name = os.path.abspath(path).split('/')[-1]
+print('Testing if the notebook can be converted to html')
+os.system('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
+    path, problem_name))

@@ -15,16 +15,28 @@ install:
     - pip install codecov
     - pip install -q flake8
     - python setup.py install
-    - mkdir kits
-    - cd kits
+    - mkdir ramp-kits
+    - cd ramp-kits
     - git clone https://github.com/ramp-kits/boston_housing.git
     - git clone https://github.com/ramp-kits/iris.git
     - cd ..
+    - mkdir ramp-data
+    - cd ramp-data
+    - git clone https://github.com/ramp-data/boston_housing.git
+    - cd boston_housing
+    - python prepare_data.py
+    - cd ..
+    - git clone https://github.com/ramp-data/iris.git
+    - cd iris
+    - python prepare_data.py
+    - cd ../..
 script:
     - nosetests --with-coverage rampwf/tests
-    - coverage run rampwf/test_submission.py path=kits/boston_housing
-    - coverage run rampwf/test_submission.py path=kits/boston_housing submission=random_forest_100
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing submission=random_forest_100
     - coverage run rampwf/test_submission.py unknown_arg=test
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing data=ramp-data/boston_housing
+    - coverage run rampwf/test_submission.py path=ramp-kits/iris
 after_success:
     - codecov
 notifications:
