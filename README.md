@@ -52,50 +52,47 @@ python setup.py
 
 ### Get familiar with starting kits
 
-Starting kits in [ramp-kits](https://github.com/ramp-kits) are working workflows and workflow instantiations. They work out of the box. You can run them using the [`test_submission`](bin/test_submission) script that simply executes [`test_submission.py`](rampwf/test_submission.py) in the starting kit. For example, clone the iris starting kit and test it by
+Starting kits in [ramp-kits](https://github.com/ramp-kits) are working workflows and workflow instantiations. They work out of the box. You can run them using the [`test_submission`](bin/test_submission) script that simply executes [`test_submission.py`](rampwf/test_submission.py) in the starting kit. For example, clone the titanic starting kit and test it by
 ```
 mkdir ramp-kits
 cd ramp-kits
-git clone https://github.com/ramp-kits/iris.git
-cd iris
+git clone https://github.com/ramp-kits/titanic.git
+cd titanic
 test_submission
 ```
-When `test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Iris uses a [`classifier`](rampwf/workflows/classifier) workflow which is instantiated by a single [`classifier.py`](https://github.com/ramp-kits/iris/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite this file to test other classifiers, or keep it and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `test_submission submission=<submission_name>`. For example,
+When `test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Titanic uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `test_submission submission=<submission_name>`. For example,
 ```
-test_submission submission=random_forest_10_10
+test_submission submission=random_forest_20_5
 ```
-will test [`classifier.py`](https://github.com/ramp-kits/iris/blob/master/submissions/random_forest_10_10/classifier.py) found in `submissions/random_forest_10_10`.
+will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
 
-The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`iris_starting_kit.ipynb`](https://github.com/ramp-kits/iris/blob/master/iris_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
+The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`titanic_starting_kit.ipynb`](https://github.com/ramp-kits/titanic/blob/master/titanic_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
 
 ### Submit to a data challenge at [ramp.studio](http://www.ramp.studio)
 
-Once you found a good workflow instantiation (submission), you can submit it at [ramp.studio](http://www.ramp.studio). First, if it is your first time using RAMP, [sign up](http://www.ramp.studio/sign_up), otherwise [log in](http://www.ramp.studio/login). Then find an open event on the particular problem, for example, the event [iris_test](http://www.ramp.studio/events/iris_test) for iris. Sign up for the event. Both signups are controled by RAMP administrators, so there **can be a delay between asking for signup and being able to submit**.
+Once you found a good workflow instantiation (submission), you can submit it at [ramp.studio](http://www.ramp.studio). First, if it is your first time using RAMP, [sign up](http://www.ramp.studio/sign_up), otherwise [log in](http://www.ramp.studio/login). Then find an open event on the particular problem, for example, the event [titanic](http://www.ramp.studio/events/titanic) for this titanic. Sign up for the event. Both signups are controled by RAMP administrators, so there **can be a delay between asking for signup and being able to submit**.
 
-Once your signup request is accepted, you can go to your [sandbox](http://www.ramp.studio/events/iris_test/sandbox) and copy-paste (or upload) `classifier.py` from `submissions/<submission_name>`. Save it, rename it, then submit it. The submission is trained and tested on our backend in the same way as `test_submission` does it locally. During your submission is waiting in the queue and being trained, you can find it in the "New submissions (pending training)" table in [my submissions](http://www.ramp.studio/events/iris_test/my_submissions). Once it is trained, you get a mail, and your submission shows up on the [public leaderboard](http://www.ramp.studio/events/iris_test/leaderboard). 
-If there is an error (despite having tested your submission locally with `test_submission`), it will show up in the "Failed submissions" table in [my submissions](http://www.ramp.studio/events/iris_test/my_submissions). You can click on the error to see part of the trace.
+Once your signup request is accepted, you can go to your [sandbox](http://www.ramp.studio/events/titanic/sandbox) and copy-paste (or upload) [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) from `submissions/starting_kit`. Save it, rename it, then submit it. The submission is trained and tested on our backend in the same way as `test_submission` does it locally. During your submission is waiting in the queue and being trained, you can find it in the "New submissions (pending training)" table in [my submissions](http://www.ramp.studio/events/titanic/my_submissions). Once it is trained, you get a mail, and your submission shows up on the [public leaderboard](http://www.ramp.studio/events/titanic/leaderboard). 
+If there is an error (despite having tested your submission locally with `test_submission`), it will show up in the "Failed submissions" table in [my submissions](http://www.ramp.studio/events/titanic/my_submissions). You can click on the error to see part of the trace.
 
 After submission, do not forget to give credits to the previous submissions you reused or integrated into your submission.
 
 The data set we use at the backend is usually different from what you find in the starting kit, so the score may be different.
 
-The usual way to work with RAMP is to explore solutions, add feature transformations, select models, perhaps do some AutoML/hyperopt, etc., _locally_, and checking them with `test_submission`. The script prints mean cross-validation scores, for example, in the case of iris, 
+The usual way to work with RAMP is to explore solutions, add feature transformations, select models, perhaps do some AutoML/hyperopt, etc., _locally_, and checking them with `test_submission`. The script prints mean cross-validation scores 
 ```
 ----------------------------
-train acc = 0.51 ± 0.043
-train err = 0.49 ± 0.043
-train nll = 1.21 ± 0.485
-train f1_70 = 0.03 ± 0.1
-valid acc = 0.47 ± 0.087
-valid err = 0.53 ± 0.087
-valid nll = 1.32 ± 0.686
-valid f1_70 = 0.13 ± 0.221
-test acc = 0.55 ± 0.131
-test err = 0.45 ± 0.131
-test nll = 0.87 ± 0.037
-test f1_70 = 0.5 ± 0.167
+train auc = 0.85 ± 0.005
+train acc = 0.81 ± 0.006
+train nll = 0.45 ± 0.007
+valid auc = 0.87 ± 0.023
+valid acc = 0.81 ± 0.02
+valid nll = 0.44 ± 0.024
+test auc = 0.83 ± 0.006
+test acc = 0.76 ± 0.003
+test nll = 0.5 ± 0.005
 ```
-The official score in iris (the first score column after "historical contributivity" on the [leaderboard](http://www.ramp.studio/events/iris_test/leaderboard)) is accuracy ("acc"), so the line that is relevant in the output of `test_submission` is `valid acc = 0.47 ± 0.087`. When the score is good enough, you can submit it at the RAMP.
+The official score in titanic (the first score column after "historical contributivity" on the [leaderboard](http://www.ramp.studio/events/titanic/leaderboard)) is area under the roc curve ("auc"), so the line that is relevant in the output of `test_submission` is `valid auc = 0.87 ± 0.023`. When the score is good enough, you can submit it at the RAMP.
 
 ### Build your own workflow
 
@@ -103,11 +100,11 @@ If you are a [data science teacher](#i-am-a-data-science-teacher), a [data scien
 
 Your goal is not necessarly to launch an open RAMP, you may just want to organize your local experiments, make resuable building blocks, log your local submissions, etc. But once you have a working starting kit, it is also quite easy to launch a RAMP.
 
-The basic gist is that each starting kit contains a python file `problem.py` that parametrizes the setup. It uses building blocks from this library ([ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)), like choosing from a menu. As an example, we will walk you through the [`problem.py`](https://github.com/ramp-kits/iris/blob/master/problem.py) of the iris starting kit. Other problems may use more complex workflows or cross-validation schemes, but this complexity is usually hidden in the implementation of those elements in [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow). The goal was to keep the script `problem.py` as simple as possible.
+The basic gist is that each starting kit contains a python file `problem.py` that parametrizes the setup. It uses building blocks from this library ([ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)), like choosing from a menu. As an example, we will walk you through the [`problem.py`](https://github.com/ramp-kits/titanic/blob/master/problem.py) of the titanic starting kit. Other problems may use more complex workflows or cross-validation schemes, but this complexity is usually hidden in the implementation of those elements in [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow). The goal was to keep the script `problem.py` as simple as possible.
 
 1. Choose a title
 ```
-problem_title = 'Iris classification'
+problem_title = 'Titanic survival classification'
 ```
 2. Choose a prediction type from [`rampwf/prediction_types`](rampwf/prediction_types)
 ```
@@ -117,26 +114,23 @@ Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.p
 
 3. Choose a workflow from [`rampwf/workflows`](rampwf/workflows)
 ```
-workflow = rw.workflows.Classifier()
+workflow = rw.workflows.FeatureExtractorClassifier()
 ```
-Typical workflows are a single [`classifier`](rampwf/workflows/classifier.py) or a [feature extractor followed by a classifier](rampwf/workflows/feature_extractor_classifier.py), but we have more complex workflows, named after the first problem that used them (e.g., [`drug_spectra`](rampwf/workflows/drug_spectra.py), two feature extractors, a classifier, and a regressor; or [`air_passengers`](rampwf/workflows/air_passengers.py), a feature extractor followed by a regressor, but also an `external_data.csv` that the feature extractor can merge with the training set). Each workflow implements a class which has `train_submission` and `test_submission` member functions that train and test submissions, and a `workflow_element_names` field containing the file names that `test_submission` expects in `submissions/starting_kit` or `submissions/<new-submission_name>`.
+Typical workflows are a single [`classifier`](rampwf/workflows/classifier.py) or a [feature extractor followed by a classifier](rampwf/workflows/feature_extractor_classifier.py) used here, but we have more complex workflows, named after the first problem that used them (e.g., [`drug_spectra`](rampwf/workflows/drug_spectra.py), two feature extractors, a classifier, and a regressor; or [`air_passengers`](rampwf/workflows/air_passengers.py), a feature extractor followed by a regressor, but also an `external_data.csv` that the feature extractor can merge with the training set). Each workflow implements a class which has `train_submission` and `test_submission` member functions that train and test submissions, and a `workflow_element_names` field containing the file names that `test_submission` expects in `submissions/starting_kit` or `submissions/<new-submission_name>`.
 
 4. Specify the prediction labels
 ```
-prediction_labels = ['setosa', 'versicolor', 'virginica']
+prediction_labels = [0, 1]
 ```
 If it is not a classification problem, set it to `None`.
 
 5. Choose score types (metrics) from [`rampwf/score_types`](rampwf/score_types)
 ```
 score_types = [
+    rw.score_types.AUC(name='auc', n_columns=len(prediction_labels)),
     rw.score_types.Accuracy(name='acc', n_columns=len(prediction_labels)),
-    rw.score_types.ClassificationError(
-        name='err', n_columns=len(prediction_labels)),
     rw.score_types.NegativeLogLikelihood(
         name='nll', n_columns=len(prediction_labels)),
-    rw.score_types.F1Above(
-        name='f1_70', n_columns=len(prediction_labels), threshold=0.7),
 ]
 ```
 Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`](rampwf/score_types/rmse.py). Each score type implements a class with a member function `score_function` and fields
@@ -150,20 +144,21 @@ Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`]
 6. A function `get_cv` returning a cross-validation object
 ```
 def get_cv(X, y):
-    cv = StratifiedShuffleSplit(n_splits=10, test_size=0.2, random_state=57)
+    cv = StratifiedShuffleSplit(n_splits=8, test_size=0.2, random_state=57)
     return cv.split(X, y)
 ```
 
-7. Two functions reading the training and test data sets.
+7. Two functions are reading the training and test data sets.
 ```
-_target_column_name = 'species'
+_target_column_name = 'Survived'
+_ignore_column_names = ['PassengerId']
 
 
 def _read_data(path, f_name):
     data = pd.read_csv(os.path.join(path, 'data', f_name))
     y_array = data[_target_column_name].values
-    X_array = data.drop([_target_column_name], axis=1).values
-    return X_array, y_array
+    X_df = data.drop([_target_column_name] + _ignore_column_names, axis=1)
+    return X_df, y_array
 
 
 def get_train_data(path='.'):
@@ -194,6 +189,12 @@ df_test.to_csv(os.path.join('data', 'test.csv'), index=False)
 ```
 `/data/test.csv` is the _private test_ data which is used to compute the scores on the private leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repo on the backend, we will test it with the same [`test_submission.py`](rampwf/test_submission.py) script as the script submitters use to test their submissions.
 
+In the case of titanic, we already prepared train and test files so [`prepare_data.py`](https://github.com/ramp-data/titanic/blob/master/prepare_data.py) simply reads them here.
+```
+df_train = pd.read_csv(os.path.join('data', 'train.csv'))
+df_test = pd.read_csv(os.path.join('data', 'test.csv'))  # noqa
+```
+
 After preparing the backend data sets, we also usually prepare the public starting kit data sets that we will upload into the starting kit repo. It is a good practice to make the public data independent of both the training and test data on the backend, but it is also fine if the public data is the same as the backend training data (e.g., in case we don't have much data to spare), since "cheaters" can be caught by looking at their code and by them overfitting the public leaderboard. It is, on the other hand, crucial not to leak the private test data.
 
 It is assumed that `ramp-kits` and `ramp-data` are installed in the same directory, but `prepare_data.py` also need to accept a `ramp_kits_dir` argument that specifies where to copy the public train and test files. In the case of iris, we do
@@ -215,24 +216,24 @@ copyfile(
 )
 ```
 
-3. Make sure that the starting kit contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`iris_starting_kit.ipynb`](https://github.com/ramp-kits/iris/blob/master/iris_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization. This notebook will be rendered at the [RAMP site](http://www.ramp.studio/problems/iris).
+3. Make sure that the starting kit contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`titanic_starting_kit.ipynb`](https://github.com/ramp-kits/titanic/blob/master/titanic_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization. This notebook will be rendered at the [RAMP site](http://www.ramp.studio/problems/titanic).
 
-4. [Send us a message](mailto:admin@ramp.studio). In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`test_submission.py`](rampwf/test_submission.py). In the case of iris, 
+4. [Send us a message](mailto:admin@ramp.studio). In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`test_submission.py`](rampwf/test_submission.py). In the case of titanic, 
 ```
 mkdir ramp-data
-git clone https://github.com/ramp-data/iris.git ramp-data/iris
+git clone https://github.com/ramp-data/titanic.git ramp-data/titanic
 mkdir ramp-kits
-git clone https://github.com/ramp-kits/iris.git ramp-kits/iris
-cd ramp-data/iris
+git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
+cd ramp-data/titanic
 python prepare_data.py
 cd ../..
-test_submission data=ramp-data/iris path=ramp-kits/iris
-test_submission data=ramp-kits/iris path=ramp-kits/iris
+test_submission data=ramp-data/titanic path=ramp-kits/titanic
+test_submission data=ramp-kits/titanic path=ramp-kits/titanic
 ```
 
 ### Contribute to [ramp-workflow](https://github.com/paris-saclay-cds/ramp-workflow)
 
-It is possible that some of the elements (e.g., a score or a workflow) that you need for your starting kit is missing from `ramp-workflow`. First, look around, chances are something similar already exists. Second, you can implement it in your `problem.py` file, as we did with the cross validation object in [`iris/problem.py`](https://github.com/ramp-kits/iris/blob/master/problem.py). If you feel that the missing element can be useful in other problems, fork `ramp-workflow` and send us a pull request. Add a starting kit that uses the new element to the [`Makefile`](https://github.com/paris-saclay-cds/ramp-workflow/blob/readme/Makefile) as a unit test for the particular element.
+It is possible that some of the elements (e.g., a score or a workflow) that you need for your starting kit is missing from `ramp-workflow`. First, look around, chances are something similar already exists. Second, you can implement it in your `problem.py` file, as we did with the cross validation object in [`titanic/problem.py`](https://github.com/ramp-kits/titanic/blob/master/problem.py). If you feel that the missing element can be useful in other problems, fork `ramp-workflow` and send us a pull request. Add a starting kit that uses the new element to the [`Makefile`](https://github.com/paris-saclay-cds/ramp-workflow/blob/readme/Makefile) as a unit test for the particular element.
 
 <!---
 # Draft
