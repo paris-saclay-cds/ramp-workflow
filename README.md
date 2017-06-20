@@ -278,12 +278,12 @@ The notebook named `<ramp_kit_name>_starting_kit.ipynb`
 In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`test_submission.py`](rampwf/test_submission.py). In the case of titanic,
 
 ```bash
-mkdir ramp-data
+mkdir ramp-data ramp-kits
 git clone https://github.com/ramp-data/titanic.git ramp-data/titanic
-mkdir ramp-kits
 git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
+
 python ramp-data/titanic/prepare_data.py
-cd ../..
+
 test_submission data=ramp-data/titanic path=ramp-kits/titanic
 test_submission data=ramp-kits/titanic path=ramp-kits/titanic
 ```
