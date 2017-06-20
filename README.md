@@ -1,10 +1,10 @@
 # The RAMP ecosystem
 
 The [RAMP][rstudio] ecosystem contains two organizations and three libraries. The purpose of the bundle is to __define, build, manage, and optimize data analytics workflows__, typically on the top of open source machine learning libraries like [pandas](http://pandas.pydata.org), [scikit-learn](http://scikit-learn.org/), and [keras](https://github.com/fchollet/keras). The bundle consists of
-1. [ramp-workflow][rworkflow] (this library) containing resuable tools and scripts to define
+1. [ramp-workflow][rworkflow] (this library) containing reusable tools and scripts to define
     1. [score types](rampwf/score_types) (metrics),
     2. [workflows and workflow elements](rampwf/workflows) (trainable data analytics modules like a classifier or a feature extractor),
-    3. [cross-valudation schemes](rampwf/cv_schemes) (guiding the evaluation procedure of the workflow), and
+    3. [cross-validation schemes](rampwf/cv_schemes) (guiding the evaluation procedure of the workflow), and
     4. data connectors (to feed the workflows from various data sources).
 2. [ramp-board][rboard], a library managing the frontend and the database of the [RAMP][rstudio] platform.
 3. [ramp-backend][rbackend], a library managing the RAMP backend (training and evaluating workflow instantiations aka submissions). (doesn't exist yet)
@@ -16,7 +16,7 @@ The [RAMP][rstudio] ecosystem contains two organizations and three libraries. Th
 <!-- RAMP studio -->
 [rstudio]: http://www.ramp.studio "RAMP main website"
 [email]: mailto:admin@ramp.studio "Mailto: admin@ramp.studio"
-[signup]: http://www.ramp.studio/sign-up "RAMP signup page"
+[signup]: http://www.ramp.studio/sign-up "RAMP sign-up page"
 [problems]: http://www.ramp.studio/problems "List of past RAMP challenges"
 [themes]: http://www.ramp.studio/data_science_themes "Data science themes"
 [domains]: http://www.ramp.studio/data_domains "Data domains"
@@ -54,7 +54,7 @@ If you register with us for an official benchmarking, we will provide you a priv
 
 ### I am a researcher in a domain science
 
-If you **have a predictive problem**, you can **submit it as a data challenge** to incite data scientists to solve your problem. First [build your own workflow](#build-your-own-workflow) using the [ramp-workflow][rworkflow] library, following examples from [ramp-kits][rkits], then [contact us][email] so we upload it to the [RAMP site][rstudio]. We can then organize hackatons or longer data challenges, and use the problem in a classroom setting. We may also automatically benchmark the thousands of models that are already in the platform.
+If you **have a predictive problem**, you can **submit it as a data challenge** to incite data scientists to solve your problem. First [build your own workflow](#build-your-own-workflow) using the [ramp-workflow][rworkflow] library, following examples from [ramp-kits][rkits], then [contact us][email] so we upload it to the [RAMP site][rstudio]. We can then organize hackathons or longer data challenges, and use the problem in a classroom setting. We may also automatically benchmark the thousands of models that are already in the platform.
 
 ## How to use this bundle?
 
@@ -90,7 +90,7 @@ The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_startin
 
 ### Submit to a data challenge at [ramp.studio][rstudio]
 
-Once you found a good workflow instantiation (submission), you can submit it at [ramp.studio][rstudio]. First, if it is your first time using RAMP, [sign up][signup], otherwise [log in](http://www.ramp.studio/login). Then find an open event on the particular problem, for example, the event [titanic](http://www.ramp.studio/events/titanic) for this titanic. Sign up for the event. Both signups are controled by RAMP administrators, so there **can be a delay between asking for signup and being able to submit**.
+Once you found a good workflow instantiation (submission), you can submit it at [ramp.studio][rstudio]. First, if it is your first time using RAMP, [sign up][signup], otherwise [log in](http://www.ramp.studio/login). Then find an open event on the particular problem, for example, the event [titanic](http://www.ramp.studio/events/titanic) for this titanic. Sign up for the event. Both sign-ups are controlled by RAMP administrators, so there **can be a delay between asking to sign up and being able to submit**.
 
 Once your signup request is accepted, you can go to your [sandbox](http://www.ramp.studio/events/titanic/sandbox) and copy-paste (or upload) [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) from `submissions/starting_kit`. Save it, rename it, then submit it. The submission is trained and tested on our backend in the same way as `test_submission` does it locally. During your submission is waiting in the queue and being trained, you can find it in the "New submissions (pending training)" table in [my submissions](http://www.ramp.studio/events/titanic/my_submissions). Once it is trained, you get a mail, and your submission shows up on the [public leaderboard](http://www.ramp.studio/events/titanic/leaderboard).
 If there is an error (despite having tested your submission locally with `test_submission`), it will show up in the "Failed submissions" table in [my submissions](http://www.ramp.studio/events/titanic/my_submissions). You can click on the error to see part of the trace.
@@ -112,13 +112,13 @@ test auc = 0.83 ± 0.006
 test acc = 0.76 ± 0.003
 test nll = 0.5 ± 0.005
 ```
-The official score in titanic (the first score column after "historical contributivity" on the [leaderboard](http://www.ramp.studio/events/titanic/leaderboard)) is area under the roc curve ("auc"), so the line that is relevant in the output of `test_submission` is `valid auc = 0.87 ± 0.023`. When the score is good enough, you can submit it at the RAMP.
+The official score in titanic (the first score column after "historical contributivity" on the [leaderboard](http://www.ramp.studio/events/titanic/leaderboard)) is area under the ROC curve ("AUC"), so the line that is relevant in the output of `test_submission` is `valid auc = 0.87 ± 0.023`. When the score is good enough, you can submit it at the RAMP.
 
 ### Build your own workflow
 
 If you are a [data science teacher](#i-am-a-data-science-teacher), a [data scientist](#i-am-a-practicing-data-scientist), or a [researcher](#i-am-a-researcher-in-a-domain-science) you may have a new data set and a predictive problem for which you want to build a starting kit. In this subsection we walk you through what you need to do.
 
-Your goal is not necessarly to launch an open RAMP, you may just want to organize your local experiments, make resuable building blocks, log your local submissions, etc. But once you have a working starting kit, it is also quite easy to launch a RAMP.
+Your goal is not necessary to launch an open RAMP, you may just want to organize your local experiments, make reusable building blocks, log your local submissions, etc. But once you have a working starting kit, it is also quite easy to launch a RAMP.
 
 The basic gist is that each starting kit contains a python file `problem.py` that parametrizes the setup. It uses building blocks from this library ([ramp-workflow][rworkflow]), like choosing from a menu. As an example, we will walk you through the [`problem.py`](https://github.com/ramp-kits/titanic/blob/master/problem.py) of the titanic starting kit. Other problems may use more complex workflows or cross-validation schemes, but this complexity is usually hidden in the implementation of those elements in [ramp-workflow][rworkflow]. The goal was to keep the script `problem.py` as simple as possible.
 
@@ -164,8 +164,8 @@ Score types are metrics from [`rampwf/score_types`](rampwf/score_types)
 score_types = [
     rw.score_types.ROCAUC(name='auc', n_columns=len(prediction_labels)),
     rw.score_types.Accuracy(name='acc', n_columns=len(prediction_labels)),
-    rw.score_types.NegativeLogLikelihood(
-        name='nll', n_columns=len(prediction_labels)),
+    rw.score_types.NegativeLogLikelihood(name='nll',
+                                         n_columns=len(prediction_labels)),
 ]
 ```
 
@@ -222,9 +222,9 @@ The script is used by [`test_submission.py`](rampwf/test_submission.py) which re
 
 In case you built your starting kit for launching a (public or private) data challenge, here are the additional steps to follow. In fact, these steps usually _precede_ the writing of the starting kit since we partition the data into public train and private test here.
 
-#### 1. Create a repo.
+#### 1. Create a repository.
 
-The repo should be created ypically in the [ramp-data](https://github.com/ramp-data) organization, which will hold your data set. It is important to keep the data private for allowing proper cross-validation and model testing. So either keep this repo private or make sure that the privacy of the data is assured using other techniques.
+The repository should be created typically in the [ramp-data](https://github.com/ramp-data) organization, which will hold your data set. It is important to keep the data private for allowing proper cross-validation and model testing. So either keep this repository private or make sure that the privacy of the data is assured using other techniques.
 
 #### 2. Write your `prepare_data` script.
 
@@ -237,9 +237,9 @@ df_train.to_csv(os.path.join('data', 'train.csv'), index=False)
 df_test.to_csv(os.path.join('data', 'test.csv'), index=False)
 ```
 
-`/data/test.csv` is the _private test_ data which is used to compute the scores on the private   leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repo on the backend, we will test it with the same [`test_submission.py`](rampwf/test_submission.py) script as the script submitters use to test their submissions.
+`/data/test.csv` is the _private test_ data which is used to compute the scores on the private leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repository on the backend, we will test it with the same [`test_submission.py`](rampwf/test_submission.py) script as the script submitters use to test their submissions.
 
-In the case of titanic, we already prepared train and test files so [`prepare_data.py`](https://  github.com/ramp-data/titanic/blob/master/prepare_data.py) simply reads them here.
+In the case of titanic, we already prepared train and test files so [`prepare_data.py`](https://github.com/ramp-data/titanic/blob/master/prepare_data.py) simply reads them here.
 
 ```python
 df_train = pd.read_csv(os.path.join('data', 'train.csv'))
@@ -294,7 +294,7 @@ It is possible that some of the elements (e.g., a score or a workflow) that you 
 
 <!---
 # Draft
-Most of the elements (submission files) are python code files, they should have no extension. They will become editable on RAMP. Other files, e.g. external_data.csv or comments.txt whould have extensions. Editability fill be inferred from extension (e.g., txt is editable, csv is not, only uploadable). File names should contain no more than one '.'.
+Most of the elements (submission files) are python code files, they should have no extension. They will become editable on RAMP. Other files, e.g. external_data.csv or comments.txt should have extensions. Editability fill be inferred from extension (e.g., txt is editable, csv is not, only uploadable). File names should contain no more than one '.'.
 
 
 
