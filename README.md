@@ -282,8 +282,7 @@ mkdir ramp-data
 git clone https://github.com/ramp-data/titanic.git ramp-data/titanic
 mkdir ramp-kits
 git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
-cd ramp-data/titanic
-python prepare_data.py
+python ramp-data/titanic/prepare_data.py
 cd ../..
 test_submission data=ramp-data/titanic path=ramp-kits/titanic
 test_submission data=ramp-kits/titanic path=ramp-kits/titanic
