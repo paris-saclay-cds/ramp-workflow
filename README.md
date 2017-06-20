@@ -127,7 +127,7 @@ If it is not a classification problem, set it to `None`.
 5. Choose score types (metrics) from [`rampwf/score_types`](rampwf/score_types)
 ```
 score_types = [
-    rw.score_types.AUC(name='auc', n_columns=len(prediction_labels)),
+    rw.score_types.ROCAUC(name='auc', n_columns=len(prediction_labels)),
     rw.score_types.Accuracy(name='acc', n_columns=len(prediction_labels)),
     rw.score_types.NegativeLogLikelihood(
         name='nll', n_columns=len(prediction_labels)),
