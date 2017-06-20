@@ -28,9 +28,6 @@ The [RAMP][rstudio] ecosystem contains two organizations and three libraries. Th
 [rdata]: https://github.com/ramp-data "Organization for RAMP open data sets"
 [rkits]: https://github.com/ramp-kits "Organization for RAMP starting kits"
 
-
-
-
 ## Why do I want this bundle?
 
 ### I am a data science teacher
@@ -62,7 +59,8 @@ If you **have a predictive problem**, you can **submit it as a data challenge** 
 ## How to use this bundle?
 
 Start by installing ramp-workflow (this library):
-```
+
+```bash
 git clone https://github.com/paris-saclay-cds/ramp-workflow.git
 cd ramp-workflow
 python setup.py
@@ -71,17 +69,21 @@ python setup.py
 ### Get familiar with starting kits
 
 Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the [`test_submission`](bin/test_submission) script that simply executes [`test_submission.py`](rampwf/test_submission.py) in the starting kit. For example, clone the titanic starting kit and test it by
-```
+
+```bash
 mkdir ramp-kits
 cd ramp-kits
 git clone https://github.com/ramp-kits/titanic.git
 cd titanic
 test_submission
 ```
+
 When `test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Titanic uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `test_submission submission=<submission_name>`. For example,
-```
+
+```shell
 test_submission submission=random_forest_20_5
 ```
+
 will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
 
 The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`titanic_starting_kit.ipynb`](https://github.com/ramp-kits/titanic/blob/master/titanic_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
@@ -121,36 +123,44 @@ Your goal is not necessarly to launch an open RAMP, you may just want to organiz
 The basic gist is that each starting kit contains a python file `problem.py` that parametrizes the setup. It uses building blocks from this library ([ramp-workflow][rworkflow]), like choosing from a menu. As an example, we will walk you through the [`problem.py`](https://github.com/ramp-kits/titanic/blob/master/problem.py) of the titanic starting kit. Other problems may use more complex workflows or cross-validation schemes, but this complexity is usually hidden in the implementation of those elements in [ramp-workflow][rworkflow]. The goal was to keep the script `problem.py` as simple as possible.
 
 #### 1. Choose a title.
-```
+
+```python
 problem_title = 'Titanic survival classification'
 ```
 
 #### 2. Choose a prediction type.
 
 The prediction types are in [`rampwf/prediction_types`](rampwf/prediction_types)
-```
+
+```python
 prediction_type = rw.prediction_types.multiclass
 ```
+
 Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
 
 #### 3. Choose a workflow.
 
 Available workflows are in [`rampwf/workflows`](rampwf/workflows).
-```
+
+```python
 workflow = rw.workflows.FeatureExtractorClassifier()
 ```
+
 Typical workflows are a single [`classifier`](rampwf/workflows/classifier.py) or a [feature extractor followed by a classifier](rampwf/workflows/feature_extractor_classifier.py) used here, but we have more complex workflows, named after the first problem that used them (e.g., [`drug_spectra`](rampwf/workflows/drug_spectra.py), two feature extractors, a classifier, and a regressor; or [`air_passengers`](rampwf/workflows/air_passengers.py), a feature extractor followed by a regressor, but also an `external_data.csv` that the feature extractor can merge with the training set). Each workflow implements a class which has `train_submission` and `test_submission` member functions that train and test submissions, and a `workflow_element_names` field containing the file names that `test_submission` expects in `submissions/starting_kit` or `submissions/<new-submission_name>`.
 
 #### 4. Specify the prediction labels.
-```
+
+```python
 prediction_labels = [0, 1]
 ```
+
 If it is not a classification problem, set it to `None`.
 
 #### 5. Choose score types.
 
 Score types are metrics from [`rampwf/score_types`](rampwf/score_types)
-```
+
+```python
 score_types = [
     rw.score_types.ROCAUC(name='auc', n_columns=len(prediction_labels)),
     rw.score_types.Accuracy(name='acc', n_columns=len(prediction_labels)),
@@ -158,6 +168,7 @@ score_types = [
         name='nll', n_columns=len(prediction_labels)),
 ]
 ```
+
 Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`](rampwf/score_types/rmse.py). Each score type implements a class with a member function `score_function` and fields
 
     1. `name`, that `test_submission` uses in the logs; also the column name in the RAMP leaderboard,
@@ -170,7 +181,8 @@ Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`]
 #### 6. Write the cross-validation scheme.
 
 Define a function `get_cv` returning a cross-validation object
-```
+
+```python
 def get_cv(X, y):
     cv = StratifiedShuffleSplit(n_splits=8, test_size=0.2, random_state=57)
     return cv.split(X, y)
@@ -179,7 +191,8 @@ def get_cv(X, y):
 #### 7. Write the I/O methods.
 
 The workflow needs two functions that read the training and test data sets.
-```
+
+```python
 _target_column_name = 'Survived'
 _ignore_column_names = ['PassengerId']
 
@@ -200,6 +213,7 @@ def get_test_data(path='.'):
     f_name = 'test.csv'
     return _read_data(path, f_name)
 ```
+
 The convention is that these sets are found in `/data` and called `train.csv` and `test.csv`, but we kept this element flexible to accommodate a large number of possible input data connectors.
 
 The script is used by [`test_submission.py`](rampwf/test_submission.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is quite straightforward so we do not detail it here.
@@ -215,40 +229,44 @@ The repo should be created ypically in the [ramp-data](https://github.com/ramp-d
 #### 2. Write your `prepare_data` script.
 
 In the case of iris, [`prepare_data.py`](https://github.com/ramp-data/iris/blob/master/prepare_data.py) first reads the full data from `/data/iris.csv` and splits it into `/data/train.csv` and `/data/iris.csv`
-  ```
-  df = pd.read_csv(os.path.join('data', 'iris.csv'))
-  df_train, df_test = train_test_split(df, test_size=0.2, random_state=57)
-  df_train.to_csv(os.path.join('data', 'train.csv'), index=False)
-  df_test.to_csv(os.path.join('data', 'test.csv'), index=False)
-  ```
-  `/data/test.csv` is the _private test_ data which is used to compute the scores on the private   leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repo on the backend, we will test it with the same [`test_submission.py`](rampwf/test_submission.py) script as the script submitters use to test their submissions.
 
-  In the case of titanic, we already prepared train and test files so [`prepare_data.py`](https://  github.com/ramp-data/titanic/blob/master/prepare_data.py) simply reads them here.
-  ```
-  df_train = pd.read_csv(os.path.join('data', 'train.csv'))
-  df_test = pd.read_csv(os.path.join('data', 'test.csv'))  # noqa
-  ```
+```python
+df = pd.read_csv(os.path.join('data', 'iris.csv'))
+df_train, df_test = train_test_split(df, test_size=0.2, random_state=57)
+df_train.to_csv(os.path.join('data', 'train.csv'), index=False)
+df_test.to_csv(os.path.join('data', 'test.csv'), index=False)
+```
 
-  After preparing the backend data sets, we also usually prepare the public starting kit data sets that we will upload into the starting kit repo. It is a good practice to make the public data independent of both the training and test data on the backend, but it is also fine if the public data is the same as the backend training data (e.g., in case we don't have much data to spare), since "cheaters" can be caught by looking at their code and by them overfitting the public leaderboard. It is, on the other hand, crucial not to leak the private test data.
+`/data/test.csv` is the _private test_ data which is used to compute the scores on the private   leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repo on the backend, we will test it with the same [`test_submission.py`](rampwf/test_submission.py) script as the script submitters use to test their submissions.
 
-  It is assumed that `ramp-kits` and `ramp-data` are installed in the same directory, but `prepare_data.py` also need to accept a `ramp_kits_dir` argument that specifies where to copy the public train and test files. In the case of iris, we do
-  ```
-  df_public = df_train
-  df_public_train, df_public_test = train_test_split(
-      df_public, test_size=0.2, random_state=57)
-  df_public_train.to_csv(os.path.join('data', 'public_train.csv'), index=False)
-  df_public_test.to_csv(os.path.join('data', 'public_test.csv'), index=False)
+In the case of titanic, we already prepared train and test files so [`prepare_data.py`](https://  github.com/ramp-data/titanic/blob/master/prepare_data.py) simply reads them here.
 
-  # copy starting kit files to <ramp_kits_dir>/<ramp_name>/data
-  copyfile(
-      os.path.join('data', 'public_train.csv'),
-      os.path.join(ramp_kits_dir, ramp_name, 'data', 'train.csv')
-  )
-  copyfile(
-      os.path.join('data', 'public_test.csv'),
-      os.path.join(ramp_kits_dir, ramp_name, 'data', 'test.csv')
-  )
-  ```
+```python
+df_train = pd.read_csv(os.path.join('data', 'train.csv'))
+df_test = pd.read_csv(os.path.join('data', 'test.csv'))  # noqa
+```
+
+After preparing the backend data sets, we also usually prepare the public starting kit data sets that we will upload into the starting kit repo. It is a good practice to make the public data independent of both the training and test data on the backend, but it is also fine if the public data is the same as the backend training data (e.g., in case we don't have much data to spare), since "cheaters" can be caught by looking at their code and by them overfitting the public leaderboard. It is, on the other hand, crucial not to leak the private test data.
+
+It is assumed that `ramp-kits` and `ramp-data` are installed in the same directory, but `prepare_data.py` also need to accept a `ramp_kits_dir` argument that specifies where to copy the public train and test files. In the case of iris, we do
+
+```python
+df_public = df_train
+df_public_train, df_public_test = train_test_split(
+    df_public, test_size=0.2, random_state=57)
+df_public_train.to_csv(os.path.join('data', 'public_train.csv'), index=False)
+df_public_test.to_csv(os.path.join('data', 'public_test.csv'), index=False)
+
+# copy starting kit files to <ramp_kits_dir>/<ramp_name>/data
+copyfile(
+    os.path.join('data', 'public_train.csv'),
+    os.path.join(ramp_kits_dir, ramp_name, 'data', 'train.csv')
+)
+copyfile(
+    os.path.join('data', 'public_test.csv'),
+    os.path.join(ramp_kits_dir, ramp_name, 'data', 'test.csv')
+)
+```
 
 #### 3. Make sure the starting kit contains a Jupyter notebook
 
@@ -258,7 +276,8 @@ The notebook named `<ramp_kit_name>_starting_kit.ipynb`
 #### 4. [Send us a message][email].
 
 In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`test_submission.py`](rampwf/test_submission.py). In the case of titanic,
-```
+
+```bash
 mkdir ramp-data
 git clone https://github.com/ramp-data/titanic.git ramp-data/titanic
 mkdir ramp-kits
