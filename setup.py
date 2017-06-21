@@ -58,5 +58,7 @@ if __name__ == "__main__":
                        'Operating System :: Unix',
                        'Operating System :: MacOS'],
           platforms='any',
-          packages=find_packages()
-          )
+          packages=find_packages(),
+          scripts=[
+            'bin/test_submission',
+          ])
