@@ -3,8 +3,8 @@ from rampwf.utils import assert_submission
 
 # later on we need to make a util to list kits to avoid repeating the same
 # list everywhere
-RAMP_KITS = ('boston_housing',
-             'iris',
+RAMP_KITS = (# 'boston_housing',
+             # 'iris',
              'titanic')
 
 
