@@ -11,7 +11,7 @@ before_install:
 install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
-    - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas nose gitpython
+    - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas nose
     - pip install codecov
     - pip install -q flake8
     - python setup.py install
@@ -36,7 +36,14 @@ install:
     - python prepare_data.py
     - cd ../..
 script:
-    - nosetests --with-coverage --cover-package=rampwf rampwf
+    - nosetests --with-coverage rampwf/tests
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing submission=random_forest_100
+    - coverage run rampwf/test_submission.py unknown_arg=test
+    - coverage run rampwf/test_submission.py path=ramp-kits/boston_housing data=ramp-data/boston_housing
+    - coverage run rampwf/test_submission.py path=ramp-kits/iris
+    - coverage run rampwf/test_submission.py path=ramp-kits/titanic
+    - coverage run rampwf/test_submission.py path=ramp-kits/titanic submission=random_forest_20_5
 after_success:
     - codecov
 notifications:
