@@ -40,9 +40,9 @@ class BasePrediction(object):
         """Return valid indices (e.g., a cross-validation slice)."""
         return ~np.isnan(self.y_pred)
 
-    def set_valid_in_train(self, predictions, test_is):
+    def set_valid_in_train(self, predictions, test_idxs):
         """Set a cross-validation slice."""
-        self.y_pred[test_is] = predictions.y_pred
+        self.y_pred[test_idxs] = predictions.y_pred
 
     @classmethod
     def combine(cls, predictions_list, index_list=None):

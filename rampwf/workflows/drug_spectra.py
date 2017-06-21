@@ -20,11 +20,11 @@ class DrugSpectra(object):
         self.feature_extractor_regressor_workflow =\
             FeatureExtractorRegressor(self.workflow_element_names[2:])
 
-    def train_submission(self, module_path, X_df, y_array, train_is=None):
-        if train_is is None:
-            train_is = slice(None, None, None)
-        X_train_df = X_df.iloc[train_is]
-        y_train_array = y_array[train_is]
+    def train_submission(self, module_path, X_df, y_array, train_idxs=None):
+        if train_idxs is None:
+            train_idxs = slice(None, None, None)
+        X_train_df = X_df.iloc[train_idxs]
+        y_train_array = y_array[train_idxs]
         y_train_clf_array = y_train_array[:, 0]
         y_train_reg_array = y_train_array[:, 1].astype(float)
         fe_clf, clf = self.feature_extractor_classifier_workflow.\
