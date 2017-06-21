@@ -51,8 +51,8 @@ class Predictions(BasePrediction):
             for label in label_list:
                 ps_i[self.labels.index(label)] = 1.0 / len(label_list)
 
-    def set_valid_in_train(self, predictions, test_is):
-        self.y_proba[test_is] = predictions.y_proba
+    def set_valid_in_train(self, predictions, test_idxs):
+        self.y_proba[test_idxs] = predictions.y_proba
 
     @property
     def valid_indexes(self):

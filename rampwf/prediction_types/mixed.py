@@ -38,9 +38,9 @@ class Predictions(BasePrediction):
             self.regression = regression.Predictions(
                 labels=self.labels, shape=shape[0])
 
-    def set_valid_in_train(self, predictions, test_is):
-        self.multiclass.set_valid_in_train(predictions.multiclass, test_is)
-        self.regression.set_valid_in_train(predictions.regression, test_is)
+    def set_valid_in_train(self, predictions, test_idxs):
+        self.multiclass.set_valid_in_train(predictions.multiclass, test_idxs)
+        self.regression.set_valid_in_train(predictions.regression, test_idxs)
 
     @property
     def valid_indexes(self):

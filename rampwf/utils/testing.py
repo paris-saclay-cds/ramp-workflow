@@ -45,20 +45,20 @@ def assert_submission(ramp_kit_dir='./', ramp_data_dir='./data',
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
     test_scoress = np.empty((len(cv), len(score_types)))
-    for fold_i, (train_is, valid_is) in enumerate(cv):
+    for fold_i, (train_idxs, valid_idx) in enumerate(cv):
         trained_workflow = problem.workflow.train_submission(
-            module_path, X_train, y_train, train_is=train_is)
+            module_path, X_train, y_train, train_idxs=train_idxs)
 
         y_pred_train = problem.workflow.test_submission(trained_workflow,
                                                         X_train)
         predictions_train_train = problem.prediction_type.Predictions(
-            y_pred=y_pred_train[train_is], labels=prediction_labels)
+            y_pred=y_pred_train[train_idxs], labels=prediction_labels)
         ground_truth_train_train = problem.prediction_type.Predictions(
-            y_true=y_train[train_is], labels=prediction_labels)
+            y_true=y_train[train_idxs], labels=prediction_labels)
         predictions_train_valid = problem.prediction_type.Predictions(
-            y_pred=y_pred_train[valid_is], labels=prediction_labels)
+            y_pred=y_pred_train[valid_idx], labels=prediction_labels)
         ground_truth_train_valid = problem.prediction_type.Predictions(
-            y_true=y_train[valid_is], labels=prediction_labels)
+            y_true=y_train[valid_idx], labels=prediction_labels)
 
         y_pred_test = problem.workflow.test_submission(trained_workflow,
                                                        X_test)
