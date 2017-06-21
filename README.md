@@ -44,7 +44,7 @@ You can **learn about data science** by signing up to ongoing and past data chal
 
 You can **[build your own workflow](#build-your-own-workflow)** using the [ramp-workflow][rworkflow] library, following examples from [ramp-kits][rkits]. You can then **train and test your models locally** and keep track of them in a simple file structure. If you want to **collaborate with your fellow team members**, you can simply commit your kit and use git.
 
-You can also use [ramp.studio][rstudio] to expose your kit either privately to your internal team or by lunching a public data challenge. If you are interested in these options, [contact us][email].
+You can also use [ramp.studio][rstudio] to expose your kit either privately to your internal team or by launching a public data challenge. If you are interested in these options, [contact us][email].
 
 ### I am a researcher in machine learning
 
@@ -63,7 +63,7 @@ Start by installing ramp-workflow (this library):
 ```bash
 git clone https://github.com/paris-saclay-cds/ramp-workflow.git
 cd ramp-workflow
-python setup.py
+python setup.py install
 ```
 
 ### Get familiar with starting kits
