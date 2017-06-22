@@ -68,7 +68,7 @@ python setup.py install
 
 ### Get familiar with starting kits
 
-Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the `ramp_test_submission` script that simply executes [`test_submission.py`](rampwf/utils/testing.py) in the starting kit. For example, clone the titanic starting kit and test it by
+Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the `ramp_test_submission` script that simply executes [`testing_py`](rampwf/utils/testing.py) in the starting kit. For example, clone the titanic starting kit and test it by
 
 ```bash
 mkdir ramp-kits
@@ -216,7 +216,7 @@ def get_test_data(path='.'):
 
 The convention is that these sets are found in `/data` and called `train.csv` and `test.csv`, but we kept this element flexible to accommodate a large number of possible input data connectors.
 
-The script is used by [`test_submission.py`](rampwf/utils/testing.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is quite straightforward so we do not detail it here.
+The script is used by [`testing.py`](rampwf/utils/testing.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is quite straightforward so we do not detail it here.
 
 ### Launching your own RAMP
 
@@ -237,7 +237,7 @@ df_train.to_csv(os.path.join('data', 'train.csv'), index=False)
 df_test.to_csv(os.path.join('data', 'test.csv'), index=False)
 ```
 
-`/data/test.csv` is the _private test_ data which is used to compute the scores on the private leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repository on the backend, we will test it with the same [`test_submission.py`](rampwf/utils/testing.py) script as the script that submitters use to test their submissions.
+`/data/test.csv` is the _private test_ data which is used to compute the scores on the private leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repository on the backend, we will test it with the same [`testing.py`](rampwf/utils/testing.py) script as the script that submitters use to test their submissions.
 
 In the case of titanic, we already prepared train and test files so [`prepare_data.py`](https://github.com/ramp-data/titanic/blob/master/prepare_data.py) simply reads them here.
 
@@ -275,7 +275,7 @@ The notebook named `<ramp_kit_name>_starting_kit.ipynb`
 
 #### 4. [Send us a message][email].
 
-In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`test_submission.py`](rampwf/utils/testing.py). In the case of titanic,
+In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`testing.py`](rampwf/utils/testing.py). In the case of titanic,
 
 ```bash
 mkdir ramp-data ramp-kits
