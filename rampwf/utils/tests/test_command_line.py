@@ -8,14 +8,14 @@ def test_cmd_parser():
     args = parser.parse_args([])
     assert args.ramp_kit_dir == '.'
     assert args.ramp_data_dir == '.'
-    assert args.submission_name == 'starting_kit'
+    assert args.submission == 'starting_kit'
 
     # specifying keyword args
     parser = create_parser()
     args = parser.parse_args([
         '--ramp_kit_dir',  './titanic/', '--ramp_data_dir',  './titanic/',
-        '--submission_name', 'other'])
+        '--submission', 'other'])
     assert args.ramp_kit_dir == './titanic/'
     assert args.ramp_data_dir == './titanic/'
-    assert args.submission_name == 'other'
+    assert args.submission == 'other'
 

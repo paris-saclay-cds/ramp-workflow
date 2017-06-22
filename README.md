@@ -81,7 +81,7 @@ ramp_test_submission
 When `ramp_test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Titanic uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `ramp_test_submission --submission_name=<submission_name>`. For example,
 
 ```shell
-ramp_test_submission --submission_name=random_forest_20_5
+ramp_test_submission --submission=random_forest_20_5
 ```
 
 will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
@@ -284,8 +284,8 @@ git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
 
 python ramp-data/titanic/prepare_data.py
 
-ramp_test_submission data=ramp-data/titanic path=ramp-kits/titanic
-ramp_test_submission data=ramp-kits/titanic path=ramp-kits/titanic
+ramp_test_submission --ramp_data_dir=ramp-data/titanic --ramp_kit_dir=ramp-kits/titanic
+ramp_test_submission --ramp_data_dir=ramp-kits/titanic --ramp_kit_dir=ramp-kits/titanic
 ```
 
 ### Contribute to [ramp-workflow][rworkflow]

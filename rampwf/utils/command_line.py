@@ -21,7 +21,7 @@ def create_parser():
                         type=str,
                         help='Directory containing the data. This directory'
                         ' should contain a "data" folder.')
-    parser.add_argument('--submission_name',
+    parser.add_argument('--submission',
                         default='starting_kit',
                         type=str,
                         help='The kit to test. It should be located in the'
@@ -34,4 +34,4 @@ def ramp_test_submission():
     args = parser.parse_args()
     assert_submission(ramp_kit_dir=args.ramp_kit_dir,
                       ramp_data_dir=args.ramp_data_dir,
-                      submission_name=args.submission_name)
+                      submission_name=args.submission)
