@@ -36,7 +36,7 @@ def ramp_test_submission():
     parser = create_parser()
     args = parser.parse_args()
 
-    if args.submission == "*":
+    if args.submission == "ALL":
         ramp_submission_dir = join(args.ramp_kit_dir, 'submissions')
         submission = [directory
                       for directory in listdir(ramp_submission_dir)
