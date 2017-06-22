@@ -10,7 +10,8 @@ def ramp_test_submission():
     import argparse
     parser = argparse.ArgumentParser(
         prog='ramp_test_submission',
-        description='Test your ramp-kit before attempting a submission.')
+        description='Test your ramp-kit before attempting a submission.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--ramp_kit_dir',
                         default='.',
                         nargs=1,
