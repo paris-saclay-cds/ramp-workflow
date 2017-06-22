@@ -59,6 +59,8 @@ if __name__ == "__main__":
                        'Operating System :: MacOS'],
           platforms='any',
           packages=find_packages(),
-          scripts=[
-            'bin/test_submission',
-          ])
+          entry_points={
+              'console_scripts': [
+                  'ramp_test_submission='
+                  'rampwf.utils.command_line:ramp_test_submission',
+              ]})

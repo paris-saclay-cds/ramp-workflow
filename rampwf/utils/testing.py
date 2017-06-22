@@ -10,7 +10,7 @@ from os import system
 import numpy as np
 
 
-def assert_submission(ramp_kit_dir='./', ramp_data_dir='./data',
+def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
                       submission_name='starting_kit'):
     """Helper to test a submission from a ramp-kit.
 
