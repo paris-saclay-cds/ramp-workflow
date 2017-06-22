@@ -4,10 +4,8 @@
 
 import os
 
-# we are using a setuptools namespace
-import setuptools  # noqa
-from setuptools import find_packages
-from numpy.distutils.core import setup
+from setuptools import setup, find_packages
+
 
 version = None
 with open(os.path.join('rampwf', '__init__.py'), 'r') as fid:
