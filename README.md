@@ -52,7 +52,7 @@ You can **benchmark your new algorithm** against all our data challenges on [ram
 
 If you register with us for an official benchmarking, we will provide you a private test score for a small number of submissions of your choice, at a date of your choice (but only once).
 
-### I am a researcher in a domain science
+### I am a researcher in a domain science or I have a predictive problem in my business
 
 If you **have a predictive problem**, you can **submit it as a data challenge** to incite data scientists to solve your problem. First [build your own workflow](#build-your-own-workflow) using the [ramp-workflow][rworkflow] library, following examples from [ramp-kits][rkits], then [contact us][email] so we upload it to the [RAMP site][rstudio]. We can then organize hackathons or longer data challenges, and use the problem in a classroom setting. We may also automatically benchmark the thousands of models that are already in the platform.
 
@@ -68,7 +68,7 @@ python setup.py install
 
 ### Get familiar with starting kits
 
-Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the `ramp_test_submission` script that simply executes [`test_submission.py`](rampwf/utils/testing.py) in the starting kit. For example, clone the titanic starting kit and test it by
+Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the `ramp_test_submission` script that simply executes [`testing_py`](rampwf/utils/testing.py) in the starting kit. For example, clone the titanic starting kit and test it by
 
 ```bash
 mkdir ramp-kits
@@ -81,7 +81,7 @@ ramp_test_submission
 When `ramp_test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Titanic uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `ramp_test_submission --submission_name=<submission_name>`. For example,
 
 ```shell
-ramp_test_submission --submission_name=random_forest_20_5
+ramp_test_submission --submission=random_forest_20_5
 ```
 
 will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
@@ -216,7 +216,7 @@ def get_test_data(path='.'):
 
 The convention is that these sets are found in `/data` and called `train.csv` and `test.csv`, but we kept this element flexible to accommodate a large number of possible input data connectors.
 
-The script is used by [`test_submission.py`](rampwf/utils/testing.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is quite straightforward so we do not detail it here.
+The script is used by [`testing.py`](rampwf/utils/testing.py) which reads the files, implements the cross-validation split, instantiates the workflow with the submission, and trains and tests it. It is rather instructive to read this script to understand how we train the workflows. It is quite straightforward so we do not detail it here.
 
 ### Launching your own RAMP
 
@@ -237,7 +237,7 @@ df_train.to_csv(os.path.join('data', 'train.csv'), index=False)
 df_test.to_csv(os.path.join('data', 'test.csv'), index=False)
 ```
 
-`/data/test.csv` is the _private test_ data which is used to compute the scores on the private leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repository on the backend, we will test it with the same [`test_submission.py`](rampwf/utils/testing.py) script as the script that submitters use to test their submissions.
+`/data/test.csv` is the _private test_ data which is used to compute the scores on the private leaderboard, visible only to RAMP administrators. `/data/train.csv` is the _public train_ data on which we do cross validation to compute the scores on the public leaderboard. You do not need to follow this exact naming convention, what is important is that your convention matches what you do in the `problem.py` file of the corresponding starting kit, since, when we pull your data repository on the backend, we will test it with the same [`testing.py`](rampwf/utils/testing.py) script as the script that submitters use to test their submissions.
 
 In the case of titanic, we already prepared train and test files so [`prepare_data.py`](https://github.com/ramp-data/titanic/blob/master/prepare_data.py) simply reads them here.
 
@@ -275,7 +275,7 @@ The notebook named `<ramp_kit_name>_starting_kit.ipynb`
 
 #### 4. [Send us a message][email].
 
-In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`test_submission.py`](rampwf/utils/testing.py). In the case of titanic,
+In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`testing.py`](rampwf/utils/testing.py). In the case of titanic,
 
 ```bash
 mkdir ramp-data ramp-kits
@@ -284,8 +284,8 @@ git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
 
 python ramp-data/titanic/prepare_data.py
 
-ramp_test_submission data=ramp-data/titanic path=ramp-kits/titanic
-ramp_test_submission data=ramp-kits/titanic path=ramp-kits/titanic
+ramp_test_submission --ramp_data_dir=ramp-data/titanic --ramp_kit_dir=ramp-kits/titanic
+ramp_test_submission --ramp_data_dir=ramp-kits/titanic --ramp_kit_dir=ramp-kits/titanic
 ```
 
 ### Contribute to [ramp-workflow][rworkflow]
