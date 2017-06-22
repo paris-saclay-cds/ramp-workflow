@@ -6,7 +6,7 @@ from __future__ import print_function
 from .testing import assert_submission
 
 
-def ramp_test_submission():
+def create_parser():
     import argparse
     parser = argparse.ArgumentParser(
         prog='ramp_test_submission',
@@ -26,7 +26,11 @@ def ramp_test_submission():
                         type=str,
                         help='The kit to test. It should be located in the'
                         ' "submissions" folder of the starting kit.')
+    return parser
 
+
+def ramp_test_submission():
+    parser = create_parser()
     args = parser.parse_args()
     assert_submission(ramp_kit_dir=args.ramp_kit_dir,
                       ramp_data_dir=args.ramp_data_dir,
