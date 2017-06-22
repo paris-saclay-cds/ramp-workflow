@@ -52,7 +52,7 @@ You can **benchmark your new algorithm** against all our data challenges on [ram
 
 If you register with us for an official benchmarking, we will provide you a private test score for a small number of submissions of your choice, at a date of your choice (but only once).
 
-### I am a researcher in a domain science
+### I am a researcher in a domain science or I have a predictive problem in my business
 
 If you **have a predictive problem**, you can **submit it as a data challenge** to incite data scientists to solve your problem. First [build your own workflow](#build-your-own-workflow) using the [ramp-workflow][rworkflow] library, following examples from [ramp-kits][rkits], then [contact us][email] so we upload it to the [RAMP site][rstudio]. We can then organize hackathons or longer data challenges, and use the problem in a classroom setting. We may also automatically benchmark the thousands of models that are already in the platform.
 
