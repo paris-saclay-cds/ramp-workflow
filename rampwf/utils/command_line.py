@@ -28,7 +28,8 @@ def create_parser():
                         default='starting_kit',
                         type=str,
                         help='The kit to test. It should be located in the'
-                        ' "submissions" folder of the starting kit.')
+                        ' "submissions" folder of the starting kit. If "ALL",'
+                        ' all submissions in the directory will be tested.')
     return parser
 
 

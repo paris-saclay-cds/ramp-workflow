@@ -1,5 +1,4 @@
 PYTHON ?= python
-NOSETESTS ?= nosetests
 CTAGS ?= ctags
 
 all: clean inplace test
@@ -18,7 +17,7 @@ inplace:
 	$(PYTHON) setup.py build_ext -i
 
 test:
-	nosetests rampwf -s -v --with-coverage --cover-package=rampwf
+	pytest -s -v --cov=rampwf rampwf
 
 test-all: test
 
