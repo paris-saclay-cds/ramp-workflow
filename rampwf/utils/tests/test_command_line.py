@@ -2,7 +2,7 @@ from rampwf.utils.command_line import create_parser
 
 
 def test_cmd_parser():
-    
+
     # defaults
     parser = create_parser()
     args = parser.parse_args([])
@@ -18,4 +18,3 @@ def test_cmd_parser():
     assert args.ramp_kit_dir == './titanic/'
     assert args.ramp_data_dir == './titanic/'
     assert args.submission == 'other'
-

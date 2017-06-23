@@ -14,27 +14,7 @@ install:
     - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas pytest pytest-cov gitpython
     - pip install codecov
     - pip install -q flake8
-    - python setup.py install
-    - mkdir ramp-kits
-    - cd ramp-kits
-    - git clone https://github.com/ramp-kits/boston_housing.git
-    - git clone https://github.com/ramp-kits/iris.git
-    - git clone https://github.com/ramp-kits/titanic.git
-    - cd ..
-    - mkdir ramp-data
-    - cd ramp-data
-    - git clone https://github.com/ramp-data/boston_housing.git
-    - cd boston_housing
-    - python prepare_data.py
-    - cd ..
-    - git clone https://github.com/ramp-data/iris.git
-    - cd iris
-    - python prepare_data.py
-    - cd ..
-    - git clone https://github.com/ramp-data/titanic.git
-    - cd titanic
-    - python prepare_data.py
-    - cd ../..
+    - pip install .
 script:
     - pytest -s -v --cov=rampwf rampwf
 after_success:

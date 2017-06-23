@@ -3,6 +3,9 @@ utils.
 """
 from __future__ import print_function
 
+from os import listdir
+from os.path import join, isdir
+
 from .testing import assert_submission
 
 
@@ -25,13 +28,24 @@ def create_parser():
                         default='starting_kit',
                         type=str,
                         help='The kit to test. It should be located in the'
-                        ' "submissions" folder of the starting kit.')
+                        ' "submissions" folder of the starting kit. If "ALL",'
+                        ' all submissions in the directory will be tested.')
     return parser
 
 
 def ramp_test_submission():
     parser = create_parser()
     args = parser.parse_args()
-    assert_submission(ramp_kit_dir=args.ramp_kit_dir,
-                      ramp_data_dir=args.ramp_data_dir,
-                      submission_name=args.submission)
+
+    if args.submission == "ALL":
+        ramp_submission_dir = join(args.ramp_kit_dir, 'submissions')
+        submission = [directory
+                      for directory in listdir(ramp_submission_dir)
+                      if isdir(join(ramp_submission_dir, directory))]
+    else:
+        submission = [args.submission]
+
+    for sub in submission:
+        assert_submission(ramp_kit_dir=args.ramp_kit_dir,
+                          ramp_data_dir=args.ramp_data_dir,
+                          submission=sub)

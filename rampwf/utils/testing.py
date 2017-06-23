@@ -11,7 +11,7 @@ import numpy as np
 
 
 def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
-                      submission_name='starting_kit'):
+                      submission='starting_kit'):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -39,9 +39,9 @@ def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
     prediction_labels = problem.prediction_labels
     score_types = problem.score_types
     print('Training {}/submissions/{} ...'.format(ramp_kit_dir,
-                                                  submission_name))
+                                                  submission))
     cv = list(problem.get_cv(X_train, y_train))
-    module_path = join(ramp_kit_dir, 'submissions', submission_name)
+    module_path = join(ramp_kit_dir, 'submissions', submission)
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
     test_scoress = np.empty((len(cv), len(score_types)))
