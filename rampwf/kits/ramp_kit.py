@@ -8,11 +8,13 @@ BASE_RAMP_KIT_URL = 'https://github.com/ramp-kits/'
 
 RAMP_KITS_AVAILABLE = ('boston_housing',
                        'iris',
-                       'titanic')
+                       'titanic',
+                       'epidemium2_cancer_mortality',
+                       )
 
 
 def fetch_ramp_kit(name_kit, ramp_kits_home=None):
-    """Fetcher of RAMP kit
+    """Fetcher of RAMP kit.
 
     Parameters
     ----------
