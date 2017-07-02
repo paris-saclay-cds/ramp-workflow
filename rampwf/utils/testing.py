@@ -36,7 +36,6 @@ def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
         ramp_data_dir))
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     X_test, y_test = problem.get_test_data(path=ramp_data_dir)
-    prediction_labels = problem.prediction_labels
     score_types = problem.score_types
     print('Training {}/submissions/{} ...'.format(ramp_kit_dir,
                                                   submission))
@@ -51,21 +50,19 @@ def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
 
         y_pred_train = problem.workflow.test_submission(trained_workflow,
                                                         X_train)
-        predictions_train_train = problem.prediction_type.Predictions(
-            y_pred=y_pred_train[train_is], labels=prediction_labels)
-        ground_truth_train_train = problem.prediction_type.Predictions(
-            y_true=y_train[train_is], labels=prediction_labels)
-        predictions_train_valid = problem.prediction_type.Predictions(
-            y_pred=y_pred_train[valid_is], labels=prediction_labels)
-        ground_truth_train_valid = problem.prediction_type.Predictions(
-            y_true=y_train[valid_is], labels=prediction_labels)
+        predictions_train_train = problem.Predictions(
+            y_pred=y_pred_train[train_is])
+        ground_truth_train_train = problem.Predictions(
+            y_true=y_train[train_is])
+        predictions_train_valid = problem.Predictions(
+            y_pred=y_pred_train[valid_is])
+        ground_truth_train_valid = problem.Predictions(
+            y_true=y_train[valid_is])
 
         y_pred_test = problem.workflow.test_submission(trained_workflow,
                                                        X_test)
-        predictions_test = problem.prediction_type.Predictions(
-            y_pred=y_pred_test, labels=prediction_labels)
-        ground_truth_test = problem.prediction_type.Predictions(
-            y_true=y_test, labels=prediction_labels)
+        predictions_test = problem.Predictions(y_pred=y_pred_test)
+        ground_truth_test = problem.Predictions(y_true=y_test)
 
         print('CV fold {}'.format(fold_i))
         for score_type_i, score_type in enumerate(score_types):
