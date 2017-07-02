@@ -27,7 +27,7 @@ def _multiclass_init(self, y_pred=None, y_true=None, n_samples=None):
 
 
 def _init_from_pred_labels(self, y_pred_labels):
-    """Initalize y_pred to uniform for labels in y_pred_labels.
+    """Initalize y_pred to uniform for (positive) labels in y_pred_labels.
 
     Initialize multiclass Predictions from ground truth. y_pred_labels
     can be a single (positive) label in which case the corresponding
@@ -57,7 +57,7 @@ def _y_pred_label_index(self):
     return np.argmax(self.y_pred, axis=1)
 
 
-def make_predictions_type(label_names=[]):
+def make_multiclass(label_names=[]):
     Predictions = type(
         'Predictions',
         (BasePrediction,),

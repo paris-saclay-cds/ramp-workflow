@@ -28,7 +28,7 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
             'Missing init argument: y_pred, y_true, or n_samples')
 
 
-def make_predictions_type(label_names=[]):
+def make_regression(label_names=[]):
     Predictions = type(
         'Predictions',
         (BasePrediction,),
