@@ -28,7 +28,6 @@ import numpy as np
 
 
 class BasePrediction(object):
-
     def __str__(self):
         return 'y_pred = {}'.format(self.y_pred)
 
@@ -45,6 +44,19 @@ class BasePrediction(object):
     def set_valid_in_train(self, predictions, test_is):
         """Set a cross-validation slice."""
         self.y_pred[test_is] = predictions.y_pred
+
+    def check_y_pred_dimensions(self):
+        if self.n_columns == 0 and len(self.y_pred.shape) != 1:
+            raise ValueError(
+                'Wrong y_pred dimensions: y_pred should be 1D, '
+                'instead its shape is {}'.format(self.y_pred.shape))
+        if self.n_columns > 0:
+            if len(self.y_pred.shape) != 2 or\
+                    self.y_pred.shape[1] != self.n_columns:
+                raise ValueError(
+                    'Wrong y_pred dimensions: y_pred should be 2D '
+                    'with {} columns, instead its shape is {}'.format(
+                        self.n_columns, self.y_pred.shape))
 
     @classmethod
     def combine(cls, predictions_list, index_list=None):

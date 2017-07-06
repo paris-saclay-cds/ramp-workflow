@@ -59,8 +59,8 @@ def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
         ground_truth_train_valid = problem.Predictions(
             y_true=y_train[valid_is])
 
-        y_pred_test = problem.workflow.test_submission(trained_workflow,
-                                                       X_test)
+        y_pred_test = problem.workflow.test_submission(
+            trained_workflow, X_test)
         predictions_test = problem.Predictions(y_pred=y_pred_test)
         ground_truth_test = problem.Predictions(y_true=y_test)
 

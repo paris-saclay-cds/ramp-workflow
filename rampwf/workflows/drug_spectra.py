@@ -2,23 +2,16 @@ import numpy as np
 from .feature_extractor_classifier import FeatureExtractorClassifier
 from .feature_extractor_regressor import FeatureExtractorRegressor
 
-# I had to rename the classes in feature_extractor_clf.py and
-# feature_extractor_reg.py in to FeatureExtractor() from
-# FeatureExtractorClf and FeatureExtractorReg. This makes
-# the semantics clearer, but use test in the notebook will only
-# work for executing from the command line (otherwsie there is a class
-# name clash).
-
 
 class DrugSpectra(object):
     def __init__(self, workflow_element_names=[
             'feature_extractor_clf', 'classifier',
             'feature_extractor_reg', 'regressor']):
-        self.workflow_element_names = workflow_element_names
+        self.element_names = workflow_element_names
         self.feature_extractor_classifier_workflow =\
-            FeatureExtractorClassifier(self.workflow_element_names[:2])
+            FeatureExtractorClassifier(self.element_names[:2])
         self.feature_extractor_regressor_workflow =\
-            FeatureExtractorRegressor(self.workflow_element_names[2:])
+            FeatureExtractorRegressor(self.element_names[2:])
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
         if train_is is None:
@@ -54,5 +47,3 @@ class DrugSpectra(object):
         y_pred_reg = self.feature_extractor_regressor_workflow.\
             test_submission((fe_reg, reg), X_df)
         return np.concatenate([y_proba_clf, y_pred_reg.reshape(-1, 1)], axis=1)
-
-workflow = DrugSpectra()
