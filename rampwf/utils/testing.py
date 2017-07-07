@@ -37,8 +37,8 @@ def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     X_test, y_test = problem.get_test_data(path=ramp_data_dir)
     score_types = problem.score_types
-    print('Training {}/submissions/{} ...'.format(ramp_kit_dir,
-                                                  submission))
+    print('Training {}/submissions/{} ...'.format(
+        ramp_kit_dir, submission))
     cv = list(problem.get_cv(X_train, y_train))
     module_path = join(ramp_kit_dir, 'submissions', submission)
     train_train_scoress = np.empty((len(cv), len(score_types)))
@@ -48,8 +48,8 @@ def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
         trained_workflow = problem.workflow.train_submission(
             module_path, X_train, y_train, train_is=train_is)
 
-        y_pred_train = problem.workflow.test_submission(trained_workflow,
-                                                        X_train)
+        y_pred_train = problem.workflow.test_submission(
+            trained_workflow, X_train)
         predictions_train_train = problem.Predictions(
             y_pred=y_pred_train[train_is])
         ground_truth_train_train = problem.Predictions(
