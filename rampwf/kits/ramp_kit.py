@@ -10,6 +10,7 @@ RAMP_KITS_AVAILABLE = ('boston_housing',
                        'iris',
                        'titanic',
                        'epidemium2_cancer_mortality',
+                       'drug_spectra',
                        )
 
 
