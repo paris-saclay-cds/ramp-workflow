@@ -23,7 +23,7 @@ class DrugSpectra(object):
         fe_clf, clf = self.feature_extractor_classifier_workflow.\
             train_submission(module_path, X_train_df, y_train_clf_array)
 
-        # Concatenating ground truth y_proba (on-hot, derived from labels)
+        # Concatenating ground truth y_proba (one-hot, derived from labels)
         # to X_train_df.
         # This makes it vulnerable to training sets that don't contain
         # all the classes. So better to use it with stratified CV.

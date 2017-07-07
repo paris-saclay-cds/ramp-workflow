@@ -1,10 +1,6 @@
-"""Mixed classification/regression predictions.
+"""Combined predictions.
 
-The first shape[1] - 1 columns are classification posteriors, the
-last column is a regression.
-
-Alternatively, we would need to define workflows with multiple outputs,
-and let scores handle them separately.
+Handling a list of Predictions.
 
 """
 
