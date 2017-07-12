@@ -10,16 +10,49 @@ from os import system
 import numpy as np
 
 
-def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
+def assert_read_problem(ramp_kit_dir='.'):
+    problem = imp.load_source('', join(ramp_kit_dir, 'problem.py'))
+    return problem
+
+
+def assert_title(ramp_kit_dir='.'):
+    problem = assert_read_problem(ramp_kit_dir)
+    print('Testing {}'.format(problem.problem_title))
+
+
+def assert_data(ramp_kit_dir='.', ramp_data_dir='.'):
+    problem = assert_read_problem(ramp_kit_dir)
+    print('Reading train and test files from {}/data ...'.format(
+        ramp_data_dir))
+    X_train, y_train = problem.get_train_data(path=ramp_data_dir)
+    X_test, y_test = problem.get_test_data(path=ramp_data_dir)
+    return X_train, y_train, X_test, y_test
+
+
+def assert_cv(ramp_kit_dir='.', ramp_data_dir='.'):
+    problem = assert_read_problem(ramp_kit_dir)
+    X_train, y_train = problem.get_train_data(path=ramp_data_dir)
+    print('Reading cv ...')
+    cv = list(problem.get_cv(X_train, y_train))
+    return cv
+
+
+def assert_score_types(ramp_kit_dir='.'):
+    problem = assert_read_problem(ramp_kit_dir)
+    score_types = problem.score_types
+    return score_types
+
+
+def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       submission='starting_kit'):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
     ----------
-    ramp_kit_dir : str, (default='./')
+    ramp_kit_dir : str, (default='.')
         The directory of the ramp-kit to be tested for submission.
 
-    ramp_data_dir : str, (default='./')
+    ramp_data_dir : str, (default='.')
         The directory of the data
 
     submission_name : str, (default='starting_kit')
@@ -30,16 +63,17 @@ def assert_submission(ramp_kit_dir='./', ramp_data_dir='./',
     None
 
     """
-    problem = imp.load_source('', join(ramp_kit_dir, 'problem.py'))
-    print('Testing {}'.format(problem.problem_title))
-    print('Reading train and test files from {}/data ...'.format(
-        ramp_data_dir))
-    X_train, y_train = problem.get_train_data(path=ramp_data_dir)
-    X_test, y_test = problem.get_test_data(path=ramp_data_dir)
+    problem = assert_read_problem(ramp_kit_dir)
+    assert_title(ramp_kit_dir)
+    X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
+    score_types = assert_score_types(ramp_kit_dir)
+    
+
+
     score_types = problem.score_types
     print('Training {}/submissions/{} ...'.format(
         ramp_kit_dir, submission))
-    cv = list(problem.get_cv(X_train, y_train))
     module_path = join(ramp_kit_dir, 'submissions', submission)
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
