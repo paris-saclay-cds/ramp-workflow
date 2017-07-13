@@ -12,6 +12,7 @@ install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
     - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas xarray pytest pytest-cov gitpython
+    - pip install netcdf4
     - pip install codecov
     - pip install -q flake8
     - pip install .
