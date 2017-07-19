@@ -9,7 +9,7 @@ from os.path import join, isdir
 from .testing import assert_submission, assert_notebook
 
 
-def create_ramp_test_parser():
+def create_ramp_test_submission_parser():
     import argparse
     parser = argparse.ArgumentParser(
         prog='ramp_test_submission',
@@ -34,7 +34,7 @@ def create_ramp_test_parser():
 
 
 def ramp_test_submission():
-    parser = create_ramp_test_parser()
+    parser = create_ramp_test_submission_parser()
     args = parser.parse_args()
 
     if args.submission == "ALL":
@@ -51,7 +51,7 @@ def ramp_test_submission():
                           submission=sub)
 
 
-def create_ramp_test_notebook():
+def create_ramp_test_notebook_parser():
     import argparse
     parser = argparse.ArgumentParser(
         prog='ramp_test_notebook',
@@ -65,6 +65,6 @@ def create_ramp_test_notebook():
 
 
 def ramp_test_notebook():
-    parser = create_ramp_test_notebook()
+    parser = create_ramp_test_notebook_parser()
     args = parser.parse_args()
     assert_notebook(ramp_kit_dir=args.ramp_kit_dir)
