@@ -30,3 +30,6 @@ class Combined(BaseScoreType):
             score += weight * score_type.score_function(
                 ground_truths, predictions, valid_indexes)
         return score
+
+    def __call__(self, y_true, y_pred):
+        raise ValueError('Combined score has no deep score function.')

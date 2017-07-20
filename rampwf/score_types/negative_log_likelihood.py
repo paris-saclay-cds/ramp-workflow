@@ -11,12 +11,7 @@ class NegativeLogLikelihood(BaseScoreType):
         self.name = name
         self.precision = precision
 
-    def score_function(self, ground_truths, predictions, valid_indexes=None):
-        if valid_indexes is None:
-            valid_indexes = slice(None, None, None)
-        y_proba = predictions.y_pred[valid_indexes]
-        y_true_proba = ground_truths.y_pred[valid_indexes]
-        self.check_y_pred_dimensions(y_true_proba, y_proba)
+    def __call__(self, y_true_proba, y_proba):
         # Normalize rows
         y_proba_normalized = y_proba / np.sum(y_proba, axis=1, keepdims=True)
         # Kaggle's rule
