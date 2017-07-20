@@ -17,3 +17,6 @@ class MakeCombined(BaseScoreType):
             ground_truths_combined.predictions_list[self.index],
             predictions_combined.predictions_list[self.index],
             valid_indexes)
+
+    def __call__(self, y_true, y_pred):
+        raise ValueError('MakeCombined score has no deep score function.')
