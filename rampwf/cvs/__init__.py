@@ -1,3 +1,7 @@
-from .time_series_cv import TimeSeriesCV
+from .clustering import Clustering
+from .time_series import TimeSeries
 
-__all__ = ['TimeSeriesCV']
+__all__ = [
+    'Clustering',
+    'TimeSeries',
+]

@@ -10,6 +10,20 @@ from os import system
 import numpy as np
 
 
+def assert_notebook(ramp_kit_dir='.'):
+    print('----------------------------')
+    problem_name = abspath(ramp_kit_dir).split('/')[-1]
+    print('Testing if the notebook can be converted to html')
+    system('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
+        ramp_kit_dir, problem_name))
+    print('Testing if the notebook can be executed')
+    system(
+        'jupyter nbconvert --execute {}/{}_starting_kit.ipynb '.format(
+            ramp_kit_dir, problem_name) +
+        '--ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL ' +
+        '--ExecutePreprocessor.timeout=600')
+
+
 def assert_read_problem(ramp_kit_dir='.'):
     problem = imp.load_source('', join(ramp_kit_dir, 'problem.py'))
     return problem
@@ -135,9 +149,3 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         print('test {} = {} ± {}'.format(
             score_type.name, round(mean, score_type.precision),
             round(std, score_type.precision + 1)))
-
-    print('----------------------------')
-    problem_name = abspath(ramp_kit_dir).split('/')[-1]
-    print('Testing if the notebook can be converted to html')
-    system('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
-        ramp_kit_dir, problem_name))

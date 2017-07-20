@@ -61,4 +61,6 @@ if __name__ == "__main__":
               'console_scripts': [
                   'ramp_test_submission='
                   'rampwf.utils.command_line:ramp_test_submission',
+                  'ramp_test_notebook='
+                  'rampwf.utils.command_line:ramp_test_notebook',
               ]})

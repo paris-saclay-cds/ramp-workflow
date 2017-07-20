@@ -39,7 +39,7 @@ block) can be done by setting `n_cv` to 1.
 import numpy as np
 
 
-class TimeSeriesCV:
+class TimeSeries(object):
     def __init__(self, n_cv=8, cv_block_size=0.5, period=12, unit='',
                  unit_2=None):
         self.n_cv = n_cv

@@ -1,17 +1,41 @@
+"""A supervised clustering or transfer learning workflow.
+
+Training and test data consist of a set of events ad each event has an
+unknown number of clusters. At training time we know the classes (clusters) of
+each event. At test time we only know which instances belong to the same event.
+Events share statistical properties which can be exploited.
+
+From another point of view, the setup is transfer learning: each event is
+a new task, and classed in the task share statistical properties.
+
+User submissions implement a fit function that receives both event ids and
+cluster ids (besides input covariates). At test time `test_submission`
+receives only the coavariates and the event_id (assumed to be the first column
+of `X_array`). It slices up `X_array` into single events, drops the event ids,
+and sends the single event to the `predict_single_event` function implemented
+by the users. This function returns a vector of labels (cluster assignments)
+which is then joined back the the event id column and returned (to be passed
+into `prediction_types.Clustering` and evaluated by
+`score_types.clustering_efficiency`).
+"""
+
+# Author: Balazs Kegl <balazs.kegl@gmail.com>
+# License: BSD 3 clause
+
+import imp
 import numpy as np
-from importlib import import_module
 
 
 class Clusterer(object):
     def __init__(self, workflow_element_names=['clusterer']):
-        self.workflow_element_names = workflow_element_names
+        self.element_names = workflow_element_names
 
     def train_submission(self, module_path, X_array, y_array, train_is=None):
         if train_is is None:
             train_is = slice(None, None, None)
-        submitted_clusterer_module = '.{}'.format(
-            self.workflow_element_names[0])
-        clusterer = import_module(submitted_clusterer_module, module_path)
+        submitted_clusterer_file = '{}/{}.py'.format(
+            module_path, self.element_names[0])
+        clusterer = imp.load_source('', submitted_clusterer_file)
         ctr = clusterer.Clusterer()
         ctr.fit(X_array[train_is], y_array[train_is])
         return ctr
@@ -29,6 +53,3 @@ class Clusterer(object):
 
         return np.stack(
             (X_array[:, 0], cluster_ids), axis=-1).astype(dtype='int')
-
-
-workflow = Clusterer()

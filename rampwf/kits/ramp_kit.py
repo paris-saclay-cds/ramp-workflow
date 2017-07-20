@@ -13,6 +13,7 @@ RAMP_KITS_AVAILABLE = ('boston_housing',
                        'drug_spectra',
                        'air_passengers',
                        'el_nino',
+                       'HEP_tracking',
                        )
 
 
