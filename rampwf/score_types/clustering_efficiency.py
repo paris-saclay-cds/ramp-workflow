@@ -29,29 +29,7 @@ class ClusteringEfficiency(BaseScoreType):
         self.name = name
         self.precision = precision
 
-    def score_function(self, ground_truths, predictions, valid_indexes=None):
-        """Compute a clustering score.
-
-        Parameters
-        ----------
-        ground_truths : Predictions from regression_predictions
-            ground_truths.y_pred: np.array, shape = (n, 2)
-            The ground truth.
-            first column: event_id
-            second column: cluster_id
-        predictions : Predictions from regression_predictions
-            predictions.ypred: np.array, shape = n
-            The predicted cluster assignment (predicted cluster_id)
-        """
-        if valid_indexes is None:
-            valid_indexes = slice(None, None, None)
-        y_pred = predictions.y_pred[valid_indexes]
-        y_true = ground_truths.y_pred[valid_indexes]
-        return self.np_score_function(y_true, y_pred)
-
-    def np_score_function(self, y_true, y_pred):
-        self.check_y_pred_dimensions(y_true, y_pred)
-
+    def __call__(self, y_true, y_pred):
         score = 0.
         event_ids = y_true[:, 0]
         y_true_cluster_ids = y_true[:, 1]
