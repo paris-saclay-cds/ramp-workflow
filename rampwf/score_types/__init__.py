@@ -1,4 +1,5 @@
 from .accuracy import Accuracy
+from .balanced_accuracy import BalancedAccuracy
 from .clustering_efficiency import ClusteringEfficiency
 from .classification_error import ClassificationError
 from .combined import Combined
@@ -12,6 +13,7 @@ from .roc_auc import ROCAUC
 
 __all__ = [
     'Accuracy',
+    'BalancedAccuracy',
     'ClassificationError',
     'ClusteringEfficiency',
     'Combined',
