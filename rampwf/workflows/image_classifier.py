@@ -77,11 +77,16 @@ class ImageClassifier(object):
             for i in range(0, len(X), self.test_batch_size):
                 # 1) Preprocessing
                 X_batch = X[i: i + self.test_batch_size]
-                X_batch = Parallel(n_jobs=self.n_jobs, backend='threading')(
-                    delayed(transform_img)(x) for x in X_batch)
-                # X_batch is a list of numpy arrrays at this point, convert it
-                # to a single numpy array of size `test_batch_size` (at most).
-                X_batch = [x[np.newaxis, :, :, :] for x in X_batch]
+                # X_batch = Parallel(n_jobs=self.n_jobs, backend='threading')(
+                #     delayed(transform_img)(x) for x in X_batch)
+                X = np.array([transform_img(x) for x in X])
+                # X is a list of numpy arrrays at this point, convert it to a
+                # single numpy array.
+                try:
+                    X = [x[np.newaxis, :, :, :] for x in X]
+                except IndexError:
+                    # single channel
+                    X = [x[np.newaxis, :, :] for x in X]
                 X_batch = np.concatenate(X_batch, axis=0)
 
                 # 2) Prediction
@@ -197,11 +202,16 @@ class BatchGeneratorBuilder(object):
                 n_jobs=self.n_jobs, img_file_extension=self.img_file_extension)
             for X, y in it:
                 # 1) Preprocessing of X and y
-                X = Parallel(n_jobs=self.n_jobs, backend='threading')(delayed(
-                    self.transform_img)(x) for x in X)
+                # X = Parallel(n_jobs=self.n_jobs, backend='threading')(delayed(
+                #     self.transform_img)(x) for x in X)
+                X = np.array([self.transform_img(x) for x in X])
                 # X is a list of numpy arrrays at this point, convert it to a
                 # single numpy array.
-                X = [x[np.newaxis, :, :, :] for x in X]
+                try:
+                    X = [x[np.newaxis, :, :, :] for x in X]
+                except IndexError:
+                    # single channel
+                    X = [x[np.newaxis, :, :] for x in X]
                 X = np.concatenate(X, axis=0)
                 X = np.array(X, dtype='float32')
                 # Convert y to onehot representation
