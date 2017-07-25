@@ -14,6 +14,7 @@ RAMP_KITS_AVAILABLE = ('boston_housing',
                        'air_passengers',
                        'el_nino',
                        'HEP_tracking',
+                       'MNIST',
                        )
 
 
