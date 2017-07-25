@@ -79,15 +79,20 @@ class ImageClassifier(object):
                 X_batch = X[i: i + self.test_batch_size]
                 # X_batch = Parallel(n_jobs=self.n_jobs, backend='threading')(
                 #     delayed(transform_img)(x) for x in X_batch)
-                X = np.array([transform_img(x) for x in X])
+                X_batch = [transform_img(x) for x in X_batch]
+                print 'b---'
+                print np.array(X_batch).shape
                 # X is a list of numpy arrrays at this point, convert it to a
                 # single numpy array.
                 try:
-                    X = [x[np.newaxis, :, :, :] for x in X]
+                    X_batch = [x[np.newaxis, :, :, :] for x in X_batch]
                 except IndexError:
                     # single channel
-                    X = [x[np.newaxis, :, :] for x in X]
+                    X_batch = [x[np.newaxis, :, :] for x in X_batch]
+                print np.array(X_batch).shape
                 X_batch = np.concatenate(X_batch, axis=0)
+                print np.array(X_batch).shape
+                print 'e---'
 
                 # 2) Prediction
                 y_proba_batch = clf.predict_proba(X_batch)
