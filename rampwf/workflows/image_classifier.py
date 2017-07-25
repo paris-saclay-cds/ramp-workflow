@@ -80,19 +80,15 @@ class ImageClassifier(object):
                 # X_batch = Parallel(n_jobs=self.n_jobs, backend='threading')(
                 #     delayed(transform_img)(x) for x in X_batch)
                 X_batch = [transform_img(x) for x in X_batch]
-                print 'b---'
-                print np.array(X_batch).shape
                 # X is a list of numpy arrrays at this point, convert it to a
                 # single numpy array.
                 try:
                     X_batch = [x[np.newaxis, :, :, :] for x in X_batch]
                 except IndexError:
                     # single channel
-                    X_batch = [x[np.newaxis, :, :] for x in X_batch]
-                print np.array(X_batch).shape
+                    X_batch = [
+                        x[np.newaxis, np.newaxis, :, :] for x in X_batch]
                 X_batch = np.concatenate(X_batch, axis=0)
-                print np.array(X_batch).shape
-                print 'e---'
 
                 # 2) Prediction
                 y_proba_batch = clf.predict_proba(X_batch)
@@ -210,13 +206,13 @@ class BatchGeneratorBuilder(object):
                 # X = Parallel(n_jobs=self.n_jobs, backend='threading')(delayed(
                 #     self.transform_img)(x) for x in X)
                 X = np.array([self.transform_img(x) for x in X])
-                # X is a list of numpy arrrays at this point, convert it to a
+                # # X is a list of numpy arrrays at this point, convert it to a
                 # single numpy array.
                 try:
                     X = [x[np.newaxis, :, :, :] for x in X]
                 except IndexError:
                     # single channel
-                    X = [x[np.newaxis, :, :] for x in X]
+                    X = [x[np.newaxis, np.newaxis, :, :] for x in X]
                 X = np.concatenate(X, axis=0)
                 X = np.array(X, dtype='float32')
                 # Convert y to onehot representation

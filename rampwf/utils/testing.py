@@ -1,24 +1,24 @@
 # coding: utf-8
 
-"""The :mod:`rampwf.utils.testing` submodule provide utils to test ramp-kits"""
+"""Provide utils to test ramp-kits."""
 from __future__ import print_function
 
+import os
 import imp
 from os.path import join, abspath
-from os import system
 
 import numpy as np
-import pickle as pickle
+import cloudpickle as pickle
 
 
 def assert_notebook(ramp_kit_dir='.'):
     print('----------------------------')
     problem_name = abspath(ramp_kit_dir).split('/')[-1]
     print('Testing if the notebook can be converted to html')
-    system('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
+    os.system('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
         ramp_kit_dir, problem_name))
     print('Testing if the notebook can be executed')
-    system(
+    os.system(
         'jupyter nbconvert --execute {}/{}_starting_kit.ipynb '.format(
             ramp_kit_dir, problem_name) +
         '--ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL ' +
@@ -93,8 +93,18 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         trained_workflow = problem.workflow.train_submission(
             module_path, X_train, y_train, train_is=train_is)
 
-        # with open(join(module_path, 'model.pkl'), 'wb') as pickle_file:
-        #     pickle.dump(trained_workflow, pickle_file)
+        try:
+            model_file = join(module_path, 'model.pkl')
+            # Mehdi's hack to get the trained_workflow (which includes
+            # imported files using imp.load_source) pickled
+            trained_workflow.__class__.__module__ = '__main__'
+            with open(model_file, 'wb') as pickle_file:
+                pickle.dump(trained_workflow, pickle_file)
+            with open(model_file, 'r') as pickle_file:
+                trained_workflow = pickle.load(pickle_file)
+            os.remove(model_file)
+        except:
+            print("Model can't be pickled.")
 
         y_pred_train = problem.workflow.test_submission(
             trained_workflow, X_train)

@@ -1,21 +1,4 @@
 import imp
-import dill
-
-
-class Container(object):
-
-    def __init__(self, packagePath, packageName, objectsDump=None):
-        print packagePath
-        self.package = imp.load_source(packagePath, packageName)
-        self.packagePath = packagePath
-        self.packageName = packageName
-        if objectsDump is not None:
-            self.objects = dill.loads(objectsDump)
-
-    def __reduce__(self):
-        return (
-            self.__class__,
-            (self.packagePath, self.packageName, dill.dumps(self.objects)))
 
 
 class Classifier(object):
@@ -28,10 +11,8 @@ class Classifier(object):
             train_is = slice(None, None, None)
         submitted_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
-        print submitted_classifier_file
         classifier = imp.load_source('', submitted_classifier_file)
-        # container = Container('', submitted_classifier_file)
-        clf = classifier.package.Classifier()
+        clf = classifier.Classifier()
         clf.fit(X_array[train_is], y_array[train_is])
         return clf
 
