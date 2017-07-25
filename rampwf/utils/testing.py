@@ -8,6 +8,7 @@ from os.path import join, abspath
 from os import system
 
 import numpy as np
+import pickle as pickle
 
 
 def assert_notebook(ramp_kit_dir='.'):
@@ -91,6 +92,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     for fold_i, (train_is, valid_is) in enumerate(cv):
         trained_workflow = problem.workflow.train_submission(
             module_path, X_train, y_train, train_is=train_is)
+
+        # with open(join(module_path, 'model.pkl'), 'wb') as pickle_file:
+        #     pickle.dump(trained_workflow, pickle_file)
 
         y_pred_train = problem.workflow.test_submission(
             trained_workflow, X_train)
