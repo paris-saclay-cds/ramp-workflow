@@ -15,8 +15,8 @@ install:
     - source activate tensorflow
     - pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.2.1-cp34-cp34m-linux_x86_64.whl
     - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas 
-    - conda install --yes --quiet xarray pytest pytest-cov gitpython skimage
-    - conda install --yes --quiet cloudpickle keras
+    - conda install --yes --quiet xarray pytest pytest-cov gitpython 
+    - conda install --yes --quiet scikit-image cloudpickle keras
     - pip install netcdf4
     - pip install codecov
     - pip install -q flake8
