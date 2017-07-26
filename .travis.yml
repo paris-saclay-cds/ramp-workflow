@@ -11,7 +11,7 @@ before_install:
 install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
-    - conda create -n tensorflow
+    - conda create -n --yes tensorflow
     - source activate tensorflow
     - pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.2.1-cp34-cp34m-linux_x86_64.whl
     - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas 
