@@ -19,6 +19,7 @@ install:
     - conda install --yes --quiet xarray pytest pytest-cov gitpython 
     - conda install --yes --quiet scikit-image cloudpickle keras
     - conda install --yes --quiet netcdf4
+    - pip install joblib
     - pip install codecov
     - pip install -q flake8
     - pip install .
