@@ -18,6 +18,7 @@ install:
     - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas 
     - conda install --yes --quiet xarray pytest pytest-cov gitpython 
     - conda install --yes --quiet scikit-image cloudpickle keras
+    - conda install --yes --quiet hdf5
     - pip install netcdf4
     - pip install codecov
     - pip install -q flake8
