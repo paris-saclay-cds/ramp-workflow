@@ -1,5 +1,6 @@
 from os.path import join
 
+import os
 import git
 
 from .base import get_data_home
@@ -44,5 +45,9 @@ def fetch_ramp_kit(name_kit, ramp_kits_home=None):
 
     print("The '{}' ramp-kit has been downloaded in the folder {}.".format(
         name_kit, git_repo_dir))
+
+    os.chdir(git_repo_dir)
+    if os.path.isfile('download_data.py'):
+        os.system("python download_data.py")
 
     return git_repo_dir
