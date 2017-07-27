@@ -1,27 +1,29 @@
 # coding: utf-8
 
-"""The :mod:`rampwf.utils.testing` submodule provide utils to test ramp-kits"""
+"""Provide utils to test ramp-kits."""
 from __future__ import print_function
 
+import os
+from subprocess import call
 import imp
 from os.path import join, abspath
-from os import system
 
 import numpy as np
+import cloudpickle as pickle
 
 
 def assert_notebook(ramp_kit_dir='.'):
     print('----------------------------')
     problem_name = abspath(ramp_kit_dir).split('/')[-1]
     print('Testing if the notebook can be converted to html')
-    system('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
-        ramp_kit_dir, problem_name))
+    call('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
+          ramp_kit_dir, problem_name), shell=True)
     print('Testing if the notebook can be executed')
-    system(
+    call(
         'jupyter nbconvert --execute {}/{}_starting_kit.ipynb '.format(
             ramp_kit_dir, problem_name) +
         '--ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL ' +
-        '--ExecutePreprocessor.timeout=600')
+        '--ExecutePreprocessor.timeout=600', shell=True)
 
 
 def assert_read_problem(ramp_kit_dir='.'):
@@ -91,6 +93,20 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     for fold_i, (train_is, valid_is) in enumerate(cv):
         trained_workflow = problem.workflow.train_submission(
             module_path, X_train, y_train, train_is=train_is)
+
+        try:
+            model_file = join(module_path, 'model.pkl')
+            # Mehdi's hack to get the trained_workflow (which includes
+            # imported files using imp.load_source) pickled
+            trained_workflow.__class__.__module__ = '__main__'
+            with open(model_file, 'wb') as pickle_file:
+                pickle.dump(trained_workflow, pickle_file)
+            with open(model_file, 'r') as pickle_file:
+                trained_workflow = pickle.load(pickle_file)
+            os.remove(model_file)
+        except Exception as e:
+            print("Warning: model can't be pickled.")
+            print(e)
 
         y_pred_train = problem.workflow.test_submission(
             trained_workflow, X_train)

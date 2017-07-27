@@ -6,6 +6,7 @@ from .el_nino import ElNino
 from .feature_extractor import FeatureExtractor
 from .feature_extractor_classifier import FeatureExtractorClassifier
 from .feature_extractor_regressor import FeatureExtractorRegressor
+from .image_classifier import ImageClassifier
 from .regressor import Regressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 
@@ -18,6 +19,7 @@ __all__ = [
     'FeatureExtractor',
     'FeatureExtractorClassifier',
     'FeatureExtractorRegressor',
+    'ImageClassifier'
     'Regressor',
     'TimeSeriesFeatureExtractor',
 ]

@@ -1,4 +1,5 @@
 language: python
+dist: trusty
 env:
   - PYTHON_VERSION=2.7
   - PYTHON_VERSION=3.6
@@ -11,8 +12,13 @@ before_install:
 install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
-    - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas xarray pytest pytest-cov gitpython
-    - pip install netcdf4
+    - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas 
+    - conda install --yes --quiet xarray pytest pytest-cov gitpython 
+    - conda install --yes --quiet scikit-image cloudpickle
+    - conda install --yes --quiet netcdf4
+    - pip install tensorflow
+    - pip install keras
+    - pip install joblib
     - pip install codecov
     - pip install -q flake8
     - pip install .
