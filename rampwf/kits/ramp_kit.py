@@ -1,6 +1,7 @@
 from os.path import join
 
 import os
+from subprocess import call
 import git
 
 from .base import get_data_home
@@ -48,6 +49,6 @@ def fetch_ramp_kit(name_kit, ramp_kits_home=None):
 
     os.chdir(git_repo_dir)
     if os.path.isfile('download_data.py'):
-        os.system("python download_data.py")
+        call("python download_data.py", shell=True)
 
     return git_repo_dir

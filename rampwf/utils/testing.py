@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import os
+from subprocess import call
 import imp
 from os.path import join, abspath
 
@@ -15,14 +16,14 @@ def assert_notebook(ramp_kit_dir='.'):
     print('----------------------------')
     problem_name = abspath(ramp_kit_dir).split('/')[-1]
     print('Testing if the notebook can be converted to html')
-    os.system('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
-        ramp_kit_dir, problem_name))
+    call('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
+          ramp_kit_dir, problem_name), shell=True)
     print('Testing if the notebook can be executed')
-    os.system(
+    call(
         'jupyter nbconvert --execute {}/{}_starting_kit.ipynb '.format(
             ramp_kit_dir, problem_name) +
         '--ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL ' +
-        '--ExecutePreprocessor.timeout=600')
+        '--ExecutePreprocessor.timeout=600', shell=True)
 
 
 def assert_read_problem(ramp_kit_dir='.'):
