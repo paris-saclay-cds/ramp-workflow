@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 import imp
 import numpy as np
@@ -304,3 +305,12 @@ def _to_categorical(y, num_classes=None):
     categorical = np.zeros((n, num_classes))
     categorical[np.arange(n), y] = 1
     return categorical
+
+
+def get_nb_minibatches(nb_samples, batch_size):
+    """Compute the number of minibatches for keras.
+
+    See [https://keras.io/models/sequential]
+    """
+    return (nb_samples // batch_size) +\
+        (1 if (nb_samples % batch_size) > 0 else 0)
