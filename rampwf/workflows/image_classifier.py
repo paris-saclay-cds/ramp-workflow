@@ -8,8 +8,7 @@ from joblib import Parallel
 
 
 class ImageClassifier(object):
-    def __init__(self, test_batch_size, chunk_size, n_jobs,
-                 img_file_extension, n_classes,
+    def __init__(self, test_batch_size, chunk_size, n_jobs, n_classes,
                  workflow_element_names=[
                      'image_preprocessor', 'batch_classifier']):
         self.element_names = workflow_element_names
@@ -17,7 +16,6 @@ class ImageClassifier(object):
         self.chunk_size = chunk_size
         self.n_jobs = n_jobs
         self.n_classes = n_classes
-        self.img_file_extension = img_file_extension
 
     def train_submission(self, module_path, folder_X_array, y_array,
                          train_is=None):
@@ -53,7 +51,7 @@ class ImageClassifier(object):
         gen_builder = BatchGeneratorBuilder(
             X_array[train_is], y_array[train_is], transform_img, folder=folder,
             chunk_size=self.chunk_size, n_classes=self.n_classes,
-            n_jobs=self.n_jobs, img_file_extension=self.img_file_extension)
+            n_jobs=self.n_jobs)
         clf.fit(gen_builder)
         return transform_img, clf
 
@@ -71,8 +69,7 @@ class ImageClassifier(object):
         folder, X_array = folder_X_array
         transform_img, clf = trained_model
         it = _chunk_iterator(
-            X_array, folder=folder, chunk_size=self.chunk_size,
-            img_file_extension=self.img_file_extension)
+            X_array, folder=folder, chunk_size=self.chunk_size)
         y_proba = []
         for X in it:
             for i in range(0, len(X), self.test_batch_size):
@@ -143,7 +140,7 @@ class BatchGeneratorBuilder(object):
     """
 
     def __init__(self, X_array, y_array, transform_img, folder,
-                 chunk_size, n_classes, n_jobs, img_file_extension):
+                 chunk_size, n_classes, n_jobs):
         self.X_array = X_array
         self.y_array = y_array
         self.transform_img = transform_img
@@ -151,7 +148,6 @@ class BatchGeneratorBuilder(object):
         self.chunk_size = chunk_size
         self.n_classes = n_classes
         self.n_jobs = n_jobs
-        self.img_file_extension = img_file_extension
         self.nb_examples = len(X_array)
 
     def get_train_valid_generators(self, batch_size=256, valid_ratio=0.1):
@@ -201,10 +197,11 @@ class BatchGeneratorBuilder(object):
             it = _chunk_iterator(
                 X_array=self.X_array[indices], folder=self.folder,
                 y_array=self.y_array[indices], chunk_size=self.chunk_size,
-                n_jobs=self.n_jobs, img_file_extension=self.img_file_extension)
+                n_jobs=self.n_jobs)
             for X, y in it:
                 # 1) Preprocessing of X and y
-                # X = Parallel(n_jobs=self.n_jobs, backend='threading')(delayed(
+                # X = Parallel(
+                # n_jobs=self.n_jobs, backend='threading')(delayed(
                 #     self.transform_img)(x) for x in X)
                 X = np.array([self.transform_img(x) for x in X])
                 # # X is a list of numpy arrrays at this point, convert it to a
@@ -224,8 +221,7 @@ class BatchGeneratorBuilder(object):
                     yield X[i:i + batch_size], y[i:i + batch_size]
 
 
-def _chunk_iterator(X_array, folder, y_array=None, chunk_size=1024, n_jobs=8,
-                    img_file_extension='png'):
+def _chunk_iterator(X_array, folder, y_array=None, chunk_size=1024, n_jobs=8):
     """Generate chunks of images, optionally with their labels.
 
     Parameters
@@ -271,7 +267,7 @@ def _chunk_iterator(X_array, folder, y_array=None, chunk_size=1024, n_jobs=8,
     for i in range(0, len(X_array), chunk_size):
         X_chunk = X_array[i:i + chunk_size]
         filenames = [
-            os.path.join(folder, '{}.{}'.format(x, img_file_extension))
+            os.path.join(folder, '{}'.format(x))
             for x in X_chunk]
         X = Parallel(n_jobs=n_jobs, backend='threading')(delayed(imread)(
             filename) for filename in filenames)
