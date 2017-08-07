@@ -306,7 +306,7 @@ def _to_categorical(y, num_classes=None):
     categorical[np.arange(n), y] = 1
     return categorical
 
-
+  
 def get_nb_minibatches(nb_samples, batch_size):
     """Compute the number of minibatches for keras.
 
