@@ -94,19 +94,19 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         trained_workflow = problem.workflow.train_submission(
             module_path, X_train, y_train, train_is=train_is)
 
-        try:
-            model_file = join(module_path, 'model.pkl')
-            # Mehdi's hack to get the trained_workflow (which includes
-            # imported files using imp.load_source) pickled
-            trained_workflow.__class__.__module__ = '__main__'
-            with open(model_file, 'wb') as pickle_file:
-                pickle.dump(trained_workflow, pickle_file)
-            with open(model_file, 'r') as pickle_file:
-                trained_workflow = pickle.load(pickle_file)
-            os.remove(model_file)
-        except Exception as e:
-            print("Warning: model can't be pickled.")
-            print(e)
+        # try:
+        #     model_file = join(module_path, 'model.pkl')
+        #     # Mehdi's hack to get the trained_workflow (which includes
+        #     # imported files using imp.load_source) pickled
+        #     trained_workflow.__class__.__module__ = '__main__'
+        #     with open(model_file, 'wb') as pickle_file:
+        #         pickle.dump(trained_workflow, pickle_file)
+        #     with open(model_file, 'r') as pickle_file:
+        #         trained_workflow = pickle.load(pickle_file)
+        #     os.remove(model_file)
+        # except Exception as e:
+        #     print("Warning: model can't be pickled.")
+        #     print(e)
 
         y_pred_train = problem.workflow.test_submission(
             trained_workflow, X_train)
