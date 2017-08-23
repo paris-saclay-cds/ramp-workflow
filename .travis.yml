@@ -12,13 +12,7 @@ before_install:
 install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
-    - conda install --yes --quiet numpy scipy matplotlib scikit-learn pandas 
-    - conda install --yes --quiet xarray pytest pytest-cov gitpython 
-    - conda install --yes --quiet scikit-image cloudpickle jupyter
-    - conda install --yes --quiet netcdf4
-    - pip install tensorflow
-    - pip install keras
-    - pip install joblib
+    - source install_requirements.sh
     - pip install codecov
     - pip install -q flake8
     - pip install .
