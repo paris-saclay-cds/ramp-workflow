@@ -27,7 +27,7 @@ def _clustering_init(self, y_pred=None, y_true=None, n_samples=None):
     elif y_true is not None:
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
-        self.y_pred = np.empty((n_samples, 2), dtype=int)
+        self.y_pred = np.empty((n_samples, 2), dtype=float)
         self.y_pred.fill(np.nan)
     else:
         raise ValueError(
@@ -39,6 +39,8 @@ def _clustering_init(self, y_pred=None, y_true=None, n_samples=None):
 def _valid_indexes(self):
     """Return valid indices (e.g., a cross-validation slice)."""
     return ~np.isnan(self.y_pred[:, 1])
+
+    return ~np.isnan(self.y_pred[:, 0])
 
 
 def make_clustering():
