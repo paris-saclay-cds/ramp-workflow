@@ -63,4 +63,6 @@ if __name__ == "__main__":
                   'rampwf.utils.command_line:ramp_test_submission',
                   'ramp_test_notebook='
                   'rampwf.utils.command_line:ramp_test_notebook',
+                  'ramp_convert_notebook='
+                  'rampwf.utils.command_line:ramp_convert_notebook',
               ]})
