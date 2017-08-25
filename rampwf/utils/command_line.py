@@ -6,7 +6,7 @@ from __future__ import print_function
 from os import listdir
 from os.path import join, isdir
 
-from .testing import assert_submission, assert_notebook
+from .testing import assert_submission, assert_notebook, convert_notebook
 
 
 def create_ramp_test_submission_parser():
@@ -68,3 +68,9 @@ def ramp_test_notebook():
     parser = create_ramp_test_notebook_parser()
     args = parser.parse_args()
     assert_notebook(ramp_kit_dir=args.ramp_kit_dir)
+
+
+def ramp_convert_notebook():
+    parser = create_ramp_test_notebook_parser()
+    args = parser.parse_args()
+    convert_notebook(ramp_kit_dir=args.ramp_kit_dir)

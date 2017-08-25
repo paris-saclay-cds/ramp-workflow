@@ -22,8 +22,17 @@ def _delete_line_from_file(f_name, line_to_delete):
         f.truncate()
 
 
-def assert_notebook(ramp_kit_dir='.'):
-    print('----------------------------')
+def execute_notebook(ramp_kit_dir='.'):
+    problem_name = abspath(ramp_kit_dir).split('/')[-1]
+    print('Testing if the notebook can be executed')
+    call(
+        'jupyter nbconvert --execute {}/{}_starting_kit.ipynb '.format(
+            ramp_kit_dir, problem_name) +
+        '--ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL ' +
+        '--ExecutePreprocessor.timeout=600', shell=True)
+
+
+def convert_notebook(ramp_kit_dir='.'):
     problem_name = abspath(ramp_kit_dir).split('/')[-1]
     print('Testing if the notebook can be converted to html')
     call('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
@@ -31,12 +40,12 @@ def assert_notebook(ramp_kit_dir='.'):
     _delete_line_from_file(
         '{}/{}_starting_kit.html'.format(ramp_kit_dir, problem_name),
         '<link rel="stylesheet" href="custom.css">\n')
-    print('Testing if the notebook can be executed')
-    call(
-        'jupyter nbconvert --execute {}/{}_starting_kit.ipynb '.format(
-            ramp_kit_dir, problem_name) +
-        '--ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL ' +
-        '--ExecutePreprocessor.timeout=600', shell=True)
+
+
+def assert_notebook(ramp_kit_dir='.'):
+    print('----------------------------')
+    convert_notebook(ramp_kit_dir)
+    execute_notebook(ramp_kit_dir)
 
 
 def assert_read_problem(ramp_kit_dir='.'):
