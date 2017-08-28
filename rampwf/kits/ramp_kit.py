@@ -17,6 +17,7 @@ RAMP_KITS_AVAILABLE = ('boston_housing',
                        'el_nino',
                        'HEP_tracking',
                        'MNIST',
+                       'mouse_cytometry',
                        )
 
 
