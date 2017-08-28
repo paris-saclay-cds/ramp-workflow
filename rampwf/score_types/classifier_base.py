@@ -3,6 +3,7 @@ from .base import BaseScoreType
 
 class ClassifierBaseScoreType(BaseScoreType):
     def score_function(self, ground_truths, predictions, valid_indexes=None):
+        self.label_names = ground_truths.label_names
         if valid_indexes is None:
             valid_indexes = slice(None, None, None)
         y_pred_label_index = predictions.y_pred_label_index[valid_indexes]

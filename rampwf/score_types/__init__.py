@@ -4,6 +4,7 @@ from .clustering_efficiency import ClusteringEfficiency
 from .classification_error import ClassificationError
 from .combined import Combined
 from .f1_above import F1Above
+from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
 from .negative_log_likelihood import NegativeLogLikelihood
@@ -18,6 +19,7 @@ __all__ = [
     'ClusteringEfficiency',
     'Combined',
     'F1Above',
+    'MacroAveragedRecall',
     'MakeCombined',
     'MARE',
     'NegativeLogLikelihood',
