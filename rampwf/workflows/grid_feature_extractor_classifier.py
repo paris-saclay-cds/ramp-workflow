@@ -16,7 +16,7 @@ class GridFeatureExtractorClassifier(object):
         fe = self.feature_extractor_workflow.train_submission(
             module_path, X_ds, y_array, train_is)
         X_train_array = self.feature_extractor_workflow.test_submission(
-            fe, X_ds.isel(enstime=np.where(train_is)[0]))
+            fe, X_ds.isel(enstime=train_is))
         clf = self.classifier_workflow.train_submission(
             module_path, X_train_array, y_array[train_is])
         return fe, clf

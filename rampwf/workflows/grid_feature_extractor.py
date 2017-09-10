@@ -13,7 +13,7 @@ class GridFeatureExtractor(object):
         feature_extractor = imp.load_source(
             '', submitted_feature_extractor_file)
         fe = feature_extractor.FeatureExtractor()
-        fe.fit(X_ds.isel(enstime=np.where(train_is)[0]), y_array[train_is])
+        fe.fit(X_ds.isel(enstime=train_is), y_array[train_is])
         return fe
 
     def test_submission(self, trained_model, X_df):
