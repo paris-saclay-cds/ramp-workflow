@@ -135,10 +135,12 @@ problem_title = 'Titanic survival classification'
 The prediction types are in [`rampwf/prediction_types`](rampwf/prediction_types)
 
 ```python
-prediction_type = rw.prediction_types.multiclass
+_prediction_label_names = [0, 1]
+prediction_type = rw.prediction_types.make_multiclass(
+    label_names=_prediction_label_names)
 ```
 
-Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
+Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py). For multiclass you need to pass the label names that we usually put into a local variable `_prediction_label_names`. It can be a list of strings or integers.
 
 #### 3. Choose a workflow.
 
