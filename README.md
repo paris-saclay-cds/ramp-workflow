@@ -140,7 +140,7 @@ prediction_type = rw.prediction_types.make_multiclass(
     label_names=_prediction_label_names)
 ```
 
-Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py). For multiclass you need to pass the label names that we usually put into a local variable `_prediction_label_names`. It can be a list of strings or integers.
+Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py). For multiclass (or [multi-target regression](https://github.com/ramp-kits/epidemium2_cancer_mortality/blob/master/problem.py)) you need to pass the label names that we usually put into a local variable `_prediction_label_names`. It can be a list of strings or integers.
 
 #### 3. Choose a workflow.
 
