@@ -71,7 +71,6 @@ def assert_cv(ramp_kit_dir='.', ramp_data_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     print('Reading cv ...')
-    print(y_train.shape)
     cv = list(problem.get_cv(X_train, y_train))
     return cv
 
@@ -133,8 +132,6 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
         y_pred_train = problem.workflow.test_submission(
             trained_workflow, X_train)
-        print(y_pred_train, y_pred_train.shape)
-        print(train_is, valid_is)
         predictions_train_train = problem.Predictions(
             y_pred=y_pred_train[train_is])
         ground_truth_train_train = problem.Predictions(
