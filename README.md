@@ -135,10 +135,12 @@ problem_title = 'Titanic survival classification'
 The prediction types are in [`rampwf/prediction_types`](rampwf/prediction_types)
 
 ```python
-prediction_type = rw.prediction_types.multiclass
+_prediction_label_names = [0, 1]
+prediction_type = rw.prediction_types.make_multiclass(
+    label_names=_prediction_label_names)
 ```
 
-Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py).
+Typical prediction types are [`multiclass`](rampwf/prediction_types/multiclass.py) and [`regression`](rampwf/prediction_types/regression.py). For multiclass (or [multi-target regression](https://github.com/ramp-kits/epidemium2_cancer_mortality/blob/master/problem.py)) you need to pass the label names that we usually put into a local variable `_prediction_label_names`. It can be a list of strings or integers.
 
 #### 3. Choose a workflow.
 
@@ -150,37 +152,27 @@ workflow = rw.workflows.FeatureExtractorClassifier()
 
 Typical workflows are a single [`classifier`](rampwf/workflows/classifier.py) or a [feature extractor followed by a classifier](rampwf/workflows/feature_extractor_classifier.py) used here, but we have more complex workflows, named after the first problem that used them (e.g., [`drug_spectra`](rampwf/workflows/drug_spectra.py), two feature extractors, a classifier, and a regressor; or [`air_passengers`](rampwf/workflows/air_passengers.py), a feature extractor followed by a regressor, but also an `external_data.csv` that the feature extractor can merge with the training set). Each workflow implements a class which has `train_submission` and `test_submission` member functions that train and test submissions, and a `workflow_element_names` field containing the file names that `test_submission` expects in `submissions/starting_kit` or `submissions/<new-submission_name>`.
 
-#### 4. Specify the prediction labels.
-
-```python
-prediction_labels = [0, 1]
-```
-
-If it is not a classification problem, set it to `None`.
-
-#### 5. Choose score types.
+#### 4. Choose score types.
 
 Score types are metrics from [`rampwf/score_types`](rampwf/score_types)
 
 ```python
 score_types = [
-    rw.score_types.ROCAUC(name='auc', n_columns=len(prediction_labels)),
-    rw.score_types.Accuracy(name='acc', n_columns=len(prediction_labels)),
-    rw.score_types.NegativeLogLikelihood(name='nll',
-                                         n_columns=len(prediction_labels)),
+    rw.score_types.ROCAUC(name='auc'),
+    rw.score_types.Accuracy(name='acc'),
+    rw.score_types.NegativeLogLikelihood(name='nll'),
 ]
 ```
 
-Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`](rampwf/score_types/rmse.py). Each score type implements a class with a member function `score_function` and fields
+Typical score types are [`accuracy`](rampwf/score_types/accuracy.py) or [`RMSE`](rampwf/score_types/rmse.py). Each score type implements a class with member functions `score_function` and `__call__` (the former usually using the latter) and fields
 
   1. `name`, that `ramp_test_submission` uses in the logs; also the column name in the RAMP leaderboard,
   2. `precision`: the number of decimal digits,
-  3. `n_columns`: the number of columns in the output `y_pred` of the last workflow element (typically a classifier or a regressor),
-  4. `is_lower_the_better`: a boolean which is `True` if the score is the lower the better, `False` otherwise,
-  5. `minimum`: the smallest possible score,
-  6. `maximum`: the largest possible score.
+  3. `is_lower_the_better`: a boolean which is `True` if the score is the lower the better, `False` otherwise,
+  4. `minimum`: the smallest possible score,
+  5. `maximum`: the largest possible score.
 
-#### 6. Write the cross-validation scheme.
+#### 5. Write the cross-validation scheme.
 
 Define a function `get_cv` returning a cross-validation object
 
@@ -190,7 +182,7 @@ def get_cv(X, y):
     return cv.split(X, y)
 ```
 
-#### 7. Write the I/O methods.
+#### 6. Write the I/O methods.
 
 The workflow needs two functions that read the training and test data sets.
 
