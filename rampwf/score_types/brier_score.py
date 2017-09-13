@@ -95,9 +95,13 @@ class BrierScoreReliability(BaseScoreType):
     def __call__(self, y_true_proba, y_proba):
         pos_obs_freq = np.histogram(y_proba[y_true_proba == 1], bins=self.bins)[0]
         fore_freq = np.histogram(y_proba, bins=self.bins)[0]
-        with np.errstate(divide='ignore'):
-            pos_obs_rel_freq = pos_obs_freq / fore_freq
-            score = 1 / float(y_proba.size) * np.nansum(fore_freq  * (self.bin_centers - pos_obs_rel_freq) ** 2)
+        pos_obs_rel_freq = np.zeros(pos_obs_freq.size)
+        for p in range(pos_obs_rel_freq.size):
+            if fore_freq[p] > 0:
+                pos_obs_rel_freq[p] = pos_obs_freq[p] / fore_freq[p]
+            else:
+                pos_obs_rel_freq[p] = np.nan
+        score = 1 / float(y_proba.size) * np.nansum(fore_freq  * (self.bin_centers - pos_obs_rel_freq) ** 2)
         return score
 
 
@@ -136,8 +140,11 @@ class BrierScoreResolution(BaseScoreType):
         fore_freq = np.histogram(y_proba, bins=self.bins)[0]
         climo = y_true_proba.mean()
         unc = climo * (1 - climo)
-        with np.errstate(divide="ignore"):
-            pos_obs_rel_freq = pos_obs_freq / fore_freq
-            score = 1 / float(y_proba.size) * np.nansum(fore_freq  * (pos_obs_rel_freq - climo) ** 2)
+        for p in range(pos_obs_rel_freq.size):
+            if fore_freq[p] > 0:
+                pos_obs_rel_freq[p] = pos_obs_freq[p] / fore_freq[p]
+            else:
+                pos_obs_rel_freq[p] = np.nan
+        score = 1 / float(y_proba.size) * np.nansum(fore_freq  * (pos_obs_rel_freq - climo) ** 2)
         return score / unc
 
