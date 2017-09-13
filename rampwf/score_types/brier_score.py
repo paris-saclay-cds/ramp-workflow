@@ -1,6 +1,6 @@
 from .base import BaseScoreType
 import numpy as np
-
+from sklearn.metrics import brier_score_loss
 
 class BrierScore(BaseScoreType):
     is_lower_the_better = True
@@ -28,7 +28,7 @@ class BrierScore(BaseScoreType):
         return self.__call__(y_true_proba, y_proba)
 
     def __call__(self, y_true_proba, y_proba):
-        return np.mean((y_proba - y_true_proba) ** 2)
+        return brier_score_loss(y_true_proba, y_proba)
 
 
 class BrierSkillScore(BaseScoreType):
@@ -57,8 +57,9 @@ class BrierSkillScore(BaseScoreType):
         return self.__call__(y_true_proba, y_proba)
 
     def __call__(self, y_true_proba, y_proba):
-        bs = np.mean((y_proba - y_true_proba) ** 2) 
-        bs_c = np.mean((y_true_proba.mean() - y_true_proba) ** 2) 
+        climo = np.ones(y_true_proba.size) * y_true_proba.mean()
+        bs = brier_score_loss(y_true_proba, y_proba) 
+        bs_c = brier_score_loss(y_true_proba, climo)
         return 1 - bs / bs_c
 
 

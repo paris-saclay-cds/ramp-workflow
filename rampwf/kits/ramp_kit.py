@@ -18,6 +18,7 @@ RAMP_KITS_AVAILABLE = ('boston_housing',
                        'HEP_tracking',
                        'MNIST',
                        'mouse_cytometry',
+                       'california_rainfall'
                        )
 
 
