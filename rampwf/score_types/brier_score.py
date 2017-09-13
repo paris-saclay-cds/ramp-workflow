@@ -140,6 +140,7 @@ class BrierScoreResolution(BaseScoreType):
         fore_freq = np.histogram(y_proba, bins=self.bins)[0]
         climo = y_true_proba.mean()
         unc = climo * (1 - climo)
+        pos_obs_rel_freq = np.zeros(pos_obs_freq.size)
         for p in range(pos_obs_rel_freq.size):
             if fore_freq[p] > 0:
                 pos_obs_rel_freq[p] = pos_obs_freq[p] / fore_freq[p]
