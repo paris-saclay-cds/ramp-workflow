@@ -135,6 +135,9 @@ class BrierScoreResolution(BaseScoreType):
         return self.__call__(y_true_proba, y_proba)
 
     def __call__(self, y_true_proba, y_proba):
+        """
+        See Murphy (1973) A vector partition of the probability score
+        """
         np.seterr(divide="ignore")
         pos_obs_freq = np.histogram(y_proba[y_true_proba == 1], bins=self.bins)[0]
         fore_freq = np.histogram(y_proba, bins=self.bins)[0]
