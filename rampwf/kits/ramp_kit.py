@@ -8,7 +8,8 @@ from .base import get_data_home
 
 BASE_RAMP_KIT_URL = 'https://github.com/ramp-kits/'
 
-RAMP_KITS_AVAILABLE = ('boston_housing',
+RAMP_KITS_AVAILABLE = ('california_rainfall_test',
+                       'boston_housing',
                        'iris',
                        'titanic',
                        'epidemium2_cancer_mortality',
@@ -18,7 +19,6 @@ RAMP_KITS_AVAILABLE = ('boston_housing',
                        'HEP_tracking',
                        'MNIST',
                        'mouse_cytometry',
-                       'california_rainfall'
                        )
 
 
