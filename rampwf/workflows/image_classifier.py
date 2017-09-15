@@ -2,9 +2,6 @@ from __future__ import division
 import os
 import imp
 import numpy as np
-from skimage.io import imread
-from joblib import delayed
-from joblib import Parallel
 
 
 class ImageClassifier(object):
@@ -304,6 +301,9 @@ def _chunk_iterator(X_array, folder, y_array=None, chunk_size=1024, n_jobs=8):
     vary according to examples (hence the fact that X is a list instead of
     numpy array).
     """
+    from skimage.io import imread
+    from joblib import delayed
+    from joblib import Parallel
     for i in range(0, len(X_array), chunk_size):
         X_chunk = X_array[i:i + chunk_size]
         filenames = [
@@ -342,7 +342,7 @@ def _to_categorical(y, num_classes=None):
     categorical[np.arange(n), y] = 1
     return categorical
 
-  
+
 def get_nb_minibatches(nb_samples, batch_size):
     """Compute the number of minibatches for keras.
 
