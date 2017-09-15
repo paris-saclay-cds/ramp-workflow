@@ -14,7 +14,7 @@ install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
     - source install_requirements.sh
-    - pip install codecov
+    - pip install pytest pytest-cov codecov
     - pip install -q flake8
     - pip install .
 script:
