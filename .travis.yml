@@ -14,8 +14,8 @@ install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
     - source install_requirements.sh
-    - pip install pytest pytest-cov codecov
-    - pip install -q flake8
+    - pip install -q pytest pytest-cov codecov
+    - pip install -q flake8 gitpython jupyter
     - pip install .
 script:
     - pytest -s -v --cov=rampwf rampwf
