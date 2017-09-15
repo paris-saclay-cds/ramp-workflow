@@ -34,35 +34,40 @@ if __name__ == "__main__":
     if os.path.exists('MANIFEST'):
         os.remove('MANIFEST')
 
-    setup(name=DISTNAME,
-          maintainer=MAINTAINER,
-          include_package_data=True,
-          maintainer_email=MAINTAINER_EMAIL,
-          description=DESCRIPTION,
-          license=LICENSE,
-          url=URL,
-          version=VERSION,
-          download_url=DOWNLOAD_URL,
-          long_description=open('README.md').read(),
-          zip_safe=False,  # the package can run out of an .egg file
-          classifiers=['Intended Audience :: Science/Research',
-                       'Intended Audience :: Developers',
-                       'License :: OSI Approved',
-                       'Programming Language :: Python',
-                       'Topic :: Software Development',
-                       'Topic :: Scientific/Engineering',
-                       'Operating System :: Microsoft :: Windows',
-                       'Operating System :: POSIX',
-                       'Operating System :: Unix',
-                       'Operating System :: MacOS'],
-          platforms='any',
-          packages=find_packages(),
-          entry_points={
-              'console_scripts': [
-                  'ramp_test_submission='
-                  'rampwf.utils.command_line:ramp_test_submission',
-                  'ramp_test_notebook='
-                  'rampwf.utils.command_line:ramp_test_notebook',
-                  'ramp_convert_notebook='
-                  'rampwf.utils.command_line:ramp_convert_notebook',
-              ]})
+    setup(
+        name=DISTNAME,
+        maintainer=MAINTAINER,
+        include_package_data=True,
+        maintainer_email=MAINTAINER_EMAIL,
+        description=DESCRIPTION,
+        license=LICENSE,
+        url=URL,
+        version=VERSION,
+        download_url=DOWNLOAD_URL,
+        long_description=open('README.md').read(),
+        zip_safe=False,  # the package can run out of an .egg file
+        classifiers=[
+            'Intended Audience :: Science/Research',
+            'Intended Audience :: Developers',
+            'License :: OSI Approved',
+            'Programming Language :: Python',
+            'Topic :: Software Development',
+            'Topic :: Scientific/Engineering',
+            'Operating System :: Microsoft :: Windows',
+            'Operating System :: POSIX',
+            'Operating System :: Unix',
+            'Operating System :: MacOS'],
+        install_requires=[
+            'numpy>=1.13',
+            'scikit-learn>=0.19'],
+        platforms='any',
+        packages=find_packages(),
+        entry_points={
+            'console_scripts': [
+                'ramp_test_submission='
+                'rampwf.utils.command_line:ramp_test_submission',
+                'ramp_test_notebook='
+                'rampwf.utils.command_line:ramp_test_notebook',
+                'ramp_convert_notebook='
+                'rampwf.utils.command_line:ramp_convert_notebook',
+            ]})
