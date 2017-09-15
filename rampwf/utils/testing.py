@@ -12,6 +12,10 @@ import numpy as np
 import cloudpickle as pickle
 
 
+import sys
+sys.path.append('')
+
+
 def _delete_line_from_file(f_name, line_to_delete):
     with open(f_name, "r+") as f:
         lines = f.readlines()
