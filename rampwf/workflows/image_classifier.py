@@ -79,9 +79,7 @@ class ImageClassifier(object):
         image_preprocessor = imp.load_source(
             '', submitted_image_preprocessor_file)
         transform_img = image_preprocessor.transform
-        has_transform_test = hasattr(image_preprocessor, 'transform_test')
-        transform_test_img = image_preprocessor.transform_test if has_transform_test else transform_img
-
+        transform_test_img = getattr(image_preprocessor, 'transform_test', transform_img)
         submitted_batch_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[1])
         batch_classifier = imp.load_source('', submitted_batch_classifier_file)
