@@ -59,7 +59,8 @@ if __name__ == "__main__":
             'Operating System :: MacOS'],
         install_requires=[
             'numpy>=1.13',
-            'scikit-learn>=0.19'],
+            'scipy>=0.19',
+            'scikit-learn>=0.18'],
         platforms='any',
         packages=find_packages(),
         entry_points={
