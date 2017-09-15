@@ -1,6 +1,7 @@
 from os.path import join
 
 import os
+import pip
 from subprocess import call
 
 from .base import get_data_home
@@ -50,6 +51,9 @@ def fetch_ramp_kit(name_kit, ramp_kits_home=None):
         name_kit, git_repo_dir))
 
     os.chdir(git_repo_dir)
+    if os.path.isfile('requirements.txt'):
+        pip.main(["install", "-r", "requirements.txt"])
+
     if os.path.isfile('download_data.py'):
         call("python download_data.py", shell=True)
 
