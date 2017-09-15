@@ -8,6 +8,43 @@ from joblib import Parallel
 
 
 class ImageClassifier(object):
+    """
+    ImageClassifier workflow.
+    This workflow is used to train image classification tasks, typically when
+    the dataset cannot be stored in memory.
+    Submissions need to contain two files, which by default are named:
+    image_preprocessor.py and batch_classifier.py (they can be modified
+    by changing `workflow_element_names`).
+
+    image_preprocessor.py needs a `tranform` function, which
+    is used for preprocessing the images. It takes an image as input
+    and it returns an image as an output. Optionally, image_preprocessor.py can 
+    also have a function `transform_test`, which is used only to preprocess images at test time. 
+    Otherwise, if `transform_test` does not exist, `transform` is used at
+    train and test time.
+
+    batch_classifier.py needs a `BatchClassifier` class, which implements
+    `fit` and `predict_proba`, where `fit` takes as input an instance
+    of `BatchGeneratorBuilder`.
+
+    Parameters
+    ==========
+    
+    test_batch_size : int
+        batch size used for testing.
+
+    chunk_size : int
+        size of the chunk used to load data from disk into memory.
+        (see at the top of the file what a chunk is and its difference
+         with the mini-batch size of neural nets).
+
+    n_jobs : int
+        the number of jobs used to load images from disk to memory as `chunks`.
+
+    n_classes : int
+        Total number of classes.
+
+    """
     def __init__(self, test_batch_size, chunk_size, n_jobs, n_classes,
                  workflow_element_names=[
                      'image_preprocessor', 'batch_classifier']):
@@ -42,7 +79,8 @@ class ImageClassifier(object):
         image_preprocessor = imp.load_source(
             '', submitted_image_preprocessor_file)
         transform_img = image_preprocessor.transform
-        transform_test_img = image_preprocessor.transform_test
+        has_transform_test = hasattr(image_preprocessor, 'transform_test')
+        transform_test_img = image_preprocessor.transform_test if has_transform_test else transform_img
 
         submitted_batch_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[1])
