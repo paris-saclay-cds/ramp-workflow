@@ -24,7 +24,7 @@ class GridFeatureExtractor(object):
         feature_extractor = imp.load_source(
             '', submitted_feature_extractor_file)
         fe = feature_extractor.FeatureExtractor()
-        dim_set = list(train_X.dims.keys())
+        dim_set = pd.Series(list(X_ds.dims.keys()))
         time_dim = dim_set[dim_set.str.contains("time")][0]
         fe.fit(X_ds.isel(**{time_dim: train_is}), y_array[train_is])
         return fe
