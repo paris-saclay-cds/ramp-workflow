@@ -42,6 +42,7 @@ class ImageClassifier(object):
         image_preprocessor = imp.load_source(
             '', submitted_image_preprocessor_file)
         transform_img = image_preprocessor.transform
+        transform_test_img = image_preprocessor.transform_test
 
         submitted_batch_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[1])
@@ -49,11 +50,13 @@ class ImageClassifier(object):
         clf = batch_classifier.BatchClassifier()
 
         gen_builder = BatchGeneratorBuilder(
-            X_array[train_is], y_array[train_is], transform_img, folder=folder,
+            X_array[train_is], y_array[train_is], 
+            transform_img, transform_test_img,
+            folder=folder,
             chunk_size=self.chunk_size, n_classes=self.n_classes,
             n_jobs=self.n_jobs)
         clf.fit(gen_builder)
-        return transform_img, clf
+        return transform_img, transform_test_img, clf
 
     def test_submission(self, trained_model, folder_X_array):
         """Train a batch image classifier.
@@ -67,7 +70,7 @@ class ImageClassifier(object):
              only image IDs).
         """
         folder, X_array = folder_X_array
-        transform_img, clf = trained_model
+        transform_img, transform_test_img, clf = trained_model
         it = _chunk_iterator(
             X_array, folder=folder, chunk_size=self.chunk_size)
         y_proba = []
@@ -77,7 +80,7 @@ class ImageClassifier(object):
                 X_batch = X[i: i + self.test_batch_size]
                 # X_batch = Parallel(n_jobs=self.n_jobs, backend='threading')(
                 #     delayed(transform_img)(x) for x in X_batch)
-                X_batch = [transform_img(x) for x in X_batch]
+                X_batch = [transform_test_img(x) for x in X_batch]
                 # X is a list of numpy arrrays at this point, convert it to a
                 # single numpy array.
                 try:
@@ -139,11 +142,12 @@ class BatchGeneratorBuilder(object):
         the number of jobs used to load images from disk to memory as `chunks`.
     """
 
-    def __init__(self, X_array, y_array, transform_img, folder,
+    def __init__(self, X_array, y_array, transform_img, transform_test_img, folder,
                  chunk_size, n_classes, n_jobs):
         self.X_array = X_array
         self.y_array = y_array
         self.transform_img = transform_img
+        self.transform_test_img = transform_test_img
         self.folder = folder
         self.chunk_size = chunk_size
         self.n_classes = n_classes
