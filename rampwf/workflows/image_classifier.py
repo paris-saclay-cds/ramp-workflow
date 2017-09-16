@@ -8,6 +8,43 @@ from joblib import Parallel
 
 
 class ImageClassifier(object):
+    """
+    ImageClassifier workflow.
+    This workflow is used to train image classification tasks, typically when
+    the dataset cannot be stored in memory.
+    Submissions need to contain two files, which by default are named:
+    image_preprocessor.py and batch_classifier.py (they can be modified
+    by changing `workflow_element_names`).
+
+    image_preprocessor.py needs a `tranform` function, which
+    is used for preprocessing the images. It takes an image as input
+    and it returns an image as an output. Optionally, image_preprocessor.py can 
+    also have a function `transform_test`, which is used only to preprocess images at test time. 
+    Otherwise, if `transform_test` does not exist, `transform` is used at
+    train and test time.
+
+    batch_classifier.py needs a `BatchClassifier` class, which implements
+    `fit` and `predict_proba`, where `fit` takes as input an instance
+    of `BatchGeneratorBuilder`.
+
+    Parameters
+    ==========
+    
+    test_batch_size : int
+        batch size used for testing.
+
+    chunk_size : int
+        size of the chunk used to load data from disk into memory.
+        (see at the top of the file what a chunk is and its difference
+         with the mini-batch size of neural nets).
+
+    n_jobs : int
+        the number of jobs used to load images from disk to memory as `chunks`.
+
+    n_classes : int
+        Total number of classes.
+
+    """
     def __init__(self, test_batch_size, chunk_size, n_jobs, n_classes,
                  workflow_element_names=[
                      'image_preprocessor', 'batch_classifier']):
@@ -42,18 +79,20 @@ class ImageClassifier(object):
         image_preprocessor = imp.load_source(
             '', submitted_image_preprocessor_file)
         transform_img = image_preprocessor.transform
-
+        transform_test_img = getattr(image_preprocessor, 'transform_test', transform_img)
         submitted_batch_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[1])
         batch_classifier = imp.load_source('', submitted_batch_classifier_file)
         clf = batch_classifier.BatchClassifier()
 
         gen_builder = BatchGeneratorBuilder(
-            X_array[train_is], y_array[train_is], transform_img, folder=folder,
+            X_array[train_is], y_array[train_is], 
+            transform_img, transform_test_img,
+            folder=folder,
             chunk_size=self.chunk_size, n_classes=self.n_classes,
             n_jobs=self.n_jobs)
         clf.fit(gen_builder)
-        return transform_img, clf
+        return transform_img, transform_test_img, clf
 
     def test_submission(self, trained_model, folder_X_array):
         """Train a batch image classifier.
@@ -67,7 +106,7 @@ class ImageClassifier(object):
              only image IDs).
         """
         folder, X_array = folder_X_array
-        transform_img, clf = trained_model
+        transform_img, transform_test_img, clf = trained_model
         it = _chunk_iterator(
             X_array, folder=folder, chunk_size=self.chunk_size)
         y_proba = []
@@ -77,7 +116,7 @@ class ImageClassifier(object):
                 X_batch = X[i: i + self.test_batch_size]
                 # X_batch = Parallel(n_jobs=self.n_jobs, backend='threading')(
                 #     delayed(transform_img)(x) for x in X_batch)
-                X_batch = [transform_img(x) for x in X_batch]
+                X_batch = [transform_test_img(x) for x in X_batch]
                 # X is a list of numpy arrrays at this point, convert it to a
                 # single numpy array.
                 try:
@@ -139,11 +178,12 @@ class BatchGeneratorBuilder(object):
         the number of jobs used to load images from disk to memory as `chunks`.
     """
 
-    def __init__(self, X_array, y_array, transform_img, folder,
+    def __init__(self, X_array, y_array, transform_img, transform_test_img, folder,
                  chunk_size, n_classes, n_jobs):
         self.X_array = X_array
         self.y_array = y_array
         self.transform_img = transform_img
+        self.transform_test_img = transform_test_img
         self.folder = folder
         self.chunk_size = chunk_size
         self.n_classes = n_classes
