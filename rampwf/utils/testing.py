@@ -9,7 +9,7 @@ import imp
 from os.path import join, abspath
 
 import numpy as np
-import cloudpickle as pickle
+# import cloudpickle as pickle
 
 
 def _delete_line_from_file(f_name, line_to_delete):

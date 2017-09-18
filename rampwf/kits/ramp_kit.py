@@ -2,7 +2,6 @@ from os.path import join
 
 import os
 from subprocess import call
-import git
 
 from .base import get_data_home
 
@@ -36,6 +35,8 @@ def fetch_ramp_kit(name_kit, ramp_kits_home=None):
         The path were the ramp-kit has been cloned.
 
     """
+    import git
+
     if name_kit not in RAMP_KITS_AVAILABLE:
         raise ValueError("The ramp-kit '{}' requested is not available."
                          " The available kits are {}.".format(
