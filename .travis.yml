@@ -1,5 +1,8 @@
 language: python
 dist: trusty
+branches:
+  only:
+  - master
 env:
   - PYTHON_VERSION=2.7 IPYTHON_KERNEL=python2
   - PYTHON_VERSION=3.5 IPYTHON_KERNEL=python3
