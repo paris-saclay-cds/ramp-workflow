@@ -1,14 +1,15 @@
 from os.path import join
 
 import os
+import pip
 from subprocess import call
-import git
 
 from .base import get_data_home
 
 BASE_RAMP_KIT_URL = 'https://github.com/ramp-kits/'
 
-RAMP_KITS_AVAILABLE = ('california_rainfall_test',
+RAMP_KITS_AVAILABLE = ('MNIST',
+                       'california_rainfall_test',
                        'boston_housing',
                        'iris',
                        'titanic',
@@ -17,7 +18,6 @@ RAMP_KITS_AVAILABLE = ('california_rainfall_test',
                        'air_passengers',
                        'el_nino',
                        'HEP_tracking',
-                       'MNIST',
                        'mouse_cytometry',
                        )
 
@@ -36,6 +36,8 @@ def fetch_ramp_kit(name_kit, ramp_kits_home=None):
         The path were the ramp-kit has been cloned.
 
     """
+    import git
+
     if name_kit not in RAMP_KITS_AVAILABLE:
         raise ValueError("The ramp-kit '{}' requested is not available."
                          " The available kits are {}.".format(
@@ -50,6 +52,9 @@ def fetch_ramp_kit(name_kit, ramp_kits_home=None):
         name_kit, git_repo_dir))
 
     os.chdir(git_repo_dir)
+    if os.path.isfile('requirements.txt'):
+        pip.main(["install", "-r", "requirements.txt"])
+
     if os.path.isfile('download_data.py'):
         call("python download_data.py", shell=True)
 

@@ -1,0 +1,6 @@
+pytest
+pytest-cov
+codecov
+flake8
+gitpython
+nbconvert[execute]
