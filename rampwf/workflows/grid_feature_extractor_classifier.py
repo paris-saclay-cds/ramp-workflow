@@ -3,11 +3,11 @@ Train and test a grid feature extractor followed by a classifier.
 
 This workflow is used to process gridded data where the input is
 the spatial field at one time in X_ds matched with a corresponding label
-in y_array. The dimensions of X_ds should be (time, y, x). 
+in y_array. The dimensions of X_ds should be (time, y, x).
 """
 from .grid_feature_extractor import GridFeatureExtractor
 from .classifier import Classifier
-import numpy as np
+
 
 class GridFeatureExtractorClassifier(object):
     def __init__(self, workflow_element_names=[

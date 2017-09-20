@@ -3,14 +3,14 @@ Extract features from a set of spatially gridded data.
 
 This feature extractor can be used for any problem in which one has a series of
 spatial grids arranged in time, y, x dimensions. The xarray library is used
-to read the data into a Dataset, which is represented by X_ds. 
-y_array can be a set of binary labels or a regressor value. The values in 
-y_array are assumed to be paired exactly with the values in the first 
+to read the data into a Dataset, which is represented by X_ds.
+y_array can be a set of binary labels or a regressor value. The values in
+y_array are assumed to be paired exactly with the values in the first
 dimension of X_ds.
 """
 import imp
-import numpy as np
 import pandas as pd
+
 
 class GridFeatureExtractor(object):
     def __init__(self, workflow_element_names=['feature_extractor']):

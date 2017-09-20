@@ -2,6 +2,7 @@ from .base import BaseScoreType
 import numpy as np
 from sklearn.metrics import brier_score_loss
 
+
 class BrierScore(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
@@ -58,7 +59,7 @@ class BrierSkillScore(BaseScoreType):
 
     def __call__(self, y_true_proba, y_proba):
         climo = np.ones(y_true_proba.size) * y_true_proba.mean()
-        bs = brier_score_loss(y_true_proba, y_proba) 
+        bs = brier_score_loss(y_true_proba, y_proba)
         bs_c = brier_score_loss(y_true_proba, climo)
         return 1 - bs / bs_c
 
@@ -68,7 +69,8 @@ class BrierScoreReliability(BaseScoreType):
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='brier_score', precision=3, bins=np.arange(0, 1.2, 0.1)):
+    def __init__(self, name='brier_score', precision=3,
+                 bins=np.arange(0, 1.2, 0.1)):
         self.name = name
         self.precision = precision
         self.bins = bins
@@ -93,7 +95,8 @@ class BrierScoreReliability(BaseScoreType):
         return self.__call__(y_true_proba, y_proba)
 
     def __call__(self, y_true_proba, y_proba):
-        pos_obs_freq = np.histogram(y_proba[y_true_proba == 1], bins=self.bins)[0]
+        pos_obs_freq = np.histogram(y_proba[y_true_proba == 1],
+                                    bins=self.bins)[0]
         fore_freq = np.histogram(y_proba, bins=self.bins)[0]
         pos_obs_rel_freq = np.zeros(pos_obs_freq.size)
         for p in range(pos_obs_rel_freq.size):
@@ -101,7 +104,10 @@ class BrierScoreReliability(BaseScoreType):
                 pos_obs_rel_freq[p] = pos_obs_freq[p] / fore_freq[p]
             else:
                 pos_obs_rel_freq[p] = np.nan
-        score = 1 / float(y_proba.size) * np.nansum(fore_freq  * (self.bin_centers - pos_obs_rel_freq) ** 2)
+        score = np.nansum(fore_freq *
+                          (self.bin_centers - pos_obs_rel_freq) ** 2)
+        score /= float(y_proba.size)
+
         return score
 
 
@@ -110,7 +116,8 @@ class BrierScoreResolution(BaseScoreType):
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='brier_score', precision=3, bins=np.arange(0, 1.2, 0.1)):
+    def __init__(self, name='brier_score', precision=3,
+                 bins=np.arange(0, 1.2, 0.1)):
         self.name = name
         self.precision = precision
         self.bins = bins
@@ -139,7 +146,8 @@ class BrierScoreResolution(BaseScoreType):
         See Murphy (1973) A vector partition of the probability score
         """
         np.seterr(divide="ignore")
-        pos_obs_freq = np.histogram(y_proba[y_true_proba == 1], bins=self.bins)[0]
+        pos_obs_freq = np.histogram(y_proba[y_true_proba == 1],
+                                    bins=self.bins)[0]
         fore_freq = np.histogram(y_proba, bins=self.bins)[0]
         climo = y_true_proba.mean()
         unc = climo * (1 - climo)
@@ -149,6 +157,6 @@ class BrierScoreResolution(BaseScoreType):
                 pos_obs_rel_freq[p] = pos_obs_freq[p] / fore_freq[p]
             else:
                 pos_obs_rel_freq[p] = np.nan
-        score = 1 / float(y_proba.size) * np.nansum(fore_freq  * (pos_obs_rel_freq - climo) ** 2)
+        score = np.nansum(fore_freq * (pos_obs_rel_freq - climo) ** 2)
+        score /= float(y_proba.size)
         return score / unc
-

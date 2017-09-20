@@ -19,7 +19,7 @@ def get_data_home(ramp_kits_home=None):
     """
     if ramp_kits_home is None:
         ramp_kits_home = environ.get('RAMP-KITS',
-                                join('~', 'ramp-kits'))
+                                     join('~', 'ramp-kits'))
         ramp_kits_home = expanduser(ramp_kits_home)
     if not exists(ramp_kits_home):
         makedirs(ramp_kits_home)
