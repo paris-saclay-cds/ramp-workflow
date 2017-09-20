@@ -11,7 +11,8 @@ from .negative_log_likelihood import NegativeLogLikelihood
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
-from .brier_score import BrierScore, BrierSkillScore, BrierScoreReliability, BrierScoreResolution
+from .brier_score import (BrierScore, BrierSkillScore,
+                          BrierScoreReliability, BrierScoreResolution)
 
 __all__ = [
     'Accuracy',

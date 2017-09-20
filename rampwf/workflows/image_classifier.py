@@ -15,10 +15,10 @@ class ImageClassifier(object):
 
     image_preprocessor.py needs a `tranform` function, which
     is used for preprocessing the images. It takes an image as input
-    and it returns an image as an output. Optionally, image_preprocessor.py can 
-    also have a function `transform_test`, which is used only to preprocess images at test time. 
-    Otherwise, if `transform_test` does not exist, `transform` is used at
-    train and test time.
+    and it returns an image as an output. Optionally, image_preprocessor.py
+    can also have a function `transform_test`, which is used only to preprocess
+    images at test time. Otherwise, if `transform_test` does not exist,
+    `transform` is used at train and test time.
 
     batch_classifier.py needs a `BatchClassifier` class, which implements
     `fit` and `predict_proba`, where `fit` takes as input an instance
@@ -26,7 +26,7 @@ class ImageClassifier(object):
 
     Parameters
     ==========
-    
+
     test_batch_size : int
         batch size used for testing.
 
@@ -76,14 +76,16 @@ class ImageClassifier(object):
         image_preprocessor = imp.load_source(
             '', submitted_image_preprocessor_file)
         transform_img = image_preprocessor.transform
-        transform_test_img = getattr(image_preprocessor, 'transform_test', transform_img)
+        transform_test_img = getattr(image_preprocessor,
+                                     'transform_test',
+                                     transform_img)
         submitted_batch_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[1])
         batch_classifier = imp.load_source('', submitted_batch_classifier_file)
         clf = batch_classifier.BatchClassifier()
 
         gen_builder = BatchGeneratorBuilder(
-            X_array[train_is], y_array[train_is], 
+            X_array[train_is], y_array[train_is],
             transform_img, transform_test_img,
             folder=folder,
             chunk_size=self.chunk_size, n_classes=self.n_classes,
@@ -175,8 +177,9 @@ class BatchGeneratorBuilder(object):
         the number of jobs used to load images from disk to memory as `chunks`.
     """
 
-    def __init__(self, X_array, y_array, transform_img, transform_test_img, folder,
-                 chunk_size, n_classes, n_jobs):
+    def __init__(self, X_array, y_array,
+                 transform_img, transform_test_img,
+                 folder, chunk_size, n_classes, n_jobs):
         self.X_array = X_array
         self.y_array = y_array
         self.transform_img = transform_img
