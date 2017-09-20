@@ -22,7 +22,7 @@ install:
     - pip install tensorflow
     - pip install .
 script:
-    - flake8 rampwf --ignore=E211,E265 | grep -v __init__ | grep -v external
+    - flake8 rampwf --ignore=E401,E211,E265
     - pytest -s -v --cov=rampwf rampwf
 after_success:
     - codecov
