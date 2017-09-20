@@ -18,6 +18,6 @@ install:
     - pip install tensorflow
     - pip install .
 script:
-    - pytest -s -v rampwf
+    - pytest -s -v --cov=rampwf rampwf
 notifications:
   email: true
