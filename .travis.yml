@@ -13,8 +13,8 @@ before_install:
 install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
-    - conda install --yes pandas scikit-learn scikit-image cloudpickle joblib gitpython
-    - conda install --yes pytest flake8 nbconvert jupyter
+    - pip install -r testing-requirements.txt
+    - pip install tensorflow
     - pip install .
 script:
     - pytest -s -v rampwf
