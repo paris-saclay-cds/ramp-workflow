@@ -3,6 +3,7 @@
 # Copyright (C) 2017 Balazs Kegl
 
 import os
+from codecs import open
 
 from setuptools import setup, find_packages
 
@@ -16,7 +17,12 @@ with open(os.path.join('rampwf', '__init__.py'), 'r') as fid:
 if version is None:
     raise RuntimeError('Could not determine version')
 
-
+    
+# Get the long description from the README file
+with open('README.md', encoding='utf-8') as f:
+    long_description = f.read()
+    
+    
 descr = """Toolkit for building analytics workflows on the top of pandas and
 scikit-learn. Primarily intended to feed RAMPs."""
 
@@ -44,7 +50,7 @@ if __name__ == "__main__":
         url=URL,
         version=VERSION,
         download_url=DOWNLOAD_URL,
-        long_description=open('README.md').read(),
+        long_description=long_description,
         zip_safe=False,  # the package can run out of an .egg file
         classifiers=[
             'Intended Audience :: Science/Research',
