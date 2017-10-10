@@ -1,5 +1,7 @@
 from .accuracy import Accuracy
 from .balanced_accuracy import BalancedAccuracy
+from .brier_score import (
+    BrierScore, BrierSkillScore, BrierScoreReliability, BrierScoreResolution)
 from .clustering_efficiency import ClusteringEfficiency
 from .classification_error import ClassificationError
 from .combined import Combined
@@ -11,25 +13,33 @@ from .negative_log_likelihood import NegativeLogLikelihood
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
-from .brier_score import (BrierScore, BrierSkillScore,
-                          BrierScoreReliability, BrierScoreResolution)
+from .detection import (
+    OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
+    AverageDetectionPrecision)
 
 __all__ = [
     'Accuracy',
+    'AverageDetectionPrecision',
     'BalancedAccuracy',
+    'BrierScore',
+    'BrierScoreReliability',
+    'BrierScoreResolution',
+    'BrierSkillScore',
     'ClassificationError',
     'ClusteringEfficiency',
     'Combined',
+    'DetectionPrecision',
+    'DetectionRecall',
     'F1Above',
     'MacroAveragedRecall',
     'MakeCombined',
+    'MADCenter',
+    'MADRadius',
     'MARE',
     'NegativeLogLikelihood',
+    'OSPA',
     'RelativeRMSE',
     'RMSE',
     'ROCAUC',
-    "BrierScore",
-    "BrierSkillScore",
-    "BrierScoreReliability",
-    "BrierScoreResolution",
+    'SCP',
 ]
