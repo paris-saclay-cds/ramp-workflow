@@ -7,6 +7,7 @@ from .feature_extractor import FeatureExtractor
 from .feature_extractor_classifier import FeatureExtractorClassifier
 from .feature_extractor_regressor import FeatureExtractorRegressor
 from .image_classifier import ImageClassifier
+from .object_detector import ObjectDetector
 from .regressor import Regressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
@@ -20,7 +21,8 @@ __all__ = [
     'FeatureExtractor',
     'FeatureExtractorClassifier',
     'FeatureExtractorRegressor',
-    'ImageClassifier'
+    'ImageClassifier',
+    'ObjectDetector',
     'Regressor',
     'TimeSeriesFeatureExtractor',
     'GridFeatureExtractorClassifier',
