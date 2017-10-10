@@ -14,11 +14,7 @@ def _detection_init(self, y_pred=None, y_true=None, n_samples=None):
     elif y_true is not None:
         self.y_pred = y_true
     elif n_samples is not None:
-        if self.n_columns == 0:
-            shape = (n_samples)
-        else:
-            shape = (n_samples, self.n_columns)
-        self.y_pred = np.empty(shape, dtype=float)
+        self.y_pred = np.empty((n_samples, 0), dtype=float)
         self.y_pred.fill(np.nan)
     else:
         raise ValueError(
