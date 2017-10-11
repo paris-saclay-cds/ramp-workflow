@@ -14,8 +14,7 @@ def _detection_init(self, y_pred=None, y_true=None, n_samples=None):
     elif y_true is not None:
         self.y_pred = y_true
     elif n_samples is not None:
-        self.y_pred = np.empty((n_samples, 0), dtype=float)
-        self.y_pred.fill(np.nan)
+        self.y_pred = np.empty(n_samples, dtype=np.object)
     else:
         raise ValueError(
             'Missing init argument: y_pred, y_true, or n_samples')
@@ -34,6 +33,17 @@ def _combine(cls, predictions_list, index_list=None):
         return predictions_list[0]
 
 
+def _set_valid_in_train(self, predictions, test_is):
+    """Set a cross-validation slice."""
+    self.y_pred[test_is] = predictions.y_pred
+
+
+@property
+def _valid_indexes(self):
+    """Return valid indices (e.g., a cross-validation slice)."""
+    return self.y_pred != np.empty(len(self.y_pred), dtype=np.object)
+
+
 def make_detection(label_names=[]):
     Predictions = type(
         'Predictions',
@@ -41,5 +51,7 @@ def make_detection(label_names=[]):
         {'__init__': _detection_init,
          'check_y_pred_dimensions': _check_y_pred_dimensions,
          'combine': _combine,
+         'set_valid_in_train': _set_valid_in_train,
+         'valid_indexes': _valid_indexes,
          })
     return Predictions
