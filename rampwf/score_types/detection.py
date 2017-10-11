@@ -118,13 +118,16 @@ class AverageDetectionPrecision(BaseScoreType):
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='average_precision', precision=2):
+    def __init__(self, name='average_precision', precision=2,
+                 iou_threshold=0.5):
         self.name = name
         self.precision = precision
+        self.iou_threshold = iou_threshold
 
     def __call__(self, y_true, y_pred):
         conf_thresholds = np.linspace(0.0, 1, 50)
-        ps, rs = precision_recall_curve(y_true, y_pred, conf_thresholds)
+        ps, rs = precision_recall_curve(y_true, y_pred, conf_thresholds,
+                                        iou_threshold=self.iou_threshold)
         return average_precision_interpolated(ps, rs)
 
 
@@ -134,14 +137,16 @@ class DetectionPrecision(DetectionBaseScoreType):
     maximum = 1.0
 
     def __init__(self, name='precision', precision=2, conf_threshold=0.5,
-                 minipatch=None):
+                 minipatch=None, iou_threshold=0.5):
         self.name = name
         self.precision = precision
         self.conf_threshold = conf_threshold
         self.minipatch = minipatch
+        self.iou_threshold = iou_threshold
 
     def detection_score(self, y_true, y_pred):
-        return precision(y_true, y_pred, minipatch=self.minipatch)
+        return precision(y_true, y_pred, minipatch=self.minipatch,
+                         iou_threshold=self.iou_threshold)
 
 
 class DetectionRecall(DetectionBaseScoreType):
@@ -150,14 +155,16 @@ class DetectionRecall(DetectionBaseScoreType):
     maximum = 1.0
 
     def __init__(self, name='recall', precision=2, conf_threshold=0.5,
-                 minipatch=None):
+                 minipatch=None, iou_threshold=0.5):
         self.name = name
         self.precision = precision
         self.conf_threshold = conf_threshold
         self.minipatch = minipatch
+        self.iou_threshold = iou_threshold
 
     def detection_score(self, y_true, y_pred):
-        return recall(y_true, y_pred, minipatch=self.minipatch)
+        return recall(y_true, y_pred, minipatch=self.minipatch,
+                      iou_threshold=self.iou_threshold)
 
 
 class MADCenter(DetectionBaseScoreType):
@@ -166,14 +173,16 @@ class MADCenter(DetectionBaseScoreType):
     maximum = np.inf
 
     def __init__(self, name='mad_center', precision=2, conf_threshold=0.5,
-                 minipatch=None):
+                 minipatch=None, iou_threshold=0.5):
         self.name = name
         self.precision = precision
         self.conf_threshold = conf_threshold
         self.minipatch = minipatch
+        self.iou_threshold = iou_threshold
 
     def detection_score(self, y_true, y_pred):
-        return mad_center(y_true, y_pred, minipatch=self.minipatch)
+        return mad_center(y_true, y_pred, minipatch=self.minipatch,
+                          iou_threshold=self.iou_threshold)
 
 
 class MADRadius(DetectionBaseScoreType):
@@ -182,14 +191,16 @@ class MADRadius(DetectionBaseScoreType):
     maximum = np.inf
 
     def __init__(self, name='mad_radius', precision=2, conf_threshold=0.5,
-                 minipatch=None):
+                 minipatch=None, iou_threshold=0.5):
         self.name = name
         self.precision = precision
         self.conf_threshold = conf_threshold
         self.minipatch = minipatch
+        self.iou_threshold = iou_threshold
 
     def detection_score(self, y_true, y_pred):
-        return mad_radius(y_true, y_pred, minipatch=self.minipatch)
+        return mad_radius(y_true, y_pred, minipatch=self.minipatch,
+                          iou_threshold=self.iou_threshold)
 
 
 def scp_single(y_true, y_pred, shape, minipatch=None):
