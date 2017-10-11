@@ -144,7 +144,13 @@ class AverageDetectionPrecision(BaseScoreType):
         self.iou_threshold = iou_threshold
 
     def __call__(self, y_true, y_pred):
-        conf_thresholds = np.linspace(0.0, 1, 50)
+        y_pred_conf = [detected_object[0]
+                       for single_detection in y_pred
+                       for detected_object in single_detection]
+        min_conf, max_conf = np.min(y_pred_conf), np.max(y_pred_conf)
+        conf_thresholds = np.linspace(min(min_conf, 0.0),
+                                      max(max_conf, 1.0),
+                                      50)
         ps, rs = precision_recall_curve(y_true, y_pred, conf_thresholds,
                                         iou_threshold=self.iou_threshold)
         return average_precision_interpolated(ps, rs)
