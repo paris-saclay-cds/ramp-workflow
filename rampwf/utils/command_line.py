@@ -30,12 +30,20 @@ def create_ramp_test_submission_parser():
                         help='The kit to test. It should be located in the'
                         ' "submissions" folder of the starting kit. If "ALL",'
                         ' all submissions in the directory will be tested.')
+    parser.add_argument('--quick-test', dest='quick_test', action='store_true',
+                        help='Specify this flag to test the submission on a '
+                             'small subset of the data.'
+                        )
     return parser
 
 
 def ramp_test_submission():
     parser = create_ramp_test_submission_parser()
     args = parser.parse_args()
+
+    if args.quick_test:
+        import os
+        os.environ['RAMP_TEST_MODE'] = '1'
 
     if args.submission == "ALL":
         ramp_submission_dir = join(args.ramp_kit_dir, 'submissions')

@@ -64,8 +64,8 @@ if __name__ == "__main__":
             'Operating System :: Unix',
             'Operating System :: MacOS'],
         install_requires=[
-            'numpy>=1.13',
-            'scipy>=0.19',
+            'numpy',
+            'scipy',
             'pandas>=0.19.2',
             'scikit-learn>=0.18'],
         platforms='any',
