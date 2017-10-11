@@ -22,6 +22,7 @@ def _detection_init(self, y_pred=None, y_true=None, n_samples=None):
 
 
 def _check_y_pred_dimensions(self):
+    # XXX should check that prediction is an array of lists or Nones.
     pass
 
 
