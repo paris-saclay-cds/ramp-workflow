@@ -284,34 +284,32 @@ def ospa_single(y_true, y_pred, cut_off=1, minipatch=None):
     return dist
 
 
-def _select_minipatch_tuples(minipatch, y_true, y_pred):
-    """Comment XXX.
+def _select_minipatch_tuples(y_list, minipatch):
+    """
+    Mask over a list selecting the tuples that lie in the minipatch
 
     Parameters
     ----------
+    y_list : list of tuples
+        Full list of labels and predictions
     minipatch : list of int
         Bounds of the internal scoring patch
-    y_true, y_pred : list of tuples
-        Full list of labels and predictions
 
     Returns
     -------
-    y_true, y_pred : list of tuples
-        List of labels and predictions restricted to
-        the central minipatch
+    y_list_cut : list of bool
+        List of booleans corresponding to whether the circle is in
+        the minipatch or not
 
     """
     row_min, row_max, col_min, col_max = minipatch
 
-    y_true = np.asarray(y_true)
-    y_pred = np.asarray(y_pred)
+    y_list = np.asarray(y_list)
 
-    y_true_cut = ((y_true[0] >= col_min) & (y_true[0] < col_max) &
-                  (y_true[1] >= row_min) & (y_true[1] < row_max))
-    y_pred_cut = ((y_pred[0] >= col_min) & (y_pred[0] < col_max) &
-                  (y_pred[1] >= row_min) & (y_pred[1] < row_max))
+    y_list_cut = ((y_list[0] >= col_min) & (y_list[0] < col_max) &
+                  (y_list[1] >= row_min) & (y_list[1] < row_max))
 
-    return y_true[y_true_cut].tolist(), y_pred[y_pred_cut].tolist()
+    return y_list_cut
 
 
 def _match_tuples(y_true, y_pred, minipatch=None):
