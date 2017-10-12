@@ -383,7 +383,7 @@ def _count_matches(y_true, y_pred, matches, iou_threshold=0.5):
         n_pred = len(y_pred_p)
 
         _, _, ious = match_p
-        p = (ious >= iou_threshold).sum()
+        p = (ious > iou_threshold).sum()
 
         val_numbers.append((n_true, n_pred, p))
 
