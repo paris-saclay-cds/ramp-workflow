@@ -3,6 +3,7 @@ from __future__ import division
 import math
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+from sklearn.utils import indices_to_mask
 from .base import BaseScoreType
 
 
@@ -254,9 +255,6 @@ def ospa_single(y_true, y_pred, cut_off=1, minipatch=None):
     n_true = len(y_true)
     n_pred = len(y_pred)
 
-    n_max = max(n_true, n_pred)
-    n_min = min(n_true, n_pred)
-
     # No craters and none found
     if n_true == 0 and n_pred == 0:
         return 0
@@ -265,21 +263,59 @@ def ospa_single(y_true, y_pred, cut_off=1, minipatch=None):
     if n_true == 0 or n_pred == 0:
         return cut_off
 
-    # OSPA METRIC
+    # n_max = max(n_true, n_pred)
+    # n_min = min(n_true, n_pred)
+
+    # First matching
     id_true, id_pred, ious = _match_tuples(y_true, y_pred)
 
+    # Selection based on distance / IoU
+    close_pairs = ious > 0
+    id_true_close = id_true[close_pairs]
+    id_pred_close = id_pred[close_pairs]
+
+    # Mask of entries matched and actually touching
+    true_matched_close = indices_to_mask(id_true_close, n_true)
+    pred_matched_close = indices_to_mask(id_pred_close, n_pred)
+
+    # Mask of entries without a match or separated
+    true_unmatched_or_faraway = ~true_matched_close
+    pred_unmatched_or_faraway = ~pred_matched_close
+
+    # Mask of entries that lie within the minipatch
     if minipatch is not None:
-        true_in_minipatch = _select_minipatch_tuples(y_true[id_true])
-        pred_in_minipatch = _select_minipatch_tuples(y_pred[id_pred])
-        is_valid = true_in_minipatch & pred_in_minipatch
-        iou_score = ious[is_valid].sum()
+        true_in_minipatch = _select_minipatch_tuples(y_true, minipatch)
+        pred_in_minipatch = _select_minipatch_tuples(y_pred, minipatch)
     else:
-        iou_score = ious.sum()
+        true_in_minipatch = np.ones_like(y_true).astype(bool)
+        pred_in_minipatch = np.ones_like(y_true).astype(bool)
 
-    distance_score = n_min - iou_score
-    cardinality_score = cut_off * (n_max - n_min)
+    # Counting
+    true_final = true_matched_close & true_in_minipatch
+    pred_final = pred_matched_close & pred_in_minipatch
 
-    dist = 1 / n_max * (distance_score + cardinality_score)
+    # Cardinality
+    true_card = true_unmatched_or_faraway & true_in_minipatch
+    pred_card = pred_unmatched_or_faraway & pred_in_minipatch
+
+    n_true_final = true_final.sum()
+    n_pred_final = pred_final.sum()
+    n_true_card = true_card.sum()
+    n_pred_card = pred_card.sum()
+
+    n_count = n_true_final + n_pred_final
+    n_card = n_true_card + n_pred_card
+    n_tot = n_count + n_card
+
+    # IoU computation on the final list
+    _, _, final_iou = _match_tuples(y_true[true_in_minipatch],
+                                    y_pred[pred_in_minipatch])
+    iou_score = final_iou.sum()
+
+    distance_score = n_count - iou_score
+    cardinality_score = cut_off * n_card
+
+    dist = 1 / n_tot * (distance_score + cardinality_score)
 
     return dist
 
