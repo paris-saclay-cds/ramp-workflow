@@ -337,7 +337,7 @@ def _select_minipatch_tuples(y_list, minipatch):
     return y_list_cut
 
 
-def _match_tuples(y_true, y_pred, minipatch=None):
+def _match_tuples(y_true, y_pred):
     """
     Given set of true and predicted (x, y, r) tuples.
 
@@ -358,9 +358,6 @@ def _match_tuples(y_true, y_pred, minipatch=None):
     """
     n_true = len(y_true)
     n_pred = len(y_pred)
-
-    if minipatch is not None:
-        y_true, y_pred = _select_minipatch_tuples(minipatch, y_true, y_pred)
 
     iou_matrix = np.empty((n_true, n_pred))
 
