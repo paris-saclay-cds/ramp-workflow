@@ -448,17 +448,24 @@ def precision(y_true, y_pred, matches=None, iou_threshold=0.5,
     matches : optional, output of _match_tuples
     iou_threshold : float
         Threshold to determine match
+    minipatch : list of int, optional
+        Bounds of the internal scoring patch (default is None)
 
     Returns
     -------
     precision_score : float [0 - 1]
     """
+    if minipatch is None:
+        in_minipatch = np.ones_like(y_pred).astype(bool)
+    else:
+        in_minipatch = _select_minipatch_tuples(y_pred, minipatch)
+
     if matches is None:
-        matches = [_match_tuples(t, p, minipatch=minipatch)
-                   for t, p in zip(y_true, y_pred)]
+        matches = [_match_tuples(t, p)
+                   for t, p in zip(y_true, y_pred[in_minipatch])]
 
     n_true, n_pred_all, n_pred_correct = _count_matches(
-        y_true, y_pred, matches, iou_threshold=iou_threshold)
+        y_true, y_pred[in_minipatch], matches, iou_threshold=iou_threshold)
 
     return n_pred_correct / n_pred_all
 
@@ -474,17 +481,24 @@ def recall(y_true, y_pred, matches=None, iou_threshold=0.5,
     matches : optional, output of _match_tuples
     iou_threshold : float
         Threshold to determine match
+    minipatch : list of int, optional
+        Bounds of the internal scoring patch (default is None)
 
     Returns
     -------
     recall_score : float [0 - 1]
     """
+    if minipatch is None:
+        in_minipatch = np.ones_like(y_true).astype(bool)
+    else:
+        in_minipatch = _select_minipatch_tuples(y_true, minipatch)
+
     if matches is None:
-        matches = [_match_tuples(t, p, minipatch=minipatch)
-                   for t, p in zip(y_true, y_pred)]
+        matches = [_match_tuples(t, p)
+                   for t, p in zip(y_true[in_minipatch], y_pred)]
 
     n_true, n_pred_all, n_pred_correct = _count_matches(
-        y_true, y_pred, matches, iou_threshold=iou_threshold)
+        y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
 
     return n_pred_correct / n_true
 
@@ -500,17 +514,24 @@ def mad_radius(y_true, y_pred, matches=None, iou_threshold=0.5,
     matches : optional, output of _match_tuples
     iou_threshold : float
         Threshold to determine match
+    minipatch : list of int, optional
+        Bounds of the internal scoring patch (default is None)
 
     Returns
     -------
     mad_radius : float > 0
     """
+    if minipatch is None:
+        in_minipatch = np.ones_like(y_true).astype(bool)
+    else:
+        in_minipatch = _select_minipatch_tuples(y_true, minipatch)
+
     if matches is None:
-        matches = [_match_tuples(t, p, minipatch=minipatch)
-                   for t, p in zip(y_true, y_pred)]
+        matches = [_match_tuples(t, p)
+                   for t, p in zip(y_true[in_minipatch], y_pred)]
 
     loc_true, loc_pred = _locate_matches(
-        y_true, y_pred, matches, iou_threshold=iou_threshold)
+        y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
 
     return np.abs((loc_pred[:, 2] - loc_true[:, 2]) / loc_true[:, 2]).mean()
 
@@ -528,17 +549,24 @@ def mad_center(y_true, y_pred, matches=None, iou_threshold=0.5,
     matches : optional, output of _match_tuples
     iou_threshold : float
         Threshold to determine match
+    minipatch : list of int, optional
+        Bounds of the internal scoring patch (default is None)
 
     Returns
     -------
     mad_center : float > 0
     """
+    if minipatch is None:
+        in_minipatch = np.ones_like(y_true).astype(bool)
+    else:
+        in_minipatch = _select_minipatch_tuples(y_true, minipatch)
+
     if matches is None:
-        matches = [_match_tuples(t, p, minipatch=minipatch)
-                   for t, p in zip(y_true, y_pred)]
+        matches = [_match_tuples(t, p)
+                   for t, p in zip(y_true[in_minipatch], y_pred)]
 
     loc_true, loc_pred = _locate_matches(
-        y_true, y_pred, matches, iou_threshold=iou_threshold)
+        y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
 
     d = np.sqrt((loc_pred[:, 0] - loc_true[:, 0]) ** 2 + (
         loc_pred[:, 1] - loc_true[:, 1]) ** 2)
