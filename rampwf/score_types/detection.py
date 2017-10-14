@@ -92,41 +92,15 @@ class OSPA(DetectionBaseScoreType):
     maximum = 1.0
 
     def __init__(self, name='ospa', precision=2, conf_threshold=0.5,
-                 cut_off=1, minipatch=None):
+                 minipatch=None):
         self.name = name
         self.precision = precision
         self.conf_threshold = conf_threshold
         self.minipatch = minipatch
-        self.cut_off = cut_off
 
     def detection_score(self, y_true, y_pred):
-        """Optimal Subpattern Assignment (OSPA) metric for IoU score.
-
-        This metric provides a coherent way to compute the miss-distance
-        between the detection and alignment of objects. Among all
-        combinations of true/predicted pairs, if finds the best alignment
-        to minimise the distance, and still takes into account missing
-        or in-excess predicted values through a cardinality score.
-
-        The lower the value the smaller the distance.
-
-        Parameters
-        ----------
-        y_true, y_pred : list of list of tuples
-
-        Returns
-        -------
-        float: distance between input arrays
-
-        References
-        ----------
-        http://www.dominic.schuhmacher.name/papers/ospa.pdf
-
-        """
-        scores = [ospa_single(t, p, self.cut_off, self.minipatch)
-                  for t, p in zip(y_true, y_pred)]
-        weights = [len(t) for t in y_true]
-        return np.average(scores, weights=weights)
+        ospa_score = ospa(y_true, y_pred, self.minipatch)
+        return 1 - ospa_score
 
 
 class AverageDetectionPrecision(BaseScoreType):
@@ -240,16 +214,21 @@ def scp_single(y_true, y_pred, shape, minipatch=None):
     return score, n_true, n_pred
 
 
-def ospa_single(y_true, y_pred, cut_off=1, minipatch=None):
+def ospa(y_true, y_pred, minipatch=None):
     """
-    OSPA score on single patch. See docstring of `ospa` for more info.
+    Optimal Subpattern Assignment (OSPA) metric for IoU score.
+
+    This metric provides a coherent way to compute the miss-distance
+    between the detection and alignment of objects. Among all
+    combinations of true/predicted pairs, if finds the best alignment
+    to minimise the distance, and still takes into account missing
+    or in-excess predicted values through a cardinality score.
+
+    The lower the value the smaller the distance.
 
     Parameters
     ----------
-    y_true, y_pred : ndarray of shape (3, x)
-        arrays of (x, y, radius)
-    cut_off : float, optional (default is 1)
-        penalizing value for wrong cardinality
+    y_true, y_pred : list of list of tuples
     minipatch : list of int, optional
         Bounds of the internal scoring patch (default is None)
 
@@ -257,36 +236,59 @@ def ospa_single(y_true, y_pred, cut_off=1, minipatch=None):
     -------
     float: distance between input arrays
 
+    References
+    ----------
+    http://www.dominic.schuhmacher.name/papers/ospa.pdf
+
+    """
+    ospas = np.array([ospa_single(t, p, minipatch)
+                      for t, p in zip(y_true, y_pred)])
+
+    ious, n_count, n_total = ospas.sum(axis=0)
+
+    if n_total == 0:
+        return 0
+
+    return ious * n_count / n_total
+
+
+def ospa_single(y_true, y_pred, minipatch=None):
+    """
+    OSPA score on single patch. See docstring of `ospa` for more info.
+
+    Parameters
+    ----------
+    y_true, y_pred : ndarray of shape (3, x)
+        arrays of (x, y, radius)
+    minipatch : list of int, optional
+        Bounds of the internal scoring patch (default is None)
+
+    Returns
+    -------
+    (iou_sum, n_pred, n_total)
+        float - sum of ious of matched entries
+        int - sum of matched entries
+        int - sum of all entries
+
     """
     n_true = len(y_true)
     n_pred = len(y_pred)
+    n_total = n_true + n_pred
 
     # No craters and none found
     if n_true == 0 and n_pred == 0:
-        return 0
+        return 2, 2, 2
 
     # No craters and some found or existing craters but non found
     if n_true == 0 or n_pred == 0:
-        return cut_off
-
-    # n_max = max(n_true, n_pred)
-    # n_min = min(n_true, n_pred)
+        return 0, 0, n_total
 
     # First matching
     id_true, id_pred, ious = _match_tuples(y_true, y_pred)
 
-    # Selection based on distance / IoU
-    close_pairs = ious > 0
-    id_true_close = id_true[close_pairs]
-    id_pred_close = id_pred[close_pairs]
-
-    # Mask of entries matched and actually touching
-    true_matched_close = indices_to_mask(id_true_close, n_true)
-    pred_matched_close = indices_to_mask(id_pred_close, n_pred)
-
-    # Mask of entries without a match or separated
-    true_unmatched_or_faraway = ~true_matched_close
-    pred_unmatched_or_faraway = ~pred_matched_close
+    # Mask of matched entries
+    true_matched = indices_to_mask(id_true, n_true)
+    pred_matched = indices_to_mask(id_pred, n_pred)
 
     # Mask of entries that lie within the minipatch
     if minipatch is not None:
@@ -297,33 +299,14 @@ def ospa_single(y_true, y_pred, cut_off=1, minipatch=None):
         pred_in_minipatch = np.ones_like(y_true).astype(bool)
 
     # Counting
-    true_final = true_matched_close & true_in_minipatch
-    pred_final = pred_matched_close & pred_in_minipatch
-
-    # Cardinality
-    true_card = true_unmatched_or_faraway & true_in_minipatch
-    pred_card = pred_unmatched_or_faraway & pred_in_minipatch
-
-    n_true_final = true_final.sum()
-    n_pred_final = pred_final.sum()
-    n_true_card = true_card.sum()
-    n_pred_card = pred_card.sum()
-
-    n_count = n_true_final + n_pred_final
-    n_card = n_true_card + n_pred_card
-    n_tot = n_count + n_card
+    true_count = true_matched & true_in_minipatch
+    pred_count = pred_matched & pred_in_minipatch
 
     # IoU computation on the final list
-    _, _, final_iou = _match_tuples(y_true[true_in_minipatch],
-                                    y_pred[pred_in_minipatch])
-    iou_score = final_iou.sum()
+    iou_global = ious[true_count].sum() + ious[pred_count].sum()
+    n_count = true_count.sum() + pred_count.sum()
 
-    distance_score = n_count - iou_score
-    cardinality_score = cut_off * n_card
-
-    dist = 1 / n_tot * (distance_score + cardinality_score)
-
-    return dist
+    return iou_global, n_count, n_total
 
 
 def _select_minipatch_tuples(y_list, minipatch):
