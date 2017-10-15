@@ -467,8 +467,8 @@ def precision(y_true, y_pred, matches=None, iou_threshold=0.5,
         in_minipatch = _select_minipatch_tuples(y_pred, minipatch)
 
     if matches is None:
-        matches = [_match_tuples(t, p)
-                   for t, p in zip(y_true, y_pred[in_minipatch])]
+        matches = [_match_tuples(t, p[minip])
+                   for t, p, minip in zip(y_true, y_pred, in_minipatch)]
 
     n_true, n_pred_all, n_pred_correct = _count_matches(
         y_true, y_pred[in_minipatch], matches, iou_threshold=iou_threshold)
@@ -500,8 +500,8 @@ def recall(y_true, y_pred, matches=None, iou_threshold=0.5,
         in_minipatch = _select_minipatch_tuples(y_true, minipatch)
 
     if matches is None:
-        matches = [_match_tuples(t, p)
-                   for t, p in zip(y_true[in_minipatch], y_pred)]
+        matches = [_match_tuples(t[minip], p)
+                   for t, p, minip in zip(y_true, y_pred, in_minipatch)]
 
     n_true, n_pred_all, n_pred_correct = _count_matches(
         y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
@@ -533,8 +533,8 @@ def mad_radius(y_true, y_pred, matches=None, iou_threshold=0.5,
         in_minipatch = _select_minipatch_tuples(y_true, minipatch)
 
     if matches is None:
-        matches = [_match_tuples(t, p)
-                   for t, p in zip(y_true[in_minipatch], y_pred)]
+        matches = [_match_tuples(t[minip], p)
+                   for t, p, minip in zip(y_true, y_pred, in_minipatch)]
 
     loc_true, loc_pred = _locate_matches(
         y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
@@ -568,8 +568,8 @@ def mad_center(y_true, y_pred, matches=None, iou_threshold=0.5,
         in_minipatch = _select_minipatch_tuples(y_true, minipatch)
 
     if matches is None:
-        matches = [_match_tuples(t, p)
-                   for t, p in zip(y_true[in_minipatch], y_pred)]
+        matches = [_match_tuples(t[minip], p)
+                   for t, p, minip in zip(y_true, y_pred, in_minipatch)]
 
     loc_true, loc_pred = _locate_matches(
         y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
