@@ -277,7 +277,7 @@ def ospa_single(y_true, y_pred, minipatch=None):
 
     # No craters and none found
     if n_true == 0 and n_pred == 0:
-        return 2, 2, 2
+        return 0, 0, 0
 
     # No craters and some found or existing craters but non found
     if n_true == 0 or n_pred == 0:
