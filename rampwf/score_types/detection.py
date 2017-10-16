@@ -307,8 +307,8 @@ def ospa_single(y_true, y_pred, minipatch=None):
     -------
     (iou_sum, n_pred, n_total)
         float - sum of ious of matched entries
-        int - sum of matched entries
-        int - sum of all entries
+        int - number of matched entries
+        int - total number of entries
 
     """
     n_true = len(y_true)
