@@ -144,14 +144,9 @@ class AverageDetectionPrecision(BaseScoreType):
         self.iou_threshold = iou_threshold
 
     def __call__(self, y_true, y_pred):
-        y_pred_conf = [detected_object[0]
-                       for single_detection in y_pred
-                       for detected_object in single_detection]
-        min_conf, max_conf = np.min(y_pred_conf), np.max(y_pred_conf)
-        conf_thresholds = np.linspace(min_conf, max_conf, 20)
-        ps, rs = precision_recall_curve(y_true, y_pred, conf_thresholds,
-                                        iou_threshold=self.iou_threshold)
-        return average_precision_interpolated(ps, rs)
+        ps, rs = precision_recall_curve_greedy(
+            y_true, y_pred, iou_threshold=self.iou_threshold)
+        return average_precision_exact(ps, rs)
 
 
 class DetectionPrecision(DetectionBaseIOUScoreType):
@@ -652,6 +647,79 @@ def precision_recall_curve(y_true, y_pred, conf_thresholds, iou_threshold=0.5):
     return np.array(ps), np.array(rs)
 
 
+def _add_id(y):
+    """Helper function to flatten and add id column to list of lists"""
+    y_new = []
+
+    for i, y_patch in enumerate(y):
+        if len(y_patch):
+            tmp = np.asarray(y_patch)
+            tmp = np.insert(tmp, 0, i, axis=1)
+            y_new.append(tmp)
+
+    return np.vstack(y_new)
+
+
+def precision_recall_curve_greedy(y_true, y_pred, iou_threshold=0.5):
+    """
+    Calculate precision and recall incrementally based on the predictions
+    sorted by confidence (not calculating an exact optimal match for each
+    confidence level).
+
+    Parameters
+    ----------
+    y_true
+    y_pred
+    iou_threshold
+
+    Returns
+    -------
+
+    """
+    y_pred2 = _add_id(y_pred)
+    y_pred2_sorted = y_pred2[np.argsort(y_pred2[:, 1])[::-1], :]
+
+    # array to store whether a match is observed or not for each prediction
+    res = np.empty(len(y_pred2_sorted), dtype='bool')
+
+    matched = set([])
+
+    confs = []
+
+    for i, pred in enumerate(y_pred2_sorted):
+        patch_id, conf, row, col, rad = pred
+
+        y_patch = y_true[int(patch_id)]
+        n_true = len(y_patch)
+
+        if n_true > 0:
+            ious = np.empty(n_true)
+
+            for j in range(n_true):
+                ious[j] = cc_iou(y_patch[j], (row, col, rad))
+
+            i_max = np.argmax(ious)
+            if ((ious[i_max] > iou_threshold)
+                    and (patch_id, i_max) not in matched):
+                res[i] = True
+                # add match identifier to set to later check
+                # we don't have a duplicate match
+                matched.add((patch_id, i_max))
+            else:
+                res[i] = False
+        else:
+            res[i] = False
+
+        confs.append(conf)
+
+    n_true_total = np.sum([len(x) for x in y_true])
+
+    recall = np.cumsum(res) / n_true_total
+    precision = np.cumsum(res) / np.arange(1, len(res) + 1)
+
+    return np.array(confs), precision, recall
+
+
 def mask_detection_curve(y_true, y_pred, conf_thresholds):
     """
     Calculate mask detection score for different confidence thresholds.
@@ -748,6 +816,28 @@ def average_precision_interpolated(ps, rs):
             p_at_r.append(0)
 
     ap = np.mean(p_at_r)
+    return ap
+
+
+def average_precision_exact(ps, rs):
+    # from https://github.com/amdegroot/ssd.pytorch/blob/ce4c994db0ee11f82aabb4fdb3499dc970156db5/eval.py#L182-L213
+
+    # correct AP calculation
+    # first append sentinel values at the end
+    mrec = np.concatenate(([0.], rs, [1.]))
+    mpre = np.concatenate(([0.], ps, [0.]))
+
+    # compute the precision envelope
+    for i in range(mpre.size - 1, 0, -1):
+        mpre[i - 1] = np.maximum(mpre[i - 1], mpre[i])
+
+    # to calculate area under PR curve, look for points
+    # where X axis (recall) changes value
+    i = np.where(mrec[1:] != mrec[:-1])[0]
+
+    # and sum (\Delta recall) * prec
+    ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
+
     return ap
 
 
