@@ -87,6 +87,34 @@ class SCP(DetectionBaseScoreType):
 
 
 class OSPA(DetectionBaseScoreType):
+    """
+    Optimal Subpattern Assignment (OSPA) metric for IoU score.
+
+    This metric provides a coherent way to compute the miss-distance
+    between the detection and alignment of objects. Among all
+    combinations of true/predicted pairs, if finds the best alignment
+    to minimise the distance, and still takes into account missing
+    or in-excess predicted values through a cardinality score.
+
+    The lower the value the smaller the distance.
+
+    Arguments
+    ---------
+    name : str, optional
+        Method name
+    precision : int, optional
+        Rounding precision for the score (default is 2)
+    conf_threshold : float, optional
+        Confidence threshold value use for the Average Precision
+        measurement (default is 0.5)
+    minipatch : list of int, optional
+        Bounds of the internal scoring patch (default is None)
+
+    References
+    ----------
+    http://www.dominic.schuhmacher.name/papers/ospa.pdf
+
+    """
     is_lower_the_better = True
     minimum = 0.0
     maximum = 1.0
@@ -99,6 +127,18 @@ class OSPA(DetectionBaseScoreType):
         self.minipatch = minipatch
 
     def detection_score(self, y_true, y_pred):
+        """
+        Compute the OSPA score
+
+        Parameters
+        ----------
+        y_true, y_pred : list of list of tuples
+
+        Returns
+        -------
+        float: distance between input arrays
+
+        """
         ospa_score = ospa(y_true, y_pred, self.minipatch)
         return 1 - ospa_score
 
