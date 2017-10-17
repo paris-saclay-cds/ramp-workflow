@@ -91,8 +91,8 @@ class DetectionError(DetectionBaseScoreType):
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, shape=None, name='detection_error', precision=2, conf_threshold=0.5,
-                 minipatch=None):
+    def __init__(self, shape=None, name='detection_error', precision=2,
+                 conf_threshold=0.5, minipatch=None):
         self.shape = shape
         self.name = name
         self.precision = precision
