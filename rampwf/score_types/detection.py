@@ -2,6 +2,7 @@ from __future__ import division
 
 import math
 import numpy as np
+from sklearn.metrics import accuracy_score
 from scipy.optimize import linear_sum_assignment
 from .base import BaseScoreType
 
@@ -83,6 +84,41 @@ class SCP(DetectionBaseScoreType):
             [scp_single(t, p, self.shape, self.minipatch)
              for t, p in zip(y_true, y_pred)])
         return np.sum(scps[:, 0]) / np.sum(scps[:, 1:3])
+
+
+class DetectionError(DetectionBaseScoreType):
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = 1.0
+
+    def __init__(self, shape=None, name='detection_error', precision=2, conf_threshold=0.5,
+                 minipatch=None):
+        self.shape = shape
+        self.name = name
+        self.precision = precision
+        self.conf_threshold = conf_threshold
+        self.minipatch = minipatch
+
+    def detection_score(self, y_true, y_pred):
+        """
+        Rate of patches with the incorrect number of detected objects.
+
+        Parameters
+        ----------
+        y_true : list of list of tuples (x, y, radius)
+            List of coordinates and radius of actual craters for set of patches
+        y_pred : list of list of tuples (x, y, radius)
+            List of coordinates and radius of predicted craters for set of
+            patches
+
+        Returns
+        -------
+        float : score for a given patch, the lower the better
+
+        """
+        n_true = np.array([len(yi) for yi in y_true])
+        n_pred = np.array([len(yi) for yi in y_pred])
+        return 1 - accuracy_score(n_true, n_pred)
 
 
 class OSPA(DetectionBaseScoreType):
@@ -292,7 +328,7 @@ def ospa_single(y_true, y_pred, cut_off=1, minipatch=None):
 
 def _select_minipatch_tuples(y_list, minipatch):
     """
-    Mask over a list selecting the tuples that lie in the minipatch
+    Mask over a list selecting the tuples that lie in the minipatch.
 
     Parameters
     ----------

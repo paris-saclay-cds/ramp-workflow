@@ -14,8 +14,8 @@ from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
 from .detection import (
-    OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
-    AverageDetectionPrecision)
+    OSPA, SCP, DetectionError, DetectionPrecision, DetectionRecall, MADCenter,
+    MADRadius, AverageDetectionPrecision)
 
 __all__ = [
     'Accuracy',
@@ -28,6 +28,7 @@ __all__ = [
     'ClassificationError',
     'ClusteringEfficiency',
     'Combined',
+    'DetectionError',
     'DetectionPrecision',
     'DetectionRecall',
     'F1Above',
