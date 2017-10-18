@@ -313,15 +313,24 @@ def ospa_single(y_true, y_pred, minipatch=None):
     """
     n_true = len(y_true)
     n_pred = len(y_pred)
-    n_total = n_true + n_pred
 
     # No craters and none found
     if n_true == 0 and n_pred == 0:
         return 0, 0, 0
 
+    # Mask of entries that lie within the minipatch
+    if minipatch is not None:
+        true_in_minipatch = _select_minipatch_tuples(y_true, minipatch)
+        pred_in_minipatch = _select_minipatch_tuples(y_pred, minipatch)
+    else:
+        true_in_minipatch = np.ones(len(y_true)).astype(bool)
+        pred_in_minipatch = np.ones(len(y_pred)).astype(bool)
+
+    n_minipatch = true_in_minipatch.sum() + pred_in_minipatch.sum()
+
     # No craters and some found or existing craters but non found
     if n_true == 0 or n_pred == 0:
-        return 0, 0, n_total
+        return 0, 0, n_minipatch
 
     # First matching
     id_true, id_pred, ious = _match_tuples(y_true, y_pred)
@@ -334,14 +343,6 @@ def ospa_single(y_true, y_pred, minipatch=None):
     true_matched = indices_to_mask(id_true, n_true)
     pred_matched = indices_to_mask(id_pred, n_pred)
 
-    # Mask of entries that lie within the minipatch
-    if minipatch is not None:
-        true_in_minipatch = _select_minipatch_tuples(y_true, minipatch)
-        pred_in_minipatch = _select_minipatch_tuples(y_pred, minipatch)
-    else:
-        true_in_minipatch = np.ones(len(y_true)).astype(bool)
-        pred_in_minipatch = np.ones(len(y_pred)).astype(bool)
-
     # Counting
     true_count = true_matched & true_in_minipatch
     pred_count = pred_matched & pred_in_minipatch
@@ -349,7 +350,6 @@ def ospa_single(y_true, y_pred, minipatch=None):
     # IoU computation on the final list
     iou_global = iou_true[true_count].sum() + iou_pred[pred_count].sum()
     n_count = true_count.sum() + pred_count.sum()
-    n_minipatch = true_in_minipatch.sum() + pred_in_minipatch.sum()
 
     return iou_global, n_count, n_minipatch
 
@@ -372,6 +372,9 @@ def _select_minipatch_tuples(y_list, minipatch):
         the minipatch or not
 
     """
+    if len(y_list) == 0:
+        return np.array([], dtype=bool)
+
     row_min, row_max, col_min, col_max = minipatch
 
     y_list = np.asarray(y_list).T

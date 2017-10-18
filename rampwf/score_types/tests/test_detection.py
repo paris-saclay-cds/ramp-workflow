@@ -42,6 +42,9 @@ def test_scp_single():
     assert scp_single(x, y, shape, minipatch=minipatch) == (1, 1, 0)
     # One too big
     assert scp_single(x, z, shape, minipatch=minipatch) == (0, 1, 1)
+    assert scp_single(x, [], shape, minipatch=minipatch) == (1, 1, 0)
+    assert scp_single([], x, shape, minipatch=minipatch) == (1, 0, 1)
+    assert scp_single([], [], shape, minipatch=minipatch) == (0, 0, 0)
 
 
 def test_ospa_single():
@@ -62,6 +65,10 @@ def test_ospa_single():
     assert ospa_single(x, x, minipatch=minipatch) == (2, 2, 2)
     assert ospa_single(x, y, minipatch=minipatch) == (0, 1, 1)
     assert ospa_single(x, z, minipatch=minipatch) == (2, 2, 2)
+    assert ospa_single(x, z, minipatch=minipatch) == (2, 2, 2)
+    assert ospa_single(x, [], minipatch=minipatch) == (0, 0, 1)
+    assert ospa_single([], x, minipatch=minipatch) == (0, 0, 1)
+    assert ospa_single([], [], minipatch=minipatch) == (0, 0, 0)
 
 
 def test_ospa():
@@ -83,9 +90,12 @@ def test_ospa():
     assert ospa([[]], [[]]) == 0
 
     assert ospa([x], [x], minipatch=minipatch) == 2 / 2
-    assert ospa([x, x], [x, x], minipatch=minipatch) == (1 + 1) / 2
+    assert ospa([x, x], [x, x], minipatch=minipatch) == (2 + 2) / (2 + 2)
     assert ospa([x, x], [x, y], minipatch=minipatch) == (2 + 0) / (2 + 1)
     assert ospa([x, x], [x, z], minipatch=minipatch) == (2 + 2) / (2 + 2)
+    assert ospa([x, x], [x, []], minipatch=minipatch) == (2 + 0) / (2 + 1)
+    assert ospa([x, []], [x, x], minipatch=minipatch) == (2 + 0) / (2 + 1)
+    assert ospa([x, []], [x, []], minipatch=minipatch) == (2 + 0) / (2 + 0)
 
 
 def test_precision_recall():
