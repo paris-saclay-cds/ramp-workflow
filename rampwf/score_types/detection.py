@@ -289,7 +289,7 @@ def ospa(y_true, y_pred, minipatch=None):
     if n_total == 0:
         return 0
 
-    return ious * n_count / n_total
+    return ious / n_total
 
 
 def ospa_single(y_true, y_pred, minipatch=None):
@@ -325,6 +325,10 @@ def ospa_single(y_true, y_pred, minipatch=None):
 
     # First matching
     id_true, id_pred, ious = _match_tuples(y_true, y_pred)
+    iou_true = np.zeros(len(y_true))
+    iou_pred = np.zeros(len(y_pred))
+    iou_true[id_true] = ious
+    iou_pred[id_pred] = ious
 
     # Mask of matched entries
     true_matched = indices_to_mask(id_true, n_true)
@@ -335,18 +339,19 @@ def ospa_single(y_true, y_pred, minipatch=None):
         true_in_minipatch = _select_minipatch_tuples(y_true, minipatch)
         pred_in_minipatch = _select_minipatch_tuples(y_pred, minipatch)
     else:
-        true_in_minipatch = np.ones_like(y_true).astype(bool)
-        pred_in_minipatch = np.ones_like(y_true).astype(bool)
+        true_in_minipatch = np.ones(len(y_true)).astype(bool)
+        pred_in_minipatch = np.ones(len(y_pred)).astype(bool)
 
     # Counting
     true_count = true_matched & true_in_minipatch
     pred_count = pred_matched & pred_in_minipatch
 
     # IoU computation on the final list
-    iou_global = ious[true_count].sum() + ious[pred_count].sum()
+    iou_global = iou_true[true_count].sum() + iou_pred[pred_count].sum()
     n_count = true_count.sum() + pred_count.sum()
+    n_minipatch = true_in_minipatch.sum() + pred_in_minipatch.sum()
 
-    return iou_global, n_count, n_total
+    return iou_global, n_count, n_minipatch
 
 
 def _select_minipatch_tuples(y_list, minipatch):
@@ -369,12 +374,17 @@ def _select_minipatch_tuples(y_list, minipatch):
     """
     row_min, row_max, col_min, col_max = minipatch
 
-    y_list = np.asarray(y_list)
+    y_list = np.asarray(y_list).T
 
-    y_list_cut = ((y_list[0] >= col_min) & (y_list[0] < col_max) &
-                  (y_list[1] >= row_min) & (y_list[1] < row_max))
+    y_list_cut = ((y_list[0] >= row_min) & (y_list[0] < row_max) &
+                  (y_list[1] >= col_min) & (y_list[1] < col_max))
 
     return y_list_cut
+
+
+def filter_minipatch_tuples(y_list, minipatch):
+    in_minipatch = _select_minipatch_tuples(y_list, minipatch)
+    return np.array(y_list)[in_minipatch].tolist()
 
 
 def _match_tuples(y_true, y_pred):
@@ -501,17 +511,16 @@ def precision(y_true, y_pred, matches=None, iou_threshold=0.5,
     -------
     precision_score : float [0 - 1]
     """
-    if minipatch is None:
-        in_minipatch = np.ones_like(y_pred).astype(bool)
-    else:
-        in_minipatch = _select_minipatch_tuples(y_pred, minipatch)
+    if minipatch is not None:
+        y_pred = [filter_minipatch_tuples(y_patch, minipatch)
+                  for y_patch in y_pred]
 
     if matches is None:
-        matches = [_match_tuples(t, p[minip])
-                   for t, p, minip in zip(y_true, y_pred, in_minipatch)]
+        matches = [_match_tuples(yp_true, yp_pred)
+                   for yp_true, yp_pred in zip(y_true, y_pred)]
 
     n_true, n_pred_all, n_pred_correct = _count_matches(
-        y_true, y_pred[in_minipatch], matches, iou_threshold=iou_threshold)
+        y_true, y_pred, matches, iou_threshold=iou_threshold)
 
     return n_pred_correct / n_pred_all
 
@@ -534,17 +543,16 @@ def recall(y_true, y_pred, matches=None, iou_threshold=0.5,
     -------
     recall_score : float [0 - 1]
     """
-    if minipatch is None:
-        in_minipatch = np.ones_like(y_true).astype(bool)
-    else:
-        in_minipatch = _select_minipatch_tuples(y_true, minipatch)
+    if minipatch is not None:
+        y_true = [filter_minipatch_tuples(y_patch, minipatch)
+                  for y_patch in y_true]
 
     if matches is None:
-        matches = [_match_tuples(t[minip], p)
-                   for t, p, minip in zip(y_true, y_pred, in_minipatch)]
+        matches = [_match_tuples(yp_true, yp_pred)
+                   for yp_true, yp_pred in zip(y_true, y_pred)]
 
     n_true, n_pred_all, n_pred_correct = _count_matches(
-        y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
+        y_true, y_pred, matches, iou_threshold=iou_threshold)
 
     return n_pred_correct / n_true
 
@@ -567,17 +575,16 @@ def mad_radius(y_true, y_pred, matches=None, iou_threshold=0.5,
     -------
     mad_radius : float > 0
     """
-    if minipatch is None:
-        in_minipatch = np.ones_like(y_true).astype(bool)
-    else:
-        in_minipatch = _select_minipatch_tuples(y_true, minipatch)
+    if minipatch is not None:
+        y_true = [filter_minipatch_tuples(y_patch, minipatch)
+                  for y_patch in y_true]
 
     if matches is None:
-        matches = [_match_tuples(t[minip], p)
-                   for t, p, minip in zip(y_true, y_pred, in_minipatch)]
+        matches = [_match_tuples(yp_true, yp_pred)
+                   for yp_true, yp_pred in zip(y_true, y_pred)]
 
     loc_true, loc_pred = _locate_matches(
-        y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
+        y_true, y_pred, matches, iou_threshold=iou_threshold)
 
     return np.abs((loc_pred[:, 2] - loc_true[:, 2]) / loc_true[:, 2]).mean()
 
@@ -602,17 +609,16 @@ def mad_center(y_true, y_pred, matches=None, iou_threshold=0.5,
     -------
     mad_center : float > 0
     """
-    if minipatch is None:
-        in_minipatch = np.ones_like(y_true).astype(bool)
-    else:
-        in_minipatch = _select_minipatch_tuples(y_true, minipatch)
+    if minipatch is not None:
+        y_true = [filter_minipatch_tuples(y_patch, minipatch)
+                  for y_patch in y_true]
 
     if matches is None:
-        matches = [_match_tuples(t[minip], p)
-                   for t, p, minip in zip(y_true, y_pred, in_minipatch)]
+        matches = [_match_tuples(yp_true, yp_pred)
+                   for yp_true, yp_pred in zip(y_true, y_pred)]
 
     loc_true, loc_pred = _locate_matches(
-        y_true[in_minipatch], y_pred, matches, iou_threshold=iou_threshold)
+        y_true, y_pred, matches, iou_threshold=iou_threshold)
 
     d = np.sqrt((loc_pred[:, 0] - loc_true[:, 0]) ** 2 + (
         loc_pred[:, 1] - loc_true[:, 1]) ** 2)
