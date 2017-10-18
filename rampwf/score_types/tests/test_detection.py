@@ -18,6 +18,7 @@ x = [(1, 1, 1)]
 x2 = [(1, 1, 2)]
 y = [(1, 3, 1)]
 z = x + y
+minipatch = [0, 2, 0, 2]
 
 
 def test_scp_single():
@@ -35,6 +36,13 @@ def test_scp_single():
     # 2 empty arrays
     assert scp_single([], [], shape) == (0, 0, 0)
 
+    # Both inside minipatch
+    assert scp_single(x, x, shape, minipatch=minipatch) == (0, 1, 1)
+    # One mismatch
+    assert scp_single(x, y, shape, minipatch=minipatch) == (1, 1, 0)
+    # One too big
+    assert scp_single(x, z, shape, minipatch=minipatch) == (0, 1, 1)
+
 
 def test_ospa_single():
     # Perfect match
@@ -50,6 +58,10 @@ def test_ospa_single():
     assert ospa_single(z, []) == (0, 0, 2)
     # Two empty arrays should match
     assert ospa_single([], []) == (0, 0, 0)
+
+    assert ospa_single(x, x, minipatch=minipatch) == (2, 2, 2)
+    assert ospa_single(x, y, minipatch=minipatch) == (0, 1, 1)
+    assert ospa_single(x, z, minipatch=minipatch) == (2, 2, 2)
 
 
 def test_ospa():
@@ -69,6 +81,11 @@ def test_ospa():
     assert ospa([z], [[]]) == 0
     # Two empty arrays should match
     assert ospa([[]], [[]]) == 0
+
+    assert ospa([x], [x], minipatch=minipatch) == 2 / 2
+    assert ospa([x, x], [x, x], minipatch=minipatch) == (1 + 1) / 2
+    assert ospa([x, x], [x, y], minipatch=minipatch) == (2 + 0) / (2 + 1)
+    assert ospa([x, x], [x, z], minipatch=minipatch) == (2 + 2) / (2 + 2)
 
 
 def test_precision_recall():
