@@ -8,19 +8,18 @@ from .base import get_data_home
 
 BASE_RAMP_KIT_URL = 'https://github.com/ramp-kits/'
 
-# RAMP_KITS_AVAILABLE = ('MNIST',
-#                        'california_rainfall_test',
-#                        'boston_housing',
-#                        'iris',
-#                        'titanic',
-#                        'epidemium2_cancer_mortality',
-#                        'drug_spectra',
-#                        'air_passengers',
-#                        'el_nino',
-#                        'HEP_tracking',
-#                        'mouse_cytometry',
-#                        )
-RAMP_KITS_AVAILABLE = ()
+RAMP_KITS_AVAILABLE = ('MNIST',
+                       'california_rainfall_test',
+                       'boston_housing',
+                       'iris',
+                       'titanic',
+                       'epidemium2_cancer_mortality',
+                       'drug_spectra',
+                       'air_passengers',
+                       'el_nino',
+                       'HEP_tracking',
+                       'mouse_cytometry',
+                       )
 
 
 def fetch_ramp_kit(name_kit, ramp_kits_home=None):
