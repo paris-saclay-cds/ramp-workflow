@@ -144,7 +144,7 @@ class AverageDetectionPrecision(BaseScoreType):
         self.iou_threshold = iou_threshold
 
     def __call__(self, y_true, y_pred):
-        ps, rs = precision_recall_curve_greedy(
+        _, ps, rs = precision_recall_curve_greedy(
             y_true, y_pred, iou_threshold=self.iou_threshold)
         return average_precision_exact(ps, rs)
 
