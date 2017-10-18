@@ -784,6 +784,11 @@ def project_circle(circle, image=None, shape=None,
     x, y, radius = circle
     coords = circle_coords(x, y, radius, shape=shape)
     value = 1
+
+    if not coords[0].size:
+        # corner case where circle is outside the image
+        return image
+
     if normalize:
         value /= coords[0].size
     if negative:
