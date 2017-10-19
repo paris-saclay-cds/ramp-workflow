@@ -648,7 +648,13 @@ def precision_recall_curve(y_true, y_pred, conf_thresholds, iou_threshold=0.5):
 
 
 def _add_id(y):
-    """Helper function to flatten and add id column to list of lists"""
+    """
+    Helper function to flatten and add id column to list of lists.
+
+    Since the list of lists is flattened into a single array, empty lists
+    do not result in an entry in the final array.
+
+    """
     y_new = []
 
     for i, y_patch in enumerate(y):
@@ -668,22 +674,33 @@ def precision_recall_curve_greedy(y_true, y_pred, iou_threshold=0.5):
 
     Parameters
     ----------
-    y_true
-    y_pred
-    iou_threshold
+    y_true : list of lists of (x, y, r) tuples
+    y_pred : list of lists of (conf, x, y, r) tuples
+    iou_threshold : float [0 - 1], default 0.5
 
     Returns
     -------
+    Three arrays:
+
+    confidence_values
+        The flattened and sorted confidence values of y_pred
+    precision
+        The corresponding precision values
+    recall
+        The corresponding recall values
 
     """
+    # flatten y_pred into single array and add column with img id
     y_pred2 = _add_id(y_pred)
+
+    # Sorting predicted objects by decreasing confidence
     y_pred2_sorted = y_pred2[np.argsort(y_pred2[:, 1])[::-1], :]
 
     # array to store whether a match is observed or not for each prediction
     res = np.empty(len(y_pred2_sorted), dtype='bool')
 
+    # object to keep track of matches: (img id, object index) pairs
     matched = set([])
-
     confs = []
 
     for i, pred in enumerate(y_pred2_sorted):
