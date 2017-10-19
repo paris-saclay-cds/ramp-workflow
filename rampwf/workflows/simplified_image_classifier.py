@@ -13,9 +13,9 @@ class SimplifiedImageClassifier(object):
     of the `ImageClassifier` workflow where there is no batch generator
     and no image preproocessor. 
     Submissions need to contain one file, which by default by is named
-    batch_classifier.py (it can be modified by changing 
+    image_classifier.py (it can be modified by changing 
     `workflow_element_names`).
-    batch_classifier.py needs a `BatchClassifier` class, which implements
+    image_classifier.py needs an `ImageClassifier` class, which implements
     `fit` and `predict_proba`, where both `fit` and `predict_proba` take 
     as input an instance of `ImageLoader`.
 
@@ -26,17 +26,17 @@ class SimplifiedImageClassifier(object):
         Total number of classes.
 
     """
-    def __init__(self, n_classes, workflow_element_names=['batch_classifier']):
+    def __init__(self, n_classes, workflow_element_names=['image_classifier']):
         self.n_classes = n_classes
         self.element_names = workflow_element_names
 
     def train_submission(self, module_path, folder_X_array, y_array,
                          train_is=None):
-        """Train a batch image classifier.
+        """Train an image classifier.
 
         module_path : str
             module where the submission is. the folder of the module
-            have to contain batch_classifier.py and image_preprocessor.py.
+            have to contain image_classifier.py.
         X_array : ArrayContainer vector of int
             vector of image IDs to train on
             (it is named X_array to be coherent with the current API,
@@ -50,10 +50,10 @@ class SimplifiedImageClassifier(object):
         folder, X_array = folder_X_array
         if train_is is None:
             train_is = slice(None, None, None)
-        submitted_batch_classifier_file = '{}/{}.py'.format(
+        submitted_image_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
-        batch_classifier = imp.load_source('', submitted_batch_classifier_file)
-        clf = batch_classifier.BatchClassifier()
+        image_classifier = imp.load_source('', submitted_image_classifier_file)
+        clf = image_classifier.ImageClassifier()
         img_loader = ImageLoader(
             X_array[train_is], y_array[train_is],
             folder=folder,
@@ -62,7 +62,7 @@ class SimplifiedImageClassifier(object):
         return clf
 
     def test_submission(self, trained_model, folder_X_array):
-        """Train a batch image classifier.
+        """Train an image classifier.
 
         trained_model : tuple (function, Classifier)
             tuple of a trained model returned by `train_submission`.
@@ -85,7 +85,7 @@ class SimplifiedImageClassifier(object):
 
 class ImageLoader(object):
     """   
-    In batch_classifier.py, both `fit` and `predict_proba` take as input
+    In image_classifier.py, both `fit` and `predict_proba` take as input
     an instance of `ImageLoader`.
     ImageLoader is used in `fit` and `predict_proba` to either load one image 
     and its corresponding label  (at training time), or one image (at test time).
