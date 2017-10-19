@@ -2,7 +2,10 @@ from __future__ import division
 import os
 import imp
 import numpy as np
-from skimage.io import imread
+try:
+    from skimage.io import imread
+except ImportError:
+    pass
 
 
 class SimplifiedImageClassifier(object):
