@@ -107,7 +107,7 @@ class OSPA(DetectionBaseScoreType):
     conf_threshold : float, optional
         Confidence threshold value use for the Average Precision
         measurement (default is 0.5)
-    minipatch : list of int, optional
+    minipatch : [row_min, row_max, col_min, col_max], optional
         Bounds of the internal scoring patch (default is None)
 
     References
