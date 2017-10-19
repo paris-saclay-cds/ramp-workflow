@@ -46,6 +46,10 @@ def test_scp_single():
     assert scp_single([], x, shape, minipatch=minipatch) == (1, 0, 1)
     assert scp_single([], [], shape, minipatch=minipatch) == (0, 0, 0)
 
+    # object outside of the image is discarded, although it actually is a
+    # bad detection
+    scp_single(x, [(20, 20, 1)], shape) == (1, 1, 0)
+
 
 def test_ospa_single():
     # Perfect match
