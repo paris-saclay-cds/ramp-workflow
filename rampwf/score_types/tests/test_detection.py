@@ -1,17 +1,18 @@
 from __future__ import division
 
 import math
+
+import numpy as np
+
 import pytest
-# import numpy as np
 
 # from rampwf.score_types import AverageDetectionPrecision
-from rampwf.score_types.detection import ospa_single
-from rampwf.score_types.detection import ospa
-from rampwf.score_types.detection import scp_single
-from rampwf.score_types.detection import precision
-from rampwf.score_types.detection import recall
-from rampwf.score_types.detection import mad_center
-from rampwf.score_types.detection import mad_radius
+from rampwf.score_types.detection.ospa import ospa, ospa_single
+from rampwf.score_types.detection.scp import scp_single
+from rampwf.score_types.detection.precision_recall import precision, recall
+from rampwf.score_types.detection.precision_recall import mad_center, mad_radius
+from rampwf.score_types.detection.util import cc_iou, cc_intersection
+from rampwf.score_types.detection.scp import project_circle, circle_maps
 
 
 x = [(1, 1, 1)]
@@ -158,3 +159,96 @@ def test_precision_recall():
 #     y_true = [[(1, 1, 1)]]
 #     y_pred = [[(1, 3, 3, 1)]]
 #     assert ap(y_true, y_pred) == 0
+
+
+# # test circles
+
+
+circle = (1, 1, 1)
+x = [circle]
+
+
+def test_project_circle():
+    shape = (10, 10)
+    assert project_circle(circle, image=np.zeros(shape)).shape == shape
+    assert project_circle(circle, shape=shape).shape == shape
+
+    classic = project_circle(circle, shape=shape)
+    assert classic.min() == 0
+    assert classic.max() == 1
+
+    negative = project_circle(circle, shape=shape, negative=True)
+    assert negative.min() == -1
+    assert negative.max() == 0
+
+    normalized = project_circle(circle, shape=shape, normalize=True)
+    assert normalized.min() == 0
+    assert normalized.sum() == 1
+
+    normalized_neg = project_circle(circle, shape=shape,
+                                    normalize=True, negative=True)
+    assert normalized_neg.max() == 0
+    assert normalized_neg.sum() == -1
+
+    with pytest.raises(ValueError):
+        project_circle(circle)
+        project_circle(circle, image=None, shape=None)
+
+
+def test_circle_map():
+    shape = (10, 10)
+    map_true, map_pred = circle_maps([], [], shape)
+    assert map_true.max() == 0
+    assert map_pred.max() == 0
+    assert map_true.sum() == 0
+    assert map_pred.sum() == 0
+    map_true, map_pred = circle_maps(x, [], shape)
+    assert map_true.sum() == 1
+    assert map_pred.sum() == 0
+    map_true, map_pred = circle_maps([], x, shape)
+    assert map_true.sum() == 0
+    assert map_pred.sum() == 1
+    map_true, map_pred = circle_maps(x, x, shape)
+    assert map_true.sum() == 1
+    assert map_pred.sum() == 1
+
+
+# # test IOU
+
+
+def test_cc_iou():
+    circle1 = (0, 0, 1)
+    circle2 = (0, 4, 1)
+    circle3 = (1, 1, 2)
+    circle1_2 = (0, 0, 2)
+    assert cc_iou(circle1, circle1) - 1 < 1e-6
+    assert cc_iou(circle1, circle2) < 1e-6
+    assert cc_iou(circle2, circle1) < 1e-6
+    assert cc_iou(circle1, circle3) - math.pi < 1e-6
+    assert cc_iou(circle3, circle1) - math.pi < 1e-6
+    assert cc_iou(circle1_2, circle1) == 0.25
+    assert cc_iou(circle1, circle1_2) == 0.25
+
+
+def test_cc_intersection():
+    # Zero distance
+    assert cc_intersection(0, 1, 2) - 4 * math.pi < 1e-6
+
+    # Zero radius
+    assert cc_intersection(1, 0, 1) == 0
+    assert cc_intersection(1, 1, 0) == 0
+
+    # High distance
+    assert cc_intersection(4, 1, 2) == 0
+
+    # Classic test
+    assert cc_intersection(1, 1, 2) - math.pi < 1e-6
+
+    with pytest.raises(ValueError):
+        cc_intersection(-1, 1, 1)
+        cc_intersection(1, -1, 1)
+        cc_intersection(1, 1, -1)
+
+
+def test_cc_intersection_completely_overlapping():
+    cc_intersection(2, 4, 1) - math.pi < 1e-6
