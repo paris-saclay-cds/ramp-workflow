@@ -62,7 +62,7 @@ class SimplifiedImageClassifier(object):
         return clf
 
     def test_submission(self, trained_model, folder_X_array):
-        """Train an image classifier.
+        """Test an image classifier.
 
         trained_model : tuple (function, Classifier)
             tuple of a trained model returned by `train_submission`.
