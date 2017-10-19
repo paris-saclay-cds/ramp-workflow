@@ -10,7 +10,8 @@ import pytest
 from rampwf.score_types.detection.ospa import ospa, ospa_single
 from rampwf.score_types.detection.scp import scp_single
 from rampwf.score_types.detection.precision_recall import precision, recall
-from rampwf.score_types.detection.precision_recall import mad_center, mad_radius
+from rampwf.score_types.detection.precision_recall import mad_center
+from rampwf.score_types.detection.precision_recall import mad_radius
 from rampwf.score_types.detection.util import cc_iou, cc_intersection
 from rampwf.score_types.detection.scp import project_circle, circle_maps
 

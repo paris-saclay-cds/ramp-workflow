@@ -306,4 +306,3 @@ def ospa_curve(y_true, y_pred, conf_thresholds):
         os.append(ospa(y_true, y_pred_above_confidence))
 
     return np.array(os)
-

@@ -36,4 +36,3 @@ class DetectionBaseIOUScoreType(DetectionBaseScoreType):
         self.conf_threshold = conf_threshold
         self.minipatch = minipatch
         self.iou_threshold = iou_threshold
-
