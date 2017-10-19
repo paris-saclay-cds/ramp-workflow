@@ -25,7 +25,7 @@ class DetectionBaseScoreType(BaseScoreType):
 
 class DetectionBaseIOUScoreType(DetectionBaseScoreType):
 
-    def __init__(self, name=None, precision=2, conf_threshold=0.5,
+    def __init__(self, name=None, precision=3, conf_threshold=0.5,
                  minipatch=None, iou_threshold=0.5):
         if name is None:
             self.name = '{name}(IOU={iou_threshold})'.format(

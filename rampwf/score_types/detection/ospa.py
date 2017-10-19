@@ -40,7 +40,7 @@ class OSPA(DetectionBaseScoreType):
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='ospa', precision=2, conf_threshold=0.5,
+    def __init__(self, name='ospa', precision=3, conf_threshold=0.5,
                  minipatch=None):
         self.name = name
         self.precision = precision

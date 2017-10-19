@@ -13,7 +13,7 @@ class AverageDetectionPrecision(BaseScoreType):
     maximum = 1.0
     _name = 'average_precision'
 
-    def __init__(self, name=_name, precision=2, iou_threshold=0.5):
+    def __init__(self, name=_name, precision=3, iou_threshold=0.5):
         if name is None:
             self.name = '{name}(IOU={iou_threshold})'.format(
                 name=self._name, iou_threshold=iou_threshold)
