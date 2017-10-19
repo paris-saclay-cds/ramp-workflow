@@ -11,7 +11,7 @@ class SimplifiedImageClassifier(object):
     This workflow is used to train image classification tasks, typically when
     the dataset cannot be stored in memory. It is a simplified version
     of the `ImageClassifier` workflow where there is no batch generator
-    and no image preproocessor. 
+    and no image preprocessor. 
     Submissions need to contain one file, which by default by is named
     image_classifier.py (it can be modified by changing 
     `workflow_element_names`).
