@@ -233,7 +233,7 @@ def scp_single(y_true, y_pred, shape, minipatch=None):
         List of coordinates and radius of craters predicted in the patch
     shape : tuple of int
         Shape of the main patch
-    minipatch : list of int, optional
+    minipatch : [row_min, row_max, col_min, col_max], optional
         Bounds of the internal scoring patch (default is None)
 
     Returns
@@ -269,7 +269,7 @@ def ospa(y_true, y_pred, minipatch=None):
     Parameters
     ----------
     y_true, y_pred : list of list of tuples
-    minipatch : list of int, optional
+    minipatch : [row_min, row_max, col_min, col_max], optional
         Bounds of the internal scoring patch (default is None)
 
     Returns
@@ -300,8 +300,8 @@ def ospa_single(y_true, y_pred, minipatch=None):
     ----------
     y_true, y_pred : ndarray of shape (3, x)
         arrays of (x, y, radius)
-    minipatch : list of int, optional
-        Bounds of the internal scoring patch (default is None)
+    minipatch : [row_min, row_max, col_min, col_max], optional
+        Bounds of the internal scoring region (default is None)
 
     Returns
     -------
@@ -334,9 +334,12 @@ def ospa_single(y_true, y_pred, minipatch=None):
 
     # First matching
     id_true, id_pred, ious = _match_tuples(y_true, y_pred)
+
+    # For each set of entries (true and pred) create an array with
+    # the iou corresponding to each object
     iou_true = np.zeros(len(y_true))
-    iou_pred = np.zeros(len(y_pred))
     iou_true[id_true] = ious
+    iou_pred = np.zeros(len(y_pred))
     iou_pred[id_pred] = ious
 
     # Mask of matched entries
@@ -360,9 +363,9 @@ def _select_minipatch_tuples(y_list, minipatch):
 
     Parameters
     ----------
-    y_list : list of tuples
-        Full list of labels and predictions
-    minipatch : list of int
+    y_list : list of (row, col, radius)
+        List of true or predicted objects
+    minipatch : [row_min, row_max, col_min, col_max]
         Bounds of the internal scoring patch
 
     Returns
@@ -377,17 +380,36 @@ def _select_minipatch_tuples(y_list, minipatch):
 
     row_min, row_max, col_min, col_max = minipatch
 
-    y_list = np.asarray(y_list).T
+    rows, cols, _ = np.asarray(y_list).T
 
-    y_list_cut = ((y_list[0] >= row_min) & (y_list[0] < row_max) &
-                  (y_list[1] >= col_min) & (y_list[1] < col_max))
+    y_list_cut = ((rows >= row_min) &
+                  (rows < row_max) &
+                  (cols >= col_min) &
+                  (cols < col_max))
 
     return y_list_cut
 
 
-def filter_minipatch_tuples(y_list, minipatch):
+def _filter_minipatch_tuples(y_list, minipatch):
+    """
+    Mask over a list selecting the tuples that lie in the minipatch
+
+    Parameters
+    ----------
+    y_list : list of (row, col, radius)
+        List of true or predicted objects
+    minipatch : [row_min, row_max, col_min, col_max]
+        Bounds of the internal scoring patch
+
+    Returns
+    -------
+    y_list_filtered : list of (row, col, radius)
+        List of filtered tuples corresponding to the scoring region
+
+    """
     in_minipatch = _select_minipatch_tuples(y_list, minipatch)
-    return np.array(y_list)[in_minipatch].tolist()
+
+    return [tupl for (tupl, cond) in zip(y_list, in_minipatch) if cond]
 
 
 def _match_tuples(y_true, y_pred):
@@ -507,15 +529,18 @@ def precision(y_true, y_pred, matches=None, iou_threshold=0.5,
     matches : optional, output of _match_tuples
     iou_threshold : float
         Threshold to determine match
-    minipatch : list of int, optional
+    minipatch : [row_min, row_max, col_min, col_max], optional
         Bounds of the internal scoring patch (default is None)
 
     Returns
     -------
     precision_score : float [0 - 1]
+
     """
+    # precision is calculated relative to the number of predicted objects,
+    # so we filter for the scoring region based on the predictions
     if minipatch is not None:
-        y_pred = [filter_minipatch_tuples(y_patch, minipatch)
+        y_pred = [_filter_minipatch_tuples(y_patch, minipatch)
                   for y_patch in y_pred]
 
     if matches is None:
@@ -539,15 +564,18 @@ def recall(y_true, y_pred, matches=None, iou_threshold=0.5,
     matches : optional, output of _match_tuples
     iou_threshold : float
         Threshold to determine match
-    minipatch : list of int, optional
+    minipatch : [row_min, row_max, col_min, col_max], optional
         Bounds of the internal scoring patch (default is None)
 
     Returns
     -------
     recall_score : float [0 - 1]
+
     """
+    # recall is calculated relative to the number of true objects,
+    # so we filter for the scoring region based on the true labels
     if minipatch is not None:
-        y_true = [filter_minipatch_tuples(y_patch, minipatch)
+        y_true = [_filter_minipatch_tuples(y_patch, minipatch)
                   for y_patch in y_true]
 
     if matches is None:
@@ -571,7 +599,7 @@ def mad_radius(y_true, y_pred, matches=None, iou_threshold=0.5,
     matches : optional, output of _match_tuples
     iou_threshold : float
         Threshold to determine match
-    minipatch : list of int, optional
+    minipatch : [row_min, row_max, col_min, col_max], optional
         Bounds of the internal scoring patch (default is None)
 
     Returns
@@ -579,7 +607,7 @@ def mad_radius(y_true, y_pred, matches=None, iou_threshold=0.5,
     mad_radius : float > 0
     """
     if minipatch is not None:
-        y_true = [filter_minipatch_tuples(y_patch, minipatch)
+        y_true = [_filter_minipatch_tuples(y_patch, minipatch)
                   for y_patch in y_true]
 
     if matches is None:
@@ -605,7 +633,7 @@ def mad_center(y_true, y_pred, matches=None, iou_threshold=0.5,
     matches : optional, output of _match_tuples
     iou_threshold : float
         Threshold to determine match
-    minipatch : list of int, optional
+    minipatch : [row_min, row_max, col_min, col_max], optional
         Bounds of the internal scoring patch (default is None)
 
     Returns
@@ -613,7 +641,7 @@ def mad_center(y_true, y_pred, matches=None, iou_threshold=0.5,
     mad_center : float > 0
     """
     if minipatch is not None:
-        y_true = [filter_minipatch_tuples(y_patch, minipatch)
+        y_true = [_filter_minipatch_tuples(y_patch, minipatch)
                   for y_patch in y_true]
 
     if matches is None:
