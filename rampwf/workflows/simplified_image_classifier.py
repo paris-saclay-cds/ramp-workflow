@@ -1,7 +1,6 @@
 from __future__ import division
 import os
 import imp
-import numpy as np
 try:
     from skimage.io import imread
 except ImportError:
@@ -11,15 +10,16 @@ except ImportError:
 class SimplifiedImageClassifier(object):
     """
     SimplifiedImageClassifier workflow.
+
     This workflow is used to train image classification tasks, typically when
     the dataset cannot be stored in memory. It is a simplified version
     of the `ImageClassifier` workflow where there is no batch generator
-    and no image preprocessor. 
+    and no image preprocessor.
     Submissions need to contain one file, which by default by is named
-    image_classifier.py (it can be modified by changing 
+    image_classifier.py (it can be modified by changing
     `workflow_element_names`).
     image_classifier.py needs an `ImageClassifier` class, which implements
-    `fit` and `predict_proba`, where both `fit` and `predict_proba` take 
+    `fit` and `predict_proba`, where both `fit` and `predict_proba` take
     as input an instance of `ImageLoader`.
 
     Parameters
@@ -29,6 +29,7 @@ class SimplifiedImageClassifier(object):
         Total number of classes.
 
     """
+
     def __init__(self, n_classes, workflow_element_names=['image_classifier']):
         self.n_classes = n_classes
         self.element_names = workflow_element_names
@@ -87,11 +88,14 @@ class SimplifiedImageClassifier(object):
 
 
 class ImageLoader(object):
-    """   
+    """
+    Load and image and optionally its label.
+
     In image_classifier.py, both `fit` and `predict_proba` take as input
     an instance of `ImageLoader`.
-    ImageLoader is used in `fit` and `predict_proba` to either load one image 
-    and its corresponding label  (at training time), or one image (at test time).
+    ImageLoader is used in `fit` and `predict_proba` to either load one image
+    and its corresponding label  (at training time), or one image (at test
+    time).
     Images are loaded by using the method `load`.
 
     Parameters
@@ -111,7 +115,7 @@ class ImageLoader(object):
         folder where the images are
 
     n_classes : int
-        Total number of classes. 
+        Total number of classes.
     """
 
     def __init__(self, X_array, y_array, folder, n_classes):
@@ -120,20 +124,21 @@ class ImageLoader(object):
         self.folder = folder
         self.n_classes = n_classes
         self.nb_examples = len(X_array)
-    
+
     def load(self, index):
         """
-        
-        load one image and its corresponding label (at training time),
+        Load and image and optionally its label.
+
+        Load one image and its corresponding label (at training time),
         or one image (at test time).
 
-        Parameters 
+        Parameters
         ==========
 
         index : int
             Index of the image to load.
             It should in between 0 and self.nb_examples - 1
-    
+
         Returns
         =======
 
