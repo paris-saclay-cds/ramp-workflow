@@ -1,10 +1,7 @@
 from __future__ import division
 import os
 import imp
-try:
-    from skimage.io import imread
-except ImportError:
-    pass
+from skimage.io import imread
 
 
 class SimplifiedImageClassifier(object):
