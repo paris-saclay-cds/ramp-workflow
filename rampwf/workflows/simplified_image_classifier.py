@@ -1,6 +1,7 @@
 from __future__ import division
 import os
 import imp
+import numpy as np
 
 
 class SimplifiedImageClassifier(object):
@@ -83,6 +84,16 @@ class SimplifiedImageClassifier(object):
         return y_proba
 
 
+def image_transform(x, transforms):
+    from skimage.transform import rotate
+    for t in transforms:
+        if t['name'] == 'rotate':
+            angle = np.random.random() * (
+                t['u_angle'] - t['l_angle']) + t['l_angle']
+            rotate(x, angle)
+    return x
+
+
 class ImageLoader(object):
     """
     Load and image and optionally its label.
@@ -158,6 +169,56 @@ class ImageLoader(object):
             return x, y
         else:
             return x
+
+    def parallel_load(self, indexes, transforms=None):
+        """
+        Load and image and optionally its label.
+
+        Load one image and its corresponding label (at training time),
+        or one image (at test time).
+
+        Parameters
+        ==========
+
+        index : int
+            Index of the image to load.
+            It should in between 0 and self.nb_examples - 1
+
+        Returns
+        =======
+
+        either a tuple `(x, y)` or `x`, where:
+            - x is a numpy array of shape (height, width, nb_color_channels),
+              and corresponds to the image of the requested `index`.
+            - y is an integer, corresponding to the class of `x`.
+        At training time, `y_array` is given, and `load` returns
+        a tuple (x, y).
+        At test time, `y_array` is `None`, and `load` returns `x`.
+        """
+        from skimage.io import imread
+        from joblib import delayed, Parallel, cpu_count
+
+        for index in indexes:
+            assert 0 <= index < self.nb_examples
+
+        n_jobs = cpu_count()
+        filenames = [
+            os.path.join(self.folder, '{}'.format(self.X_array[index]))
+            for index in indexes]
+        xs = Parallel(n_jobs=n_jobs, backend='threading')(
+            delayed(imread)(filename) for filename in filenames)
+
+        if transforms is not None:
+            from functools import partial
+            transform = partial(image_transform, transforms=transforms)
+            xs = Parallel(n_jobs=n_jobs, backend='threading')(
+                delayed(transform)(x) for x in xs)
+
+        if self.y_array is not None:
+            ys = [self.y_array[index] for index in indexes]
+            return xs, ys
+        else:
+            return xs
 
     def __iter__(self):
         for i in range(self.nb_examples):
