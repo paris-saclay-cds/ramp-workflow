@@ -1,7 +1,6 @@
 from __future__ import division
 import os
 import imp
-from skimage.io import imread
 
 
 class SimplifiedImageClassifier(object):
@@ -147,6 +146,8 @@ class ImageLoader(object):
         a tuple (x, y).
         At test time, `y_array` is `None`, and `load` returns `x`.
         """
+        from skimage.io import imread
+
         assert 0 <= index < self.nb_examples
 
         x = self.X_array[index]
