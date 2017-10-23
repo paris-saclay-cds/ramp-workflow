@@ -175,10 +175,10 @@ class BatchGeneratorBuilder(object):
 
     n_jobs : int
         the number of jobs used to load images from disk to memory as `chunks`.
-        
+
     shuffle : bool (True by default)
-        Shuffle dataflow between epochs (when datasets has been completely read)
-        
+        shuffle dataflow between epochs (when datasets has
+        been completely read)
     """
 
     def __init__(self, X_array, y_array,
@@ -240,7 +240,7 @@ class BatchGeneratorBuilder(object):
         # be able to end.
         while True:
             if self.shuffle:
-                np.random.shuffle(indices)                
+                np.random.shuffle(indices)
             it = _chunk_iterator(
                 X_array=self.X_array[indices], folder=self.folder,
                 y_array=self.y_array[indices], chunk_size=self.chunk_size,
