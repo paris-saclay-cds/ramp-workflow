@@ -3,6 +3,7 @@
 """Provide utils to test ramp-kits."""
 from __future__ import print_function
 
+import os
 import imp
 from subprocess import call
 from os.path import join, abspath
