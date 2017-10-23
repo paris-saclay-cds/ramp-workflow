@@ -59,7 +59,7 @@ class TimeSeriesFeatureExtractor(object):
         submitted_ts_feature_extractor_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
         ts_feature_extractor = imp.load_source(
-            '', submitted_ts_feature_extractor_file)
+            self.element_names[0], submitted_ts_feature_extractor_file)
         ts_fe = ts_feature_extractor.FeatureExtractor()
         # Fit is not required in the submissions but we add it here in case
         # of, e.g., a recurrent neural net which is impossible to train once

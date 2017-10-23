@@ -35,7 +35,8 @@ class Clusterer(object):
             train_is = slice(None, None, None)
         submitted_clusterer_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
-        clusterer = imp.load_source('', submitted_clusterer_file)
+        clusterer = imp.load_source(
+            self.element_names[0], submitted_clusterer_file)
         ctr = clusterer.Clusterer()
         ctr.fit(X_array[train_is], y_array[train_is])
         return ctr

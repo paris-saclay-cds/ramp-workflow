@@ -22,7 +22,7 @@ class GridFeatureExtractor(object):
         submitted_feature_extractor_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
         feature_extractor = imp.load_source(
-            '', submitted_feature_extractor_file)
+            self.element_names[0], submitted_feature_extractor_file)
         fe = feature_extractor.FeatureExtractor()
         dim_set = pd.Series(list(X_ds.dims.keys()))
         time_dim = dim_set[dim_set.str.contains("time")][0]

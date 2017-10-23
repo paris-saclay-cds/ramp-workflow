@@ -11,7 +11,8 @@ class Classifier(object):
             train_is = slice(None, None, None)
         submitted_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
-        classifier = imp.load_source('', submitted_classifier_file)
+        classifier = imp.load_source(
+            self.element_names[0], submitted_classifier_file)
         clf = classifier.Classifier()
         clf.fit(X_array[train_is], y_array[train_is])
         return clf

@@ -53,7 +53,8 @@ class SimplifiedImageClassifier(object):
             train_is = slice(None, None, None)
         submitted_image_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
-        image_classifier = imp.load_source('', submitted_image_classifier_file)
+        image_classifier = imp.load_source(
+            self.element_names[0], submitted_image_classifier_file)
         clf = image_classifier.ImageClassifier()
         img_loader = ImageLoader(
             X_array[train_is], y_array[train_is],

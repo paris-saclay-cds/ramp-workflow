@@ -11,7 +11,7 @@ class FeatureExtractor(object):
         submitted_feature_extractor_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
         feature_extractor = imp.load_source(
-            '', submitted_feature_extractor_file)
+            self.element_names[0], submitted_feature_extractor_file)
         fe = feature_extractor.FeatureExtractor()
         fe.fit(X_df.iloc[train_is], y_array[train_is])
         return fe
