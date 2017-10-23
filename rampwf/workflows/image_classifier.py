@@ -74,14 +74,14 @@ class ImageClassifier(object):
         submitted_image_preprocessor_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
         image_preprocessor = imp.load_source(
-            '', submitted_image_preprocessor_file)
+            'image_preprocessor', submitted_image_preprocessor_file)
         transform_img = image_preprocessor.transform
         transform_test_img = getattr(image_preprocessor,
                                      'transform_test',
                                      transform_img)
         submitted_batch_classifier_file = '{}/{}.py'.format(
             module_path, self.element_names[1])
-        batch_classifier = imp.load_source('', submitted_batch_classifier_file)
+        batch_classifier = imp.load_source('batch_classifier', submitted_batch_classifier_file)
         clf = batch_classifier.BatchClassifier()
 
         gen_builder = BatchGeneratorBuilder(
@@ -175,11 +175,15 @@ class BatchGeneratorBuilder(object):
 
     n_jobs : int
         the number of jobs used to load images from disk to memory as `chunks`.
+
+    shuffle : bool (True by default)
+        shuffle dataflow between epochs (when datasets has
+        been completely read)
     """
 
     def __init__(self, X_array, y_array,
                  transform_img, transform_test_img,
-                 folder, chunk_size, n_classes, n_jobs):
+                 folder, chunk_size, n_classes, n_jobs, shuffle=True):
         self.X_array = X_array
         self.y_array = y_array
         self.transform_img = transform_img
@@ -189,6 +193,7 @@ class BatchGeneratorBuilder(object):
         self.n_classes = n_classes
         self.n_jobs = n_jobs
         self.nb_examples = len(X_array)
+        self.shuffle = shuffle
 
     def get_train_valid_generators(self, batch_size=256, valid_ratio=0.1):
         """Build train and valid generators for keras.
@@ -234,6 +239,8 @@ class BatchGeneratorBuilder(object):
         # and the user specifies the total number of epochs, it will
         # be able to end.
         while True:
+            if self.shuffle:
+                np.random.shuffle(indices)
             it = _chunk_iterator(
                 X_array=self.X_array[indices], folder=self.folder,
                 y_array=self.y_array[indices], chunk_size=self.chunk_size,
