@@ -34,6 +34,9 @@ def create_ramp_test_submission_parser():
                         help='Specify this flag to test the submission on a '
                              'small subset of the data.'
                         )
+    parser.add_argument('--pickle', dest='pickle', action='store_true',
+                        help='Specify this flag to pickle the submission '
+                             'after training.')
     return parser
 
 
@@ -44,6 +47,10 @@ def ramp_test_submission():
     if args.quick_test:
         import os
         os.environ['RAMP_TEST_MODE'] = '1'
+
+    is_pickle = False
+    if args.pickle:
+        is_pickle = True
 
     if args.submission == "ALL":
         ramp_submission_dir = join(args.ramp_kit_dir, 'submissions')
@@ -56,7 +63,8 @@ def ramp_test_submission():
     for sub in submission:
         assert_submission(ramp_kit_dir=args.ramp_kit_dir,
                           ramp_data_dir=args.ramp_data_dir,
-                          submission=sub)
+                          submission=sub,
+                          is_pickle=is_pickle)
 
 
 def create_ramp_test_notebook_parser():

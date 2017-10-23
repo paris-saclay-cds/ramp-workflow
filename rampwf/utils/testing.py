@@ -9,7 +9,7 @@ from subprocess import call
 from os.path import join, abspath
 
 import numpy as np
-import pickle
+import cloudpickle as pickle
 
 
 def _delete_line_from_file(f_name, line_to_delete):
@@ -82,7 +82,7 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      submission='starting_kit'):
+                      submission='starting_kit', is_pickle=False):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -116,16 +116,16 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         trained_workflow = problem.workflow.train_submission(
             module_path, X_train, y_train, train_is=train_is)
 
-        try:
-            model_file = join(module_path, 'model.pkl')
-            with open(model_file, 'wb') as pickle_file:
-                pickle.dump(trained_workflow, pickle_file)
-            with open(model_file, 'r') as pickle_file:
-                trained_workflow = pickle.load(pickle_file)
-            os.remove(model_file)
-        except Exception as e:
-            print("Warning: model can't be pickled.")
-            print(e)
+        if is_pickle:
+            try:
+                model_file = join(module_path, 'model.pkl')
+                with open(model_file, 'wb') as pickle_file:
+                    pickle.dump(trained_workflow, pickle_file)
+                with open(model_file, 'r') as pickle_file:
+                    trained_workflow = pickle.load(pickle_file)
+            except Exception as e:
+                print("Warning: model can't be pickled.")
+                print(e)
 
         y_pred_train = problem.workflow.test_submission(
             trained_workflow, X_train)
