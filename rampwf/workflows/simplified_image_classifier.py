@@ -84,7 +84,7 @@ class SimplifiedImageClassifier(object):
         return y_proba
 
 
-def image_transform(x, transforms):
+def _image_transform(x, transforms):
     from skimage.transform import rotate
     for t in transforms:
         if t['name'] == 'rotate':
@@ -210,7 +210,7 @@ class ImageLoader(object):
 
         if transforms is not None:
             from functools import partial
-            transform = partial(image_transform, transforms=transforms)
+            transform = partial(_image_transform, transforms=transforms)
             xs = Parallel(n_jobs=n_jobs, backend='threading')(
                 delayed(transform)(x) for x in xs)
 
