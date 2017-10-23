@@ -62,7 +62,8 @@ class ObjectDetector(object):
         # object detector model
         submitted_model_file = '{}/{}.py'.format(
             module_path, self.element_names[0])
-        detector = imp.load_source('', submitted_model_file)
+        detector = imp.load_source(
+            self.element_names[0], submitted_model_file)
         clf = detector.ObjectDetector()
 
         # train and return fitted model
