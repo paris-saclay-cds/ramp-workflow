@@ -17,12 +17,12 @@ with open(os.path.join('rampwf', '__init__.py'), 'r') as fid:
 if version is None:
     raise RuntimeError('Could not determine version')
 
-    
+
 # Get the long description from the README file
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
-    
-    
+
+
 descr = """Toolkit for building analytics workflows on the top of pandas and
 scikit-learn. Primarily intended to feed RAMPs."""
 
@@ -67,7 +67,8 @@ if __name__ == "__main__":
             'numpy',
             'scipy',
             'pandas>=0.19.2',
-            'scikit-learn>=0.18'],
+            'scikit-learn>=0.18',
+            'cloudpickle'],
         platforms='any',
         packages=find_packages(),
         entry_points={
