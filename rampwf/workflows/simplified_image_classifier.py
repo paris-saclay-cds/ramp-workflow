@@ -160,7 +160,8 @@ class ImageLoader(object):
         """
         from skimage.io import imread
 
-        assert 0 <= index < self.nb_examples
+        if index < 0 or index >= self.nb_examples:
+            raise IndexError("list index out of range")
 
         x = self.X_array[index]
         filename = os.path.join(self.folder, '{}'.format(x))
