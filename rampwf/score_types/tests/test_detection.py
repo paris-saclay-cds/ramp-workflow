@@ -8,7 +8,7 @@ import pytest
 
 from rampwf.score_types.detection.scp import scp_single
 from rampwf.score_types.detection.ospa import ospa, ospa_single
-from rampwf.score_types import AverageDetectionPrecision
+from rampwf.score_types import DetectionAveragePrecision
 from rampwf.score_types.detection.precision_recall import precision, recall
 from rampwf.score_types.detection.precision_recall import mad_center
 from rampwf.score_types.detection.precision_recall import mad_radius
@@ -141,7 +141,7 @@ def test_precision_recall():
 
 
 def test_average_precision():
-    ap = AverageDetectionPrecision()
+    ap = DetectionAveragePrecision()
 
     # perfect match
     y_true = [[(1, 1, 1), (3, 3, 1)]]

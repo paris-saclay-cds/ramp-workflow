@@ -8,7 +8,7 @@ from .iou import cc_iou
 from .precision_recall import precision, recall
 
 
-class AverageDetectionPrecision(BaseScoreType):
+class DetectionAveragePrecision(BaseScoreType):
     is_lower_the_better = False
     minimum = 0.0
     maximum = 1.0
@@ -27,6 +27,9 @@ class AverageDetectionPrecision(BaseScoreType):
         _, ps, rs = precision_recall_curve_greedy(
             y_true, y_pred, iou_threshold=self.iou_threshold)
         return average_precision_exact(ps, rs)
+
+
+AverageDetectionPrecision = DetectionAveragePrecision
 
 
 def precision_recall_curve(y_true, y_pred, conf_thresholds, iou_threshold=0.5):

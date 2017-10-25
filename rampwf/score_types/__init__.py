@@ -15,11 +15,10 @@ from .rmse import RMSE
 from .roc_auc import ROCAUC
 from .detection import (
     OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
-    AverageDetectionPrecision)
+    AverageDetectionPrecision, DetectionAveragePrecision)
 
 __all__ = [
     'Accuracy',
-    'AverageDetectionPrecision',
     'BalancedAccuracy',
     'BrierScore',
     'BrierScoreReliability',
@@ -30,6 +29,7 @@ __all__ = [
     'Combined',
     'DetectionPrecision',
     'DetectionRecall',
+    'DetectionAveragePrecision',
     'F1Above',
     'MacroAveragedRecall',
     'MakeCombined',
