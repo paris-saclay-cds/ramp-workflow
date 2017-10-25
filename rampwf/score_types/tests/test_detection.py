@@ -169,9 +169,9 @@ def test_average_precision():
 
     conf, ps, rs = precision_recall_curve_greedy(y_true, y_pred)
     assert conf.tolist() == [0.9, 0.8, 0.7, 0.6, 0.5, 0.4]
-    assert ps.tolist() == [1, 1, 2/3, 3/4, 3/5, 3/6]
-    assert rs.tolist() == [1/4, 2/4, 2/4, 3/4, 3/4, 3/4]
-    assert ap(y_true, y_pred) == 11/16  # 0.5 * 1 + 0.25 * 3/4 + 0.25 * 0
+    assert ps.tolist() == [1, 1, 2/3, 3/4, 3/5, 3/6]  # noqa
+    assert rs.tolist() == [1/4, 2/4, 2/4, 3/4, 3/4, 3/4]  # noqa
+    assert ap(y_true, y_pred) == 11 / 16  # 0.5 * 1 + 0.25 * 3/4 + 0.25 * 0
 
 
 # # test circles

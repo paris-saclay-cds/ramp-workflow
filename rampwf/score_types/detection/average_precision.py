@@ -167,7 +167,7 @@ def average_precision_interpolated(ps, rs):
     TODO: they changed this in later:
     http://homepages.inf.ed.ac.uk/ckiw/postscript/ijcv_voc09.pdf
 
-    https://stackoverflow.com/questions/36274638/map-metric-in-object-detection-and-computer-vision
+    https://stackoverflow.com/questions/36274638/map-metric-in-object-detection-and-computer-vision  # noqa
 
     Parameters
     ----------
@@ -196,7 +196,7 @@ def average_precision_interpolated(ps, rs):
 
 
 def average_precision_exact(ps, rs):
-    # from https://github.com/amdegroot/ssd.pytorch/blob/ce4c994db0ee11f82aabb4fdb3499dc970156db5/eval.py#L182-L213
+    # from https://github.com/amdegroot/ssd.pytorch/blob/ce4c994db0ee11f82aabb4fdb3499dc970156db5/eval.py#L182-L213  # noqa
 
     # correct AP calculation
     # first append sentinel values at the end
