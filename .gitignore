@@ -6,3 +6,4 @@ rampwf.egg-info
 .coverage
 coverage.xml
 ramp_workflow.egg-info
+.cache
