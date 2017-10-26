@@ -197,7 +197,7 @@ def mask_detection_curve(y_true, y_pred, conf_thresholds):
     y_true : list of list of tuples
         Tuples are of form (x, y, radius).
     y_pred : list of list of tuples
-        Tuples are of form (x, y, radius, confidence).
+        Tuples are of form (confidence, x, y, radius).
     conf_thresholds : array-like
         The confidence threshold for which to calculate the
         precision and recall.
@@ -227,7 +227,7 @@ def ospa_curve(y_true, y_pred, conf_thresholds):
     y_true : list of list of tuples
         Tuples are of form (x, y, radius).
     y_pred : list of list of tuples
-        Tuples are of form (x, y, radius, confidence).
+        Tuples are of form (confidence, x, y, radius).
     conf_thresholds : array-like
         The confidence threshold for which to calculate the
         precision and recall.
