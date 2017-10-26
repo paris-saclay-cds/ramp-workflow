@@ -184,5 +184,5 @@ def _print_result(scores, score_types, step):
                 step=step,
                 name=score_type.name,
                 val=round(mean, score_type.precision),
-                std=round(std, score_type.precision + 1))
+                std=round(std, score_type.precision))
         print(result)
