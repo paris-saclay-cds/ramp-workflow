@@ -106,9 +106,10 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
     cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     score_types = assert_score_types(ramp_kit_dir)
-    print('Training {}/submissions/{} ...'.format(
-        ramp_kit_dir, submission))
+
     module_path = join(ramp_kit_dir, 'submissions', submission)
+    print('Training {} ...'.format(module_path))
+
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
     test_scoress = np.empty((len(cv), len(score_types)))
