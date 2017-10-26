@@ -51,7 +51,7 @@ class Predictions(BasePrediction):
             for i1, i2 in zip(idx1, idx2):
                 combined = (np.asarray(a[i1]) + np.array(b[i2])) / 2
                 matches.append(combined)
-
+        print(matches)
         combined = _greedy_nms(matches)
 
         combined_predictions = cls(y_pred=combined)
