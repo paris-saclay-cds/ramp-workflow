@@ -175,6 +175,7 @@ def _print_result(scores, score_types, step):
     means = scores.mean(axis=0)
     stds = scores.std(axis=0)
     for mean, std, score_type in zip(means, stds, score_types):
+        # If std is a NaN
         if std != std:
             result = '{step} {name} = {val}'.format(
                 step=step, name=score_type.name, val=mean)
