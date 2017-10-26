@@ -1,10 +1,10 @@
 """A generalization of the classification accuracy with cross-class scores.
 
-Soften the accuracy score by giving scores through certain msiclassifications
+Soften the accuracy score by giving scores through certain misclassifications
 defined by the score matrix. For example, in ordinal regression we may want
 not to penalize too much misclassifications to neighbor classes. The score also
 generalizes RMSE-like regression scores for ordinal regression (when true and
-predicted output levels are coming from a fixed set) by allowing to defines
+predicted output levels are coming from a fixed set) by allowing to define
 arbitrary misclassification scores.
 """
 
