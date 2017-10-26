@@ -159,7 +159,7 @@ def mad_radius(y_true, y_pred, matches=None, iou_threshold=0.5,
     _, _, rad_pred = loc_pred.T
 
     if len(rad_true) == 0:
-        return np.inf
+        return np.nan
 
     return np.abs((rad_pred - rad_true) / rad_true).mean()
 
@@ -199,7 +199,7 @@ def mad_center(y_true, y_pred, matches=None, iou_threshold=0.5,
     x_pred, y_pred, _ = loc_pred.T
 
     if len(x_true) == 0:
-        return np.inf
+        return np.nan
 
     d = np.sqrt((x_pred - x_true) ** 2 + (y_pred - y_true) ** 2)
 
