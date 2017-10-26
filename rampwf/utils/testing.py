@@ -144,7 +144,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         ground_truth_test = problem.Predictions(y_true=y_test)
         try:
             problem.save_y_pred(y_pred_test)
-        except:
+        except AttributeError:
             pass
 
         print('CV fold {}'.format(fold_i))
