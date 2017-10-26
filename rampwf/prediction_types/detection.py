@@ -14,6 +14,8 @@ from ..score_types.detection.util import _match_tuples
 
 class Predictions(BasePrediction):
 
+    iou_threshold = 0.5
+
     def __init__(self, y_pred=None, y_true=None, n_samples=None):
         if y_pred is not None:
             self.y_pred = y_pred
@@ -43,8 +45,8 @@ class Predictions(BasePrediction):
             idx1, idx2, ious = _match_tuples([(x, y, r) for (c, x, y, r) in a],
                                              [(x, y, r) for (c, x, y, r) in b])
 
-            idx1 = idx1[ious > 0.5]
-            idx2 = idx2[ious > 0.5]
+            idx1 = idx1[ious > cls.iou_threshold]
+            idx2 = idx2[ious > cls.iou_threshold]
 
             for i1, i2 in zip(idx1, idx2):
                 combined = (np.asarray(a[i1]) + np.array(b[i2])) / 2
@@ -73,7 +75,8 @@ def _greedy_nms(y_pred, iou_threshold=0.45):
     y_pred = np.asarray(y_pred)
 
     boxes_left = np.copy(y_pred)
-    # This is where we store the boxes that make it through the non-maximum suppression
+    # This is where we store the boxes that make it through the
+    # non-maximum suppression
     maxima = []
 
     # While there are still boxes left to compare...
@@ -92,7 +95,8 @@ def _greedy_nms(y_pred, iou_threshold=0.45):
         # ...compare (IoU) the other left over boxes to the maximum box...
         similarities = np.array([cc_iou(b[1:], maximum_box[1:]) for b in
                                  boxes_left])
-        # ...so that we can remove the ones that overlap too much with the maximum box
+        # ...so that we can remove the ones that overlap too much
+        # with the maximum box
         boxes_left = boxes_left[similarities <= iou_threshold]
 
     return np.array(maxima)
