@@ -168,7 +168,22 @@ def _locate_matches(y_true, y_pred, matches, iou_threshold=0.5):
 
 
 def _filter_y_pred(y_pred, conf_threshold):
-    return [[detected_object[1:] for detected_object in y_pred_patch
+    """
+    Given a list of list of predicted craters return those
+    with a confidence value above given threshold
+
+    Parameters
+    ----------
+    y_pred : list of list of tuples
+    conf_threshold : float
+
+    Returns
+    -------
+    y_pred_filtered : list of list of tuples
+
+    """
+    return [[detected_object[1:]
+             for detected_object in y_pred_patch
              if detected_object[0] > conf_threshold]
             for y_pred_patch in y_pred]
 
