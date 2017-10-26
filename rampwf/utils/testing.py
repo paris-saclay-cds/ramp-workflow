@@ -164,23 +164,23 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 score_type.name, round(score, score_type.precision)))
 
     print('----------------------------')
-    means = train_train_scoress.mean(axis=0)
-    stds = train_train_scoress.std(axis=0)
-    for mean, std, score_type in zip(means, stds, score_types):
-        print('train {} = {} ± {}'.format(
-            score_type.name, round(mean, score_type.precision),
-            round(std, score_type.precision + 1)))
 
-    means = train_valid_scoress.mean(axis=0)
-    stds = train_valid_scoress.std(axis=0)
-    for mean, std, score_type in zip(means, stds, score_types):
-        print('valid {} = {} ± {}'.format(
-            score_type.name, round(mean, score_type.precision),
-            round(std, score_type.precision + 1)))
+    _print_result(train_train_scoress, score_types, 'train')
+    _print_result(train_valid_scoress, score_types, 'valid')
+    _print_result(test_scoress, score_types, 'test')
 
-    means = test_scoress.mean(axis=0)
-    stds = test_scoress.std(axis=0)
+
+def _print_result(scores, score_types, step):
+    means = scores.mean(axis=0)
+    stds = scores.std(axis=0)
     for mean, std, score_type in zip(means, stds, score_types):
-        print('test {} = {} ± {}'.format(
-            score_type.name, round(mean, score_type.precision),
-            round(std, score_type.precision + 1)))
+        if std != std:
+            result = '{step} {name} = {val}'.format(
+                step=step, name=score_type.name, val=mean)
+        else:
+            result = '{step} {name} = {val} ± {std}'.format(
+                step=step,
+                name=score_type.name,
+                val=round(mean, score_type.precision),
+                std=round(std, score_type.precision + 1))
+        print(result)
