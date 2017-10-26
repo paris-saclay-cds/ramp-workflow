@@ -1,6 +1,7 @@
 from __future__ import division
 
 from ..base import BaseScoreType
+from .util import _filter_y_pred
 
 
 class DetectionBaseScoreType(BaseScoreType):
@@ -16,10 +17,8 @@ class DetectionBaseScoreType(BaseScoreType):
     def __call__(self, y_true, y_pred, conf_threshold=None):
         if conf_threshold is None:
             conf_threshold = self.conf_threshold
-        y_pred_above_confidence = [
-            [detected_object[1:] for detected_object in single_detection
-             if detected_object[0] > conf_threshold]
-            for single_detection in y_pred]
+        y_pred_above_confidence = _filter_y_pred(y_pred, conf_threshold)
+
         return self.detection_score(y_true, y_pred_above_confidence)
 
 

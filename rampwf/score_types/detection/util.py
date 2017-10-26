@@ -168,7 +168,22 @@ def _locate_matches(y_true, y_pred, matches, iou_threshold=0.5):
 
 
 def _filter_y_pred(y_pred, conf_threshold):
-    return [[detected_object[1:] for detected_object in y_pred_patch
+    """
+    Given a list of list of predicted craters return those
+    with a confidence value above given threshold
+
+    Parameters
+    ----------
+    y_pred : list of list of tuples
+    conf_threshold : float
+
+    Returns
+    -------
+    y_pred_filtered : list of list of tuples
+
+    """
+    return [[detected_object[1:]
+             for detected_object in y_pred_patch
              if detected_object[0] > conf_threshold]
             for y_pred_patch in y_pred]
 
@@ -182,7 +197,7 @@ def mask_detection_curve(y_true, y_pred, conf_thresholds):
     y_true : list of list of tuples
         Tuples are of form (x, y, radius).
     y_pred : list of list of tuples
-        Tuples are of form (x, y, radius, confidence).
+        Tuples are of form (confidence, x, y, radius).
     conf_thresholds : array-like
         The confidence threshold for which to calculate the
         precision and recall.
@@ -212,7 +227,7 @@ def ospa_curve(y_true, y_pred, conf_thresholds):
     y_true : list of list of tuples
         Tuples are of form (x, y, radius).
     y_pred : list of list of tuples
-        Tuples are of form (x, y, radius, confidence).
+        Tuples are of form (confidence, x, y, radius).
     conf_thresholds : array-like
         The confidence threshold for which to calculate the
         precision and recall.
