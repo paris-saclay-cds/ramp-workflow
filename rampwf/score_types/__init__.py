@@ -5,6 +5,9 @@ from .brier_score import (
 from .clustering_efficiency import ClusteringEfficiency
 from .classification_error import ClassificationError
 from .combined import Combined
+from .detection import (
+    OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
+    AverageDetectionPrecision, DetectionAveragePrecision)
 from .f1_above import F1Above
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
@@ -13,9 +16,7 @@ from .negative_log_likelihood import NegativeLogLikelihood
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
-from .detection import (
-    OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
-    AverageDetectionPrecision, DetectionAveragePrecision)
+from .soft_accuracy import SoftAccuracy
 
 __all__ = [
     'Accuracy',
@@ -42,4 +43,5 @@ __all__ = [
     'RMSE',
     'ROCAUC',
     'SCP',
+    'SoftAccuracy',
 ]
