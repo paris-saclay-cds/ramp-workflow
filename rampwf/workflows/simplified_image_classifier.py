@@ -3,10 +3,6 @@ import os
 import imp
 import numpy as np
 
-from PIL import Image
-import cv2
-from skimage.io import imread as skimage_imread
-
 
 class SimplifiedImageClassifier(object):
     """
@@ -100,6 +96,8 @@ def _image_transform(x, transforms):
 
 
 def _imread_opencv(filename):
+    import cv2
+    from skimage.io import imread as skimage_imread
     img = cv2.imread(filename)
     if img is not None:
         # RGBA -> RGB
@@ -116,6 +114,7 @@ def _imread_opencv(filename):
 
 
 def _imread_pillow(filename):
+    from PIL import Image
     img = Image.open(filename)
     return np.asarray(img)
 
@@ -167,6 +166,7 @@ class ImageLoader(object):
         elif backend == 'pillow':
             self._imread = _imread_pillow
         elif backend == 'skimage':
+            from skimage.io import imread as skimage_imread
             self._imread = skimage_imread
 
     def load(self, index):
