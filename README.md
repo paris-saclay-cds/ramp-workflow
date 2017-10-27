@@ -3,17 +3,12 @@
 # The RAMP ecosystem
 
 The [RAMP][rstudio] ecosystem contains two organizations and three libraries. The purpose of the bundle is to __define, build, manage, and optimize data analytics workflows__, typically on the top of open source machine learning libraries like [pandas](http://pandas.pydata.org), [scikit-learn](http://scikit-learn.org/), and [keras](https://github.com/fchollet/keras). The bundle consists of
-1. [ramp-workflow][rworkflow] (this library) containing reusable tools and scripts to define
-    1. [score types](rampwf/score_types) (metrics),
-    2. [workflows and workflow elements](rampwf/workflows) (trainable data analytics modules like a classifier or a feature extractor),
-    3. [cross-validation schemes](rampwf/cv_schemes) (guiding the evaluation procedure of the workflow), and
-    4. data connectors (to feed the workflows from various data sources).
-2. [ramp-board][rboard], a library managing the frontend and the database of the [RAMP][rstudio] platform.
-3. [ramp-backend][rbackend], a library managing the RAMP backend (training and evaluating workflow instantiations aka submissions). (doesn't exist yet)
-4. [ramp-data][rdata], an organization containing data sets on which workflows are trained and evaluated.
-5. [ramp-kits][rkits], an organization containing *starting kits*
-    1. describing and implementing particular data analytics workflows, score types, cross validation schemes, and data connectors, using tools from [ramp-workflow][rworkflow], and
-    2. implementing at least one workflow instantiation (submission) so the workflow can be unit tested.
+| Library/Organization | Purpose | Publicly available |
+| :------ | :-----  | :------: |
+| [ramp-workflow][rworkflow] | set of reusable tools and scripts to define [score types](rampwf/score_types) (metrics), [workflow elements](rampwf/workflows), [prediction types](rampwf/prediction_types) and data connectors. | :white_check_mark: |
+| [ramp-board][rboard] |  library managing the frontend and the database of the [RAMP][rstudio] platform. | :no_entry_sign: |
+| [ramp-data][rdata] | organization containing data sets on which workflows are trained and evaluated. | :no_entry_sign: |
+| [ramp-kits][rkits] | organization containing *starting kits* that use tools from [ramp-workflow][rworkflow] to implement a first valid (tested) workflow. | :white_check_mark: |
 
 <!-- RAMP studio -->
 [rstudio]: http://www.ramp.studio "RAMP main website"
@@ -26,7 +21,6 @@ The [RAMP][rstudio] ecosystem contains two organizations and three libraries. Th
 <!-- git repos -->
 [rworkflow]: https://github.com/paris-saclay-cds/ramp-workflow "Define RAMP score, workflow and CV scheme"
 [rboard]: https://github.com/paris-saclay-cds/ramp-board "RAMP frontend library"
-[rbackend]: https://github.com/paris-saclay-cds/ramp-backend "RAMP backend library (not implemented)"
 [rdata]: https://github.com/ramp-data "Organization for RAMP open data sets"
 [rkits]: https://github.com/ramp-kits "Organization for RAMP starting kits"
 
