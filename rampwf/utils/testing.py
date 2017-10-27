@@ -42,10 +42,11 @@ def convert_notebook(ramp_kit_dir='.'):
         '<link rel="stylesheet" href="custom.css">\n')
 
 
-def assert_notebook(ramp_kit_dir='.'):
+def assert_notebook(ramp_kit_dir='.', execute=True):
     print('----------------------------')
     convert_notebook(ramp_kit_dir)
-    execute_notebook(ramp_kit_dir)
+    if execute:
+        execute_notebook(ramp_kit_dir)
 
 
 def assert_read_problem(ramp_kit_dir='.'):

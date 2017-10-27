@@ -16,7 +16,7 @@ def test_submission_all_kits():
                 submission='starting_kit')
             # testing assert_notebook on first kit
             if test_notebook:
-                assert_notebook(ramp_kit_dir=kit_dir)
+                assert_notebook(ramp_kit_dir=kit_dir, execute=False)
                 test_notebook = False
     finally:
         shutil.rmtree(tmp_dir)
