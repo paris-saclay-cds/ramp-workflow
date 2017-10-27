@@ -60,30 +60,35 @@ If you **have a predictive problem**, you can **submit it as a data challenge** 
 
 ## How to use this bundle?
 
-Start by installing ramp-workflow (this library):
+Start by pip-installing `ramp-workflow` (this library):
 
 ```bash
-git clone https://github.com/paris-saclay-cds/ramp-workflow.git
-cd ramp-workflow
-python setup.py install
+$ pip install git+https://github.com/paris-saclay-cds/ramp-workflow.git
 ```
+
+This will set up some command line scripts like `ramp_test_submission`.
+We suggest to use a dedicated virtual environment if you are familiar with it.
 
 ### Get familiar with starting kits
 
-Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the `ramp_test_submission` script that simply executes [`testing_py`](rampwf/utils/testing.py) in the starting kit. For example, clone the titanic starting kit and test it by
+Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the `ramp_test_submission` script that simply executes [`testing_py`](rampwf/utils/testing.py) in the starting kit. For example, start by cloning the starting kit (here _titanic_) in the repository of your choosing
 
 ```bash
-mkdir ramp-kits
-cd ramp-kits
-git clone https://github.com/ramp-kits/titanic.git
-cd titanic
-ramp_test_submission
+$ cd /path/to/your/ramp-kits/repo
+$ git clone https://github.com/ramp-kits/titanic.git
+```
+
+and test the default submission by moving into the repo and running the `ramp_test_submission` script
+
+```bash
+$ cd titanic
+$ ramp_test_submission
 ```
 
 When `ramp_test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Titanic uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `ramp_test_submission --submission_name=<submission_name>`. For example,
 
 ```shell
-ramp_test_submission --submission=random_forest_20_5
+$ ramp_test_submission --submission=random_forest_20_5
 ```
 
 will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
@@ -272,14 +277,14 @@ The notebook named `<ramp_kit_name>_starting_kit.ipynb`
 In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`testing.py`](rampwf/utils/testing.py). In the case of titanic,
 
 ```bash
-mkdir ramp-data ramp-kits
-git clone https://github.com/ramp-data/titanic.git ramp-data/titanic
-git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
+$ mkdir ramp-data ramp-kits
+$ git clone https://github.com/ramp-data/titanic.git ramp-data/titanic
+$ git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
 
-python ramp-data/titanic/prepare_data.py
+$ python ramp-data/titanic/prepare_data.py
 
-ramp_test_submission --ramp_data_dir=ramp-data/titanic --ramp_kit_dir=ramp-kits/titanic
-ramp_test_submission --ramp_data_dir=ramp-kits/titanic --ramp_kit_dir=ramp-kits/titanic
+$ ramp_test_submission --ramp_data_dir=ramp-data/titanic --ramp_kit_dir=ramp-kits/titanic
+$ ramp_test_submission --ramp_data_dir=ramp-kits/titanic --ramp_kit_dir=ramp-kits/titanic
 ```
 
 ### Contribute to [ramp-workflow][rworkflow]
