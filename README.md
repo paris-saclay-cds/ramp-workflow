@@ -284,7 +284,7 @@ ramp_test_submission --ramp_data_dir=ramp-kits/titanic --ramp_kit_dir=ramp-kits/
 
 ### Contribute to [ramp-workflow][rworkflow]
 
-It is possible that some of the elements (e.g., a score or a workflow) that you need for your starting kit is missing from `ramp-workflow`. First, look around, chances are something similar already exists. Second, you can implement it in your `problem.py` file, as we did with the cross validation object in [`titanic/problem.py`](https://github.com/ramp-kits/titanic/blob/master/problem.py). If you feel that the missing element can be useful in other problems, fork `ramp-workflow` and send us a pull request. Add a starting kit that uses the new element to the [`Makefile`](https://github.com/paris-saclay-cds/ramp-workflow/blob/readme/Makefile) as a unit test for the particular element.
+It is possible that some of the elements (e.g., a score or a workflow) that you need for your starting kit is missing from `ramp-workflow`. First, look around, chances are something similar already exists. Second, you can implement it in your `problem.py` file, as we did with the cross validation object in [`titanic/problem.py`](https://github.com/ramp-kits/titanic/blob/master/problem.py). If you feel that the missing element can be useful in other problems, fork `ramp-workflow`, work on a new branch and submit a pull request.
 
 <!---
 # Draft

@@ -7,3 +7,4 @@ rampwf.egg-info
 coverage.xml
 ramp_workflow.egg-info
 .cache
+Makefile
