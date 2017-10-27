@@ -5,8 +5,6 @@ from rampwf.kits import fetch_ramp_kit
 from rampwf.utils import assert_submission, assert_notebook
 from rampwf.kits.ramp_kit import RAMP_KITS_AVAILABLE
 
-
-import os
 os.environ['RAMP_TEST_MODE'] = '1'
 
 
