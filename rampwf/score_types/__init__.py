@@ -13,6 +13,7 @@ from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
 from .negative_log_likelihood import NegativeLogLikelihood
+from .normalized_gini import NormalizedGini
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
@@ -38,6 +39,7 @@ __all__ = [
     'MADRadius',
     'MARE',
     'NegativeLogLikelihood',
+    'NormalizedGini',
     'OSPA',
     'RelativeRMSE',
     'RMSE',

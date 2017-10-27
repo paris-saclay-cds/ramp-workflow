@@ -143,6 +143,10 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             trained_workflow, X_test)
         predictions_test = problem.Predictions(y_pred=y_pred_test)
         ground_truth_test = problem.Predictions(y_true=y_test)
+        try:
+            problem.save_y_pred(y_pred_test)
+        except AttributeError:
+            pass
 
         print('CV fold {}'.format(fold_i))
         for score_type_i, score_type in enumerate(score_types):
