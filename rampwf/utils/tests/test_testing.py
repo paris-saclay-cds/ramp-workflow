@@ -1,8 +1,11 @@
+import os
 import shutil
 from tempfile import mkdtemp
 from rampwf.kits import fetch_ramp_kit
 from rampwf.utils import assert_submission, assert_notebook
 from rampwf.kits.ramp_kit import RAMP_KITS_AVAILABLE
+
+os.environ['RAMP_TEST_MODE'] = '1'
 
 
 def test_submission_all_kits():
