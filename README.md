@@ -2,14 +2,14 @@
 
 # The RAMP ecosystem
 
-The [RAMP][rstudio] ecosystem contains two organizations and three libraries. The purpose of the bundle is to __define, build, manage, and optimize data analytics workflows__, typically on the top of open source machine learning libraries like [pandas](http://pandas.pydata.org), [scikit-learn](http://scikit-learn.org/), and [keras](https://github.com/fchollet/keras). The bundle consists of
+The [RAMP][rstudio] ecosystem contains two organizations and two libraries. The purpose of the bundle is to __define, build, manage, and optimize data analytics workflows__, typically on the top of open source machine learning libraries like [pandas](http://pandas.pydata.org), [scikit-learn](http://scikit-learn.org/), and [keras](https://github.com/fchollet/keras). The bundle consists of
 
 | Library/Organization | Purpose | Publicly available |
 | :------ | :-----  | :------: |
-| [ramp-workflow][rworkflow] | set of reusable tools and scripts to define [score types](rampwf/score_types) (metrics), [workflow elements](rampwf/workflows), [prediction types](rampwf/prediction_types) and data connectors. | :white_check_mark: |
-| [ramp-board][rboard] |  library managing the frontend and the database of the [RAMP][rstudio] platform. | :no_entry_sign: |
-| [ramp-data][rdata] | organization containing data sets on which workflows are trained and evaluated. | :no_entry_sign: |
-| [ramp-kits][rkits] | organization containing *starting kits* that use tools from [ramp-workflow][rworkflow] to implement a first valid (tested) workflow. | :white_check_mark: |
+| [ramp-workflow][rworkflow] | A set of reusable tools and scripts to define [score types](rampwf/score_types) (metrics), [workflow elements](rampwf/workflows), [prediction types](rampwf/prediction_types) and data connectors. | :white_check_mark: |
+| [ramp-board][rboard] |  A library managing the frontend and the database of the [RAMP][rstudio] platform. | :no_entry_sign: |
+| [ramp-data][rdata] | An organization containing data sets on which workflows are trained and evaluated. | :no_entry_sign: |
+| [ramp-kits][rkits] | An organization containing *starting kits* that use tools from [ramp-workflow][rworkflow] to implement a first valid (tested) workflow. | :white_check_mark: |
 
 <!-- RAMP studio -->
 [rstudio]: http://www.ramp.studio "RAMP main website"
@@ -36,6 +36,8 @@ If you have your own data set and would like to **build a new starting kit and c
 ### I am a data science student or novice data scientist
 
 You can **learn about data science** by signing up to ongoing and past data challenges at [ramp.studio][problems]. Sign up for the site then choose a [topic][themes] or a [data domain][domains] and sign up to the corresponding event. Most events are in "open leaderboard" mode which means that you can **browse the code** of all the submissions, including the best ones submitted by top students or professional data scientists.
+
+You can also download and play with the [starting kits][rkits], independently of the data challenges.
 
 ### I am a practicing data scientist
 
