@@ -3,13 +3,13 @@
 """Provide utils to test ramp-kits."""
 from __future__ import print_function
 
-import os
 import imp
 from subprocess import call
 from os.path import join, abspath
 
 import numpy as np
 import cloudpickle as pickle
+from .combine import get_score_cv_bags
 
 
 def _delete_line_from_file(f_name, line_to_delete):
@@ -81,6 +81,23 @@ def assert_score_types(ramp_kit_dir='.'):
     return score_types
 
 
+def _print_result(scores, score_types, step):
+    means = scores.mean(axis=0)
+    stds = scores.std(axis=0)
+    for mean, std, score_type in zip(means, stds, score_types):
+        # If std is a NaN
+        if std != std:
+            result = '{step} {name} = {val}'.format(
+                step=step, name=score_type.name, val=mean)
+        else:
+            result = '{step} {name} = {val} ± {std}'.format(
+                step=step,
+                name=score_type.name,
+                val=round(mean, score_type.precision),
+                std=round(std, score_type.precision))
+        print(result)
+
+
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       submission='starting_kit', is_pickle=False):
     """Helper to test a submission from a ramp-kit.
@@ -113,6 +130,10 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
     test_scoress = np.empty((len(cv), len(score_types)))
+
+    predictions_train_valid_list = []
+    predictions_test_list = []
+
     for fold_i, (train_is, valid_is) in enumerate(cv):
         trained_workflow = problem.workflow.train_submission(
             module_path, X_train, y_train, train_is=train_is)
@@ -143,6 +164,10 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             trained_workflow, X_test)
         predictions_test = problem.Predictions(y_pred=y_pred_test)
         ground_truth_test = problem.Predictions(y_true=y_test)
+
+        predictions_train_valid_list.append(predictions_train_valid)
+        predictions_test_list.append(predictions_test)
+
         try:
             problem.save_y_pred(y_pred_test)
         except AttributeError:
@@ -169,24 +194,28 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 score_type.name, round(score, score_type.precision)))
 
     print('----------------------------')
-
+    print('Mean scores')
+    print('----------------------------')
     _print_result(train_train_scoress, score_types, 'train')
     _print_result(train_valid_scoress, score_types, 'valid')
     _print_result(test_scoress, score_types, 'test')
 
-
-def _print_result(scores, score_types, step):
-    means = scores.mean(axis=0)
-    stds = scores.std(axis=0)
-    for mean, std, score_type in zip(means, stds, score_types):
-        # If std is a NaN
-        if std != std:
-            result = '{step} {name} = {val}'.format(
-                step=step, name=score_type.name, val=mean)
-        else:
-            result = '{step} {name} = {val} ± {std}'.format(
-                step=step,
-                name=score_type.name,
-                val=round(mean, score_type.precision),
-                std=round(std, score_type.precision))
-        print(result)
+    print('----------------------------')
+    print('Bagged scores')
+    print('----------------------------')
+    valid_is_list = [valid_is for (train_is, valid_is) in cv]
+    ground_truths_train = problem.Predictions(y_true=y_train)
+    ground_truths_test = problem.Predictions(y_true=y_test)
+    score_type = score_types[0]
+    bagged_train_valid_predictions, bagged_train_valid_scores =\
+        get_score_cv_bags(
+            problem.Predictions, score_type, predictions_train_valid_list,
+            ground_truths_train, test_is_list=valid_is_list)
+    bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
+        problem.Predictions, score_type, predictions_test_list,
+        ground_truths_test)
+    print('valid {} = {}'.format(
+        score_type.name, round(
+            bagged_train_valid_scores[-1], score_type.precision)))
+    print('test {} = {}'.format(
+        score_type.name, round(bagged_test_scores[-1], score_type.precision)))
