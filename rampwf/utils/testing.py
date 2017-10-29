@@ -98,11 +98,12 @@ def _print_cv_scores(scores, score_types, step):
         print(result)
 
 
-def _print_single_score(score_type, ground_truth, predictions, step):
+def _print_single_score(score_type, ground_truth, predictions, step,
+                        indent=''):
     score = score_type.score_function(ground_truth, predictions)
     rounded_score = round(score, score_type.precision)
-    print('\t{step} {name} = {val}'.format(
-        step=step, name=score_type.name, val=rounded_score))
+    print('{indent}{step} {name} = {val}'.format(
+        indent=indent, step=step, name=score_type.name, val=rounded_score))
     return score
 
 
@@ -188,13 +189,13 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         for score_type_i, score_type in enumerate(score_types):
             train_train_scoress[fold_i, score_type_i] = _print_single_score(
                 score_type, ground_truth_train_train, predictions_train_train,
-                step='train')
+                step='train', indent='\t')
             train_valid_scoress[fold_i, score_type_i] = _print_single_score(
                 score_type, ground_truth_train_valid, predictions_train_valid,
-                step='valid')
+                step='valid', indent='\t')
             test_scoress[fold_i, score_type_i] = _print_single_score(
                 score_type, ground_truth_test, predictions_test,
-                step='test')
+                step='test', indent='\t')
 
     print('----------------------------')
     print('Mean CV scores')
@@ -202,6 +203,24 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     _print_cv_scores(train_train_scoress, score_types, step='train')
     _print_cv_scores(train_valid_scoress, score_types, step='valid')
     _print_cv_scores(test_scoress, score_types, step='test')
+
+    # We retrain on the full training set
+    print('----------------------------')
+    print('Retrain scores')
+    print('----------------------------')
+    trained_workflow = problem.workflow.train_submission(
+        module_path, X_train, y_train)
+    y_pred_train = problem.workflow.test_submission(trained_workflow, X_train)
+    predictions_train = problem.Predictions(y_pred=y_pred_train)
+    ground_truth_train = problem.Predictions(y_true=y_train)
+    y_pred_test = problem.workflow.test_submission(trained_workflow, X_test)
+    predictions_test = problem.Predictions(y_pred=y_pred_test)
+    ground_truth_test = problem.Predictions(y_true=y_test)
+    for score_type in score_types:
+        _print_single_score(
+            score_type, ground_truth_train, predictions_train, step='train')
+        _print_single_score(
+            score_type, ground_truth_test, predictions_test, step='test')
 
     print('----------------------------')
     print('Bagged scores')
