@@ -68,29 +68,42 @@ We suggest to use a dedicated virtual environment if you are familiar with it.
 
 ### Get familiar with starting kits
 
-Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the `ramp_test_submission` script that simply executes [`testing_py`](rampwf/utils/testing.py) in the starting kit. For example, start by cloning the starting kit (here _titanic_) in the repository of your choosing
+Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. 
+They work out of the box. 
+
+Start by cloning the starting kit `<ramp_kit_name>` in the repository of your choosing
 
 ```bash
 $ cd /path/to/your/ramp-kits/repo
-$ git clone https://github.com/ramp-kits/titanic.git
+$ git clone https://github.com/ramp-kits/<ramp_kit_name>.git
 ```
 
-and test the default submission by moving into the repo and running the `ramp_test_submission` script
+make sure you install all the required dependencies
 
 ```bash
-$ cd titanic
+$ cd <ramp_kit_name>
+$ pip install -r requirements.txt
+```
+
+and test the default submission by running the `ramp_test_submission` script
+
+```bash
 $ ramp_test_submission
 ```
 
-When `ramp_test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Titanic uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `ramp_test_submission --submission_name=<submission_name>`. For example,
+which simply executes [`testing_py`](rampwf/utils/testing.py) in the starting kit. 
 
-```shell
-$ ramp_test_submission --submission=random_forest_20_5
+When `ramp_test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. For example, the `titanic` kit uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing 
+
 ```
+$ ramp_test_submission --submission_name=<submission_name>
+``` 
 
-will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
+For instance in `titanic`, `$ ramp_test_submission --submission=random_forest_20_5` will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
 
-The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`titanic_starting_kit.ipynb`](https://github.com/ramp-kits/titanic/blob/master/titanic_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
+#### Starting kit notebook
+
+The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (e.g. [`titanic_starting_kit.ipynb`](https://github.com/ramp-kits/titanic/blob/master/titanic_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
 
 ### Submit to a data challenge at [ramp.studio][rstudio]
 
