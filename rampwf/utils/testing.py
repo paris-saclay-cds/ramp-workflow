@@ -81,7 +81,7 @@ def assert_score_types(ramp_kit_dir='.'):
     return score_types
 
 
-def _print_result(scores, score_types, step):
+def _print_cv_scores(scores, score_types, step):
     means = scores.mean(axis=0)
     stds = scores.std(axis=0)
     for mean, std, score_type in zip(means, stds, score_types):
@@ -96,6 +96,14 @@ def _print_result(scores, score_types, step):
                 val=round(mean, score_type.precision),
                 std=round(std, score_type.precision))
         print(result)
+
+
+def _print_single_score(score_type, ground_truth, predictions, step):
+    score = score_type.score_function(ground_truth, predictions)
+    rounded_score = round(score, score_type.precision)
+    print('\t{step} {name} = {val}'.format(
+        step=step, name=score_type.name, val=rounded_score))
+    return score
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
@@ -127,10 +135,12 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     module_path = join(ramp_kit_dir, 'submissions', submission)
     print('Training {} ...'.format(module_path))
 
+    # saving scores for mean/std stats after the CV loop
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
     test_scoress = np.empty((len(cv), len(score_types)))
 
+    # saving predictions for CV bagging after the CV loop
     predictions_train_valid_list = []
     predictions_test_list = []
 
@@ -165,40 +175,33 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         predictions_test = problem.Predictions(y_pred=y_pred_test)
         ground_truth_test = problem.Predictions(y_true=y_test)
 
+        # saving predictions for CV bagging after the CV loop
         predictions_train_valid_list.append(predictions_train_valid)
         predictions_test_list.append(predictions_test)
 
-        try:
-            problem.save_y_pred(y_pred_test)
-        except AttributeError:
-            pass
+        # try:
+        #     problem.save_y_pred(y_pred_test)
+        # except AttributeError:
+        #     pass
 
         print('CV fold {}'.format(fold_i))
         for score_type_i, score_type in enumerate(score_types):
-            score = score_type.score_function(
-                ground_truth_train_train, predictions_train_train)
-            train_train_scoress[fold_i, score_type_i] = score
-            print('\ttrain {} = {}'.format(
-                score_type.name, round(score, score_type.precision)))
-
-            score = score_type.score_function(
-                ground_truth_train_valid, predictions_train_valid)
-            train_valid_scoress[fold_i, score_type_i] = score
-            print('\tvalid {} = {}'.format(
-                score_type.name, round(score, score_type.precision)))
-
-            score = score_type.score_function(
-                ground_truth_test, predictions_test)
-            test_scoress[fold_i, score_type_i] = score
-            print('\ttest {} = {}'.format(
-                score_type.name, round(score, score_type.precision)))
+            train_train_scoress[fold_i, score_type_i] = _print_single_score(
+                score_type, ground_truth_train_train, predictions_train_train,
+                step='train')
+            train_valid_scoress[fold_i, score_type_i] = _print_single_score(
+                score_type, ground_truth_train_valid, predictions_train_valid,
+                step='valid')
+            test_scoress[fold_i, score_type_i] = _print_single_score(
+                score_type, ground_truth_test, predictions_test,
+                step='test')
 
     print('----------------------------')
-    print('Mean scores')
+    print('Mean CV scores')
     print('----------------------------')
-    _print_result(train_train_scoress, score_types, 'train')
-    _print_result(train_valid_scoress, score_types, 'valid')
-    _print_result(test_scoress, score_types, 'test')
+    _print_cv_scores(train_train_scoress, score_types, step='train')
+    _print_cv_scores(train_valid_scoress, score_types, step='valid')
+    _print_cv_scores(test_scoress, score_types, step='test')
 
     print('----------------------------')
     print('Bagged scores')
