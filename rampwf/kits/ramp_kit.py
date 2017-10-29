@@ -8,7 +8,7 @@ from .base import get_data_home
 
 BASE_RAMP_KIT_URL = 'https://github.com/ramp-kits/'
 
-RAMP_KITS_AVAILABLE = ('fake_news',
+RAMP_KITS_AVAILABLE = ('kaggle_seguro',
                        'mars_craters',
                        'MNIST_simplified',
                        'MNIST',
