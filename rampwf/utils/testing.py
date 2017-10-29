@@ -216,10 +216,10 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
         if save_y_preds:
             _save_y_pred(
-                problem, y_pred_train, data_path='.',
+                problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=fold_output_path, suffix='train')
             _save_y_pred(
-                problem, y_pred_test, data_path='.',
+                problem, y_pred_test, data_path=ramp_data_dir,
                 output_path=fold_output_path, suffix='test')
 
         print('CV fold {}'.format(fold_i))
@@ -260,10 +260,10 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             score_type, ground_truth_test, predictions_test, step='test')
     if save_y_preds:
         _save_y_pred(
-            problem, y_pred_train, data_path='.',
+            problem, y_pred_train, data_path=ramp_data_dir,
             output_path=training_output_path, suffix='retrain_train')
         _save_y_pred(
-            problem, y_pred_test, data_path='.',
+            problem, y_pred_test, data_path=ramp_data_dir,
             output_path=training_output_path, suffix='retrain_test')
 
     print('----------------------------')
@@ -289,8 +289,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         # y_pred_bagged_train.csv contains _out of sample_ (validation)
         # predictions, but not for all points (contains nans)
         _save_y_pred(
-            problem, bagged_train_valid_predictions.y_pred, data_path='.',
-            output_path=training_output_path, suffix='bagged_train')
+            problem, bagged_train_valid_predictions.y_pred,
+            data_path=ramp_data_dir, output_path=training_output_path,
+            suffix='bagged_train')
         _save_y_pred(
-            problem, bagged_test_predictions.y_pred, data_path='.',
+            problem, bagged_test_predictions.y_pred, data_path=ramp_data_dir,
             output_path=training_output_path, suffix='bagged_test')
