@@ -25,6 +25,7 @@ as predictions' shape (in case of asymmetric ground truth/prediction).
 # License: BSD 3 clause
 
 import numpy as np
+import warnings
 
 
 class BasePrediction(object):
@@ -89,6 +90,9 @@ class BasePrediction(object):
             index_list = range(len(predictions_list))
         y_comb_list = np.array(
             [predictions_list[i].y_pred for i in index_list])
-        y_comb = np.nanmean(y_comb_list, axis=0)
+        # I expect to see RuntimeWarnings in this block
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            y_comb = np.nanmean(y_comb_list, axis=0)
         combined_predictions = cls(y_pred=y_comb)
         return combined_predictions
