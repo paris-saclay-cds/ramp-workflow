@@ -37,6 +37,9 @@ def create_ramp_test_submission_parser():
     parser.add_argument('--pickle', dest='pickle', action='store_true',
                         help='Specify this flag to pickle the submission '
                              'after training.')
+    parser.add_argument('--save-preds', dest='save_preds', action='store_true',
+                        help='Specify this flag to save preditions '
+                             'after training.')
     return parser
 
 
@@ -52,6 +55,10 @@ def ramp_test_submission():
     if args.pickle:
         is_pickle = True
 
+    save_preds = False
+    if args.save_preds:
+        save_preds = True
+
     if args.submission == "ALL":
         ramp_submission_dir = join(args.ramp_kit_dir, 'submissions')
         submission = [directory
@@ -64,7 +71,8 @@ def ramp_test_submission():
         assert_submission(ramp_kit_dir=args.ramp_kit_dir,
                           ramp_data_dir=args.ramp_data_dir,
                           submission=sub,
-                          is_pickle=is_pickle)
+                          is_pickle=is_pickle,
+                          save_preds=save_preds)
 
 
 def create_ramp_test_notebook_parser():

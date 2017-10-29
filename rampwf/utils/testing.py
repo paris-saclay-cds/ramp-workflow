@@ -3,6 +3,7 @@
 """Provide utils to test ramp-kits."""
 from __future__ import print_function
 
+import os
 import imp
 from subprocess import call
 from os.path import join, abspath
@@ -107,8 +108,28 @@ def _print_single_score(score_type, ground_truth, predictions, step,
     return score
 
 
+def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
+                 suffix='test'):
+    try:
+        # We try using custom made problem.save_y_pred
+        # it may need to re-read the data, e.g., for ids, so we send
+        # it the data path
+        problem.save_y_pred(y_pred, data_path, output_path, suffix)
+    except AttributeError:
+        # We fall back to numpy save
+        try:
+            y_pred_f_name = join(output_path, 'y_pred_{}.csv'.format(suffix))
+            np.savetxt(y_pred_f_name, y_pred)
+        except Exception as e:
+            print("Warning: model can't be saved.")
+            print(e)
+            print('Consider implementing custom save_y_pred in problem.py')
+            print('See https://github.com/ramp-kits/kaggle_seguro/blob/master/problem.py')  # noqa
+
+
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      submission='starting_kit', is_pickle=False):
+                      submission='starting_kit', is_pickle=False,
+                      save_preds=False):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -136,6 +157,12 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     module_path = join(ramp_kit_dir, 'submissions', submission)
     print('Training {} ...'.format(module_path))
 
+    if is_pickle or save_preds:
+        # creating submissions/<submission>/training_output dir
+        training_output_path = join(module_path, 'training_output')
+        if not os.path.exists(training_output_path):
+            os.mkdir(training_output_path)
+
     # saving scores for mean/std stats after the CV loop
     train_train_scoress = np.empty((len(cv), len(score_types)))
     train_valid_scoress = np.empty((len(cv), len(score_types)))
@@ -146,12 +173,19 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     predictions_test_list = []
 
     for fold_i, (train_is, valid_is) in enumerate(cv):
+        if is_pickle or save_preds:
+            # creating submissions/<submission>/training_output/fold_<i> dir
+            fold_output_path = join(
+                training_output_path, 'fold_{}'.format(fold_i))
+            if not os.path.exists(fold_output_path):
+                os.mkdir(fold_output_path)
+
         trained_workflow = problem.workflow.train_submission(
             module_path, X_train, y_train, train_is=train_is)
 
         if is_pickle:
             try:
-                model_file = join(module_path, 'model.pkl')
+                model_file = join(fold_output_path, 'model.pkl')
                 with open(model_file, 'wb') as pickle_file:
                     pickle.dump(trained_workflow, pickle_file)
                 with open(model_file, 'r') as pickle_file:
@@ -180,10 +214,13 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         predictions_train_valid_list.append(predictions_train_valid)
         predictions_test_list.append(predictions_test)
 
-        # try:
-        #     problem.save_y_pred(y_pred_test)
-        # except AttributeError:
-        #     pass
+        if save_preds:
+            _save_y_pred(
+                problem, y_pred_train, data_path='.',
+                output_path=fold_output_path, suffix='train')
+            _save_y_pred(
+                problem, y_pred_test, data_path='.',
+                output_path=fold_output_path, suffix='test')
 
         print('CV fold {}'.format(fold_i))
         for score_type_i, score_type in enumerate(score_types):
@@ -221,6 +258,13 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             score_type, ground_truth_train, predictions_train, step='train')
         _print_single_score(
             score_type, ground_truth_test, predictions_test, step='test')
+    if save_preds:
+        _save_y_pred(
+            problem, y_pred_train, data_path='.',
+            output_path=training_output_path, suffix='retrain_train')
+        _save_y_pred(
+            problem, y_pred_test, data_path='.',
+            output_path=training_output_path, suffix='retrain_test')
 
     print('----------------------------')
     print('Bagged scores')
@@ -241,3 +285,12 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             bagged_train_valid_scores[-1], score_type.precision)))
     print('test {} = {}'.format(
         score_type.name, round(bagged_test_scores[-1], score_type.precision)))
+    if save_preds:
+        # y_pred_bagged_train.csv contains _out of sample_ (validation)
+        # predictions, but not for all points (contains nans)
+        _save_y_pred(
+            problem, bagged_train_valid_predictions.y_pred, data_path='.',
+            output_path=training_output_path, suffix='bagged_train')
+        _save_y_pred(
+            problem, bagged_test_predictions.y_pred, data_path='.',
+            output_path=training_output_path, suffix='bagged_test')
