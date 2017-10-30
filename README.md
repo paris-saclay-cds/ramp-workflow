@@ -2,18 +2,14 @@
 
 # The RAMP ecosystem
 
-The [RAMP][rstudio] ecosystem contains two organizations and three libraries. The purpose of the bundle is to __define, build, manage, and optimize data analytics workflows__, typically on the top of open source machine learning libraries like [pandas](http://pandas.pydata.org), [scikit-learn](http://scikit-learn.org/), and [keras](https://github.com/fchollet/keras). The bundle consists of
-1. [ramp-workflow][rworkflow] (this library) containing reusable tools and scripts to define
-    1. [score types](rampwf/score_types) (metrics),
-    2. [workflows and workflow elements](rampwf/workflows) (trainable data analytics modules like a classifier or a feature extractor),
-    3. [cross-validation schemes](rampwf/cv_schemes) (guiding the evaluation procedure of the workflow), and
-    4. data connectors (to feed the workflows from various data sources).
-2. [ramp-board][rboard], a library managing the frontend and the database of the [RAMP][rstudio] platform.
-3. [ramp-backend][rbackend], a library managing the RAMP backend (training and evaluating workflow instantiations aka submissions). (doesn't exist yet)
-4. [ramp-data][rdata], an organization containing data sets on which workflows are trained and evaluated.
-5. [ramp-kits][rkits], an organization containing *starting kits*
-    1. describing and implementing particular data analytics workflows, score types, cross validation schemes, and data connectors, using tools from [ramp-workflow][rworkflow], and
-    2. implementing at least one workflow instantiation (submission) so the workflow can be unit tested.
+The [RAMP][rstudio] ecosystem contains two organizations and two libraries. The purpose of the bundle is to __define, build, manage, and optimize data analytics workflows__, typically on the top of open source machine learning libraries like [pandas](http://pandas.pydata.org), [scikit-learn](http://scikit-learn.org/), and [keras](https://github.com/fchollet/keras). The bundle consists of
+
+| Library/Organization | Purpose | Publicly available |
+| :------ | :-----  | :------: |
+| [ramp-workflow][rworkflow] | A set of reusable tools and scripts to define [score types](rampwf/score_types) (metrics), [workflow elements](rampwf/workflows), [prediction types](rampwf/prediction_types) and data connectors. | :white_check_mark: |
+| [ramp-board][rboard] |  A library managing the frontend and the database of the [RAMP][rstudio] platform. | :no_entry_sign: |
+| [ramp-data][rdata] | An organization containing data sets on which workflows are trained and evaluated. | :no_entry_sign: |
+| [ramp-kits][rkits] | An organization containing *starting kits* that use tools from [ramp-workflow][rworkflow] to implement a first valid (tested) workflow. | :white_check_mark: |
 
 <!-- RAMP studio -->
 [rstudio]: http://www.ramp.studio "RAMP main website"
@@ -26,7 +22,6 @@ The [RAMP][rstudio] ecosystem contains two organizations and three libraries. Th
 <!-- git repos -->
 [rworkflow]: https://github.com/paris-saclay-cds/ramp-workflow "Define RAMP score, workflow and CV scheme"
 [rboard]: https://github.com/paris-saclay-cds/ramp-board "RAMP frontend library"
-[rbackend]: https://github.com/paris-saclay-cds/ramp-backend "RAMP backend library (not implemented)"
 [rdata]: https://github.com/ramp-data "Organization for RAMP open data sets"
 [rkits]: https://github.com/ramp-kits "Organization for RAMP starting kits"
 
@@ -41,6 +36,8 @@ If you have your own data set and would like to **build a new starting kit and c
 ### I am a data science student or novice data scientist
 
 You can **learn about data science** by signing up to ongoing and past data challenges at [ramp.studio][problems]. Sign up for the site then choose a [topic][themes] or a [data domain][domains] and sign up to the corresponding event. Most events are in "open leaderboard" mode which means that you can **browse the code** of all the submissions, including the best ones submitted by top students or professional data scientists.
+
+You can also download and play with the [starting kits][rkits], independently of the data challenges.
 
 ### I am a practicing data scientist
 
@@ -60,35 +57,53 @@ If you **have a predictive problem**, you can **submit it as a data challenge** 
 
 ## How to use this bundle?
 
-Start by installing ramp-workflow (this library):
+Start by pip-installing `ramp-workflow` (this library):
 
 ```bash
-git clone https://github.com/paris-saclay-cds/ramp-workflow.git
-cd ramp-workflow
-python setup.py install
+$ pip install git+https://github.com/paris-saclay-cds/ramp-workflow.git
 ```
+
+This will set up some command line scripts like `ramp_test_submission`.
+We suggest to use a dedicated virtual environment if you are familiar with it.
 
 ### Get familiar with starting kits
 
-Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. They work out of the box. You can run them using the `ramp_test_submission` script that simply executes [`testing_py`](rampwf/utils/testing.py) in the starting kit. For example, clone the titanic starting kit and test it by
+Starting kits in [ramp-kits][rkits] are working workflows and workflow instantiations. 
+They work out of the box. 
+
+Start by cloning the starting kit `<ramp_kit_name>` in the repository of your choosing
 
 ```bash
-mkdir ramp-kits
-cd ramp-kits
-git clone https://github.com/ramp-kits/titanic.git
-cd titanic
-ramp_test_submission
+$ cd /path/to/your/ramp-kits/directory
+$ git clone https://github.com/ramp-kits/<ramp_kit_name>.git
 ```
 
-When `ramp_test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. Titanic uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing `ramp_test_submission --submission_name=<submission_name>`. For example,
+make sure you install all the required dependencies
 
-```shell
-ramp_test_submission --submission=random_forest_20_5
+```bash
+$ cd <ramp_kit_name>
+$ pip install -r requirements.txt
 ```
 
-will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
+and test the default submission by running the `ramp_test_submission` script
 
-The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (for example [`titanic_starting_kit.ipynb`](https://github.com/ramp-kits/titanic/blob/master/titanic_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
+```bash
+$ ramp_test_submission
+```
+
+which simply executes [`testing_py`](rampwf/utils/testing.py) in the starting kit. 
+
+When `ramp_test_submission` is run without a parameter, it executes the workflow instantiation (submission) found in `submissions/starting_kit`. For example, the `titanic` kit uses a [`feature_extractor_classifier`](rampwf/workflows/feature_extractor_classifier.py) workflow which is instantiated by a [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/feature_extractor.py) and a [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/starting_kit/classifier.py) file in the submission directory (`submissions/starting_kit`). You can overwrite these files to test other feature extractors and classifiers, or keep them and make a new submission in the directory `submissions/<submission_name>`. You can then test this submission by executing 
+
+```
+$ ramp_test_submission --submission_name=<submission_name>
+``` 
+
+For instance in `titanic`, `$ ramp_test_submission --submission=random_forest_20_5` will test [`feature_extractor.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/feature_extractor.py) and [`classifier.py`](https://github.com/ramp-kits/titanic/blob/master/submissions/random_forest_20_5/classifier.py) found in `submissions/random_forest_20_5`.
+
+#### Starting kit notebook
+
+The starting kit also contains a Jupyter notebook named `<ramp_kit_name>_starting_kit.ipynb` (e.g. [`titanic_starting_kit.ipynb`](https://github.com/ramp-kits/titanic/blob/master/titanic_starting_kit.ipynb)) that describes the predictive problem, the data set, and the workflow, and usually presents some exploratory analysis and data visualization.
 
 ### Submit to a data challenge at [ramp.studio][rstudio]
 
@@ -272,19 +287,19 @@ The notebook named `<ramp_kit_name>_starting_kit.ipynb`
 In the backend, we will pull the data repo into `ramp-data` and the kit repo into `ramp-kits`, and test both with [`testing.py`](rampwf/utils/testing.py). In the case of titanic,
 
 ```bash
-mkdir ramp-data ramp-kits
-git clone https://github.com/ramp-data/titanic.git ramp-data/titanic
-git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
+$ mkdir ramp-data ramp-kits
+$ git clone https://github.com/ramp-data/titanic.git ramp-data/titanic
+$ git clone https://github.com/ramp-kits/titanic.git ramp-kits/titanic
 
-python ramp-data/titanic/prepare_data.py
+$ python ramp-data/titanic/prepare_data.py
 
-ramp_test_submission --ramp_data_dir=ramp-data/titanic --ramp_kit_dir=ramp-kits/titanic
-ramp_test_submission --ramp_data_dir=ramp-kits/titanic --ramp_kit_dir=ramp-kits/titanic
+$ ramp_test_submission --ramp_data_dir=ramp-data/titanic --ramp_kit_dir=ramp-kits/titanic
+$ ramp_test_submission --ramp_data_dir=ramp-kits/titanic --ramp_kit_dir=ramp-kits/titanic
 ```
 
 ### Contribute to [ramp-workflow][rworkflow]
 
-It is possible that some of the elements (e.g., a score or a workflow) that you need for your starting kit is missing from `ramp-workflow`. First, look around, chances are something similar already exists. Second, you can implement it in your `problem.py` file, as we did with the cross validation object in [`titanic/problem.py`](https://github.com/ramp-kits/titanic/blob/master/problem.py). If you feel that the missing element can be useful in other problems, fork `ramp-workflow` and send us a pull request. Add a starting kit that uses the new element to the [`Makefile`](https://github.com/paris-saclay-cds/ramp-workflow/blob/readme/Makefile) as a unit test for the particular element.
+It is possible that some of the elements (e.g., a score or a workflow) that you need for your starting kit is missing from `ramp-workflow`. First, look around, chances are something similar already exists. Second, you can implement it in your `problem.py` file, as we did with the cross validation object in [`titanic/problem.py`](https://github.com/ramp-kits/titanic/blob/master/problem.py). If you feel that the missing element can be useful in other problems, fork `ramp-workflow`, work on a new branch and submit a pull request.
 
 <!---
 # Draft
