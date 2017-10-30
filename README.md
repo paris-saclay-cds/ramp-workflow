@@ -74,7 +74,7 @@ They work out of the box.
 Start by cloning the starting kit `<ramp_kit_name>` in the repository of your choosing
 
 ```bash
-$ cd /path/to/your/ramp-kits/repo
+$ cd /path/to/your/ramp-kits/directory
 $ git clone https://github.com/ramp-kits/<ramp_kit_name>.git
 ```
 
