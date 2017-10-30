@@ -9,8 +9,26 @@ from subprocess import call
 from os.path import join, abspath
 
 import numpy as np
+from colored import stylize, fg, attr
 import cloudpickle as pickle
 from .combine import get_score_cv_bags
+
+fg_colors = {
+    'official_train': 'light_green',
+    'official_valid': 'light_blue',
+    'official_test': 'light_red',
+    'train': 'dark_sea_green_3b',
+    'valid': 'light_slate_blue',
+    'test': 'pink_1',
+}
+
+
+def _print_title(str):
+    print(stylize(str, fg('yellow_1') + attr('bold')))
+
+
+def _print_warning(str):
+    print(stylize(str, fg('grey_46')))
 
 
 def _delete_line_from_file(f_name, line_to_delete):
@@ -56,12 +74,12 @@ def assert_read_problem(ramp_kit_dir='.'):
 
 def assert_title(ramp_kit_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
-    print('Testing {}'.format(problem.problem_title))
+    _print_title('Testing {}'.format(problem.problem_title))
 
 
 def assert_data(ramp_kit_dir='.', ramp_data_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
-    print('Reading train and test files from {}/data ...'.format(
+    _print_title('Reading train and test files from {}/data ...'.format(
         ramp_data_dir))
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     X_test, y_test = problem.get_test_data(path=ramp_data_dir)
@@ -71,7 +89,7 @@ def assert_data(ramp_kit_dir='.', ramp_data_dir='.'):
 def assert_cv(ramp_kit_dir='.', ramp_data_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
-    print('Reading cv ...')
+    _print_title('Reading cv ...')
     cv = list(problem.get_cv(X_train, y_train))
     return cv
 
@@ -86,6 +104,10 @@ def _print_cv_scores(scores, score_types, step):
     means = scores.mean(axis=0)
     stds = scores.std(axis=0)
     for mean, std, score_type in zip(means, stds, score_types):
+        # set color prefix to 'official' for the first score
+        c_prefix = ''
+        if score_type == score_types[0]:
+            c_prefix = 'official_'
         # If std is a NaN
         if std != std:
             result = '{step} {name} = {val}'.format(
@@ -96,15 +118,16 @@ def _print_cv_scores(scores, score_types, step):
                 name=score_type.name,
                 val=round(mean, score_type.precision),
                 std=round(std, score_type.precision))
-        print(result)
+        print(stylize(result, fg(fg_colors['{}{}'.format(c_prefix, step)])))
 
 
 def _print_single_score(score_type, ground_truth, predictions, step,
-                        indent=''):
+                        indent='', c_prefix=''):
     score = score_type.score_function(ground_truth, predictions)
     rounded_score = round(score, score_type.precision)
-    print('{indent}{step} {name} = {val}'.format(
-        indent=indent, step=step, name=score_type.name, val=rounded_score))
+    print(stylize('{indent}{step} {name} = {val}'.format(
+        indent=indent, step=step, name=score_type.name, val=rounded_score),
+        fg(fg_colors['{}{}'.format(c_prefix, step)])))
     return score
 
 
@@ -121,10 +144,11 @@ def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
             y_pred_f_name = join(output_path, 'y_pred_{}.csv'.format(suffix))
             np.savetxt(y_pred_f_name, y_pred)
         except Exception as e:
-            print("Warning: model can't be saved.")
-            print(e)
-            print('Consider implementing custom save_y_pred in problem.py')
-            print('See https://github.com/ramp-kits/kaggle_seguro/blob/master/problem.py')  # noqa
+            _print_warning(
+                "Warning: model can't be saved.\n{}\n".format(e) +
+                'Consider implementing custom save_y_pred in problem.py\n' +
+                'See https://github.com/ramp-kits/kaggle_seguro/' +
+                'blob/master/problem.py')
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
@@ -155,7 +179,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     score_types = assert_score_types(ramp_kit_dir)
 
     module_path = join(ramp_kit_dir, 'submissions', submission)
-    print('Training {} ...'.format(module_path))
+    _print_title('Training {} ...'.format(module_path))
 
     if is_pickle or save_y_preds:
         # creating submissions/<submission>/training_output dir
@@ -191,8 +215,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 with open(model_file, 'r') as pickle_file:
                     trained_workflow = pickle.load(pickle_file)
             except Exception as e:
-                print("Warning: model can't be pickled.")
-                print(e)
+                _print_warning("Warning: model can't be pickled.")
+                _print_warning(e)
 
         y_pred_train = problem.workflow.test_submission(
             trained_workflow, X_train)
@@ -222,29 +246,33 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 problem, y_pred_test, data_path=ramp_data_dir,
                 output_path=fold_output_path, suffix='test')
 
-        print('CV fold {}'.format(fold_i))
+        _print_title('CV fold {}'.format(fold_i))
         for score_type_i, score_type in enumerate(score_types):
+            # set color prefix to 'official' for the first score
+            c_prefix = ''
+            if score_type == score_types[0]:
+                c_prefix = 'official_'
             train_train_scoress[fold_i, score_type_i] = _print_single_score(
                 score_type, ground_truth_train_train, predictions_train_train,
-                step='train', indent='\t')
+                step='train', indent='\t', c_prefix=c_prefix)
             train_valid_scoress[fold_i, score_type_i] = _print_single_score(
                 score_type, ground_truth_train_valid, predictions_train_valid,
-                step='valid', indent='\t')
+                step='valid', indent='\t', c_prefix=c_prefix)
             test_scoress[fold_i, score_type_i] = _print_single_score(
                 score_type, ground_truth_test, predictions_test,
-                step='test', indent='\t')
+                step='test', indent='\t', c_prefix=c_prefix)
 
-    print('----------------------------')
-    print('Mean CV scores')
-    print('----------------------------')
+    _print_title('----------------------------')
+    _print_title('Mean CV scores')
+    _print_title('----------------------------')
     _print_cv_scores(train_train_scoress, score_types, step='train')
     _print_cv_scores(train_valid_scoress, score_types, step='valid')
     _print_cv_scores(test_scoress, score_types, step='test')
 
     # We retrain on the full training set
-    print('----------------------------')
-    print('Retrain scores')
-    print('----------------------------')
+    _print_title('----------------------------')
+    _print_title('Retrain scores')
+    _print_title('----------------------------')
     trained_workflow = problem.workflow.train_submission(
         module_path, X_train, y_train)
     y_pred_train = problem.workflow.test_submission(trained_workflow, X_train)
@@ -254,10 +282,26 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     predictions_test = problem.Predictions(y_pred=y_pred_test)
     ground_truth_test = problem.Predictions(y_true=y_test)
     for score_type in score_types:
+        # set color prefix to 'official' for the first score
+        c_prefix = ''
+        if score_type == score_types[0]:
+            c_prefix = 'official_'
         _print_single_score(
-            score_type, ground_truth_train, predictions_train, step='train')
+            score_type, ground_truth_train, predictions_train, step='train',
+            c_prefix=c_prefix)
         _print_single_score(
-            score_type, ground_truth_test, predictions_test, step='test')
+            score_type, ground_truth_test, predictions_test, step='test',
+            c_prefix=c_prefix)
+    if is_pickle:
+        try:
+            model_file = join(training_output_path, 'retrained_model.pkl')
+            with open(model_file, 'wb') as pickle_file:
+                pickle.dump(trained_workflow, pickle_file)
+            with open(model_file, 'r') as pickle_file:
+                trained_workflow = pickle.load(pickle_file)
+        except Exception as e:
+            _print_warning("Warning: model can't be pickled.")
+            _print_warning(e)
     if save_y_preds:
         _save_y_pred(
             problem, y_pred_train, data_path=ramp_data_dir,
@@ -266,9 +310,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             problem, y_pred_test, data_path=ramp_data_dir,
             output_path=training_output_path, suffix='retrain_test')
 
-    print('----------------------------')
-    print('Bagged scores')
-    print('----------------------------')
+    _print_title('----------------------------')
+    _print_title('Bagged scores')
+    _print_title('----------------------------')
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     ground_truths_train = problem.Predictions(y_true=y_train)
     ground_truths_test = problem.Predictions(y_true=y_test)
@@ -280,11 +324,13 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
         problem.Predictions, score_type, predictions_test_list,
         ground_truths_test)
-    print('valid {} = {}'.format(
-        score_type.name, round(
-            bagged_train_valid_scores[-1], score_type.precision)))
-    print('test {} = {}'.format(
-        score_type.name, round(bagged_test_scores[-1], score_type.precision)))
+    print(stylize('valid {} = {}'.format(
+        score_type.name,
+        round(bagged_train_valid_scores[-1], score_type.precision)),
+        fg(fg_colors['official_valid'])))
+    print(stylize('test {} = {}'.format(
+        score_type.name, round(bagged_test_scores[-1], score_type.precision)),
+        fg(fg_colors['official_test'])))
     if save_y_preds:
         # y_pred_bagged_train.csv contains _out of sample_ (validation)
         # predictions, but not for all points (contains nans)
