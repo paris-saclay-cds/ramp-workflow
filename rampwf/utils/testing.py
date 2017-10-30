@@ -50,7 +50,7 @@ def assert_notebook(ramp_kit_dir='.'):
 
 
 def assert_read_problem(ramp_kit_dir='.'):
-    problem = imp.load_source('', join(ramp_kit_dir, 'problem.py'))
+    problem = imp.load_source(ramp_kit_dir, join(ramp_kit_dir, 'problem.py'))
     return problem
 
 
