@@ -24,7 +24,7 @@ fg_colors = {
 
 
 def _print_title(str):
-    print(stylize(str, fg('yellow_1') + attr('bold')))
+    print(stylize(str, fg('gold_3b') + attr('bold')))
 
 
 def _print_warning(str):
