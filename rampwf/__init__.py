@@ -5,6 +5,7 @@ from . import utils
 from . import kits
 from . import cvs
 
+
 __all__ = ['kits',
            'score_types',
            'prediction_types',
@@ -13,4 +14,7 @@ __all__ = ['kits',
            'cvs',
            ]
 
-__version__ = '0.1.dev'
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
