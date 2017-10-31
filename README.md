@@ -35,10 +35,10 @@ $ pip install git+https://github.com/paris-saclay-cds/ramp-workflow.git
 This will set up some command line scripts like `ramp_test_submission`.
 We suggest to use a dedicated virtual environment if you are familiar with it.
 
-2. Pick up a starting-kit on <https://github.com/ramp-kits>
+2. Pick a starting-kit on <https://github.com/ramp-kits>
 
-Clone it locally, and fire the starting kit notebook.  
-It will guide you through the problem, describe the data and the workflow and let you run the pipeline.
+Clone it locally and fire up the starting kit notebook.  
+It will guide you through the problem, describe the data and the workflow, and let you run the pipeline.
 
 Fore more details, visit the [wiki](https://github.com/paris-saclay-cds/ramp-workflow/wiki).
 
