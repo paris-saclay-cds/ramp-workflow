@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/paris-saclay-cds/ramp-workflow.svg?branch=master)](https://travis-ci.org/paris-saclay-cds/ramp-workflow)
+[![Coverage](https://codecov.io/gh/paris-saclay-cds/ramp-workflow/branch/master/graphs/badge.svg?)](https://codecov.io/gh/paris-saclay-cds/ramp-workflow/)
+
 
 # The RAMP ecosystem
 
