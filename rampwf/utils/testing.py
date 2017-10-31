@@ -153,7 +153,7 @@ def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       submission='starting_kit', is_pickle=False,
-                      save_y_preds=False):
+                      save_y_preds=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -269,46 +269,49 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     _print_cv_scores(train_valid_scoress, score_types, step='valid')
     _print_cv_scores(test_scoress, score_types, step='test')
 
-    # We retrain on the full training set
-    _print_title('----------------------------')
-    _print_title('Retrain scores')
-    _print_title('----------------------------')
-    trained_workflow = problem.workflow.train_submission(
-        module_path, X_train, y_train)
-    y_pred_train = problem.workflow.test_submission(trained_workflow, X_train)
-    predictions_train = problem.Predictions(y_pred=y_pred_train)
-    ground_truth_train = problem.Predictions(y_true=y_train)
-    y_pred_test = problem.workflow.test_submission(trained_workflow, X_test)
-    predictions_test = problem.Predictions(y_pred=y_pred_test)
-    ground_truth_test = problem.Predictions(y_true=y_test)
-    for score_type in score_types:
-        # set color prefix to 'official' for the first score
-        c_prefix = ''
-        if score_type == score_types[0]:
-            c_prefix = 'official_'
-        _print_single_score(
-            score_type, ground_truth_train, predictions_train, step='train',
-            c_prefix=c_prefix)
-        _print_single_score(
-            score_type, ground_truth_test, predictions_test, step='test',
-            c_prefix=c_prefix)
-    if is_pickle:
-        try:
-            model_file = join(training_output_path, 'retrained_model.pkl')
-            with open(model_file, 'wb') as pickle_file:
-                pickle.dump(trained_workflow, pickle_file)
-            with open(model_file, 'r') as pickle_file:
-                trained_workflow = pickle.load(pickle_file)
-        except Exception as e:
-            _print_warning("Warning: model can't be pickled.")
-            _print_warning(e)
-    if save_y_preds:
-        _save_y_pred(
-            problem, y_pred_train, data_path=ramp_data_dir,
-            output_path=training_output_path, suffix='retrain_train')
-        _save_y_pred(
-            problem, y_pred_test, data_path=ramp_data_dir,
-            output_path=training_output_path, suffix='retrain_test')
+    if retrain:
+        # We retrain on the full training set
+        _print_title('----------------------------')
+        _print_title('Retrain scores')
+        _print_title('----------------------------')
+        trained_workflow = problem.workflow.train_submission(
+            module_path, X_train, y_train)
+        y_pred_train = problem.workflow.test_submission(
+            trained_workflow, X_train)
+        predictions_train = problem.Predictions(y_pred=y_pred_train)
+        ground_truth_train = problem.Predictions(y_true=y_train)
+        y_pred_test = problem.workflow.test_submission(
+            trained_workflow, X_test)
+        predictions_test = problem.Predictions(y_pred=y_pred_test)
+        ground_truth_test = problem.Predictions(y_true=y_test)
+        for score_type in score_types:
+            # set color prefix to 'official' for the first score
+            c_prefix = ''
+            if score_type == score_types[0]:
+                c_prefix = 'official_'
+            _print_single_score(
+                score_type, ground_truth_train, predictions_train,
+                step='train', c_prefix=c_prefix)
+            _print_single_score(
+                score_type, ground_truth_test, predictions_test,
+                step='test', c_prefix=c_prefix)
+        if is_pickle:
+            try:
+                model_file = join(training_output_path, 'retrained_model.pkl')
+                with open(model_file, 'wb') as pickle_file:
+                    pickle.dump(trained_workflow, pickle_file)
+                with open(model_file, 'r') as pickle_file:
+                    trained_workflow = pickle.load(pickle_file)
+            except Exception as e:
+                _print_warning("Warning: model can't be pickled.")
+                _print_warning(e)
+        if save_y_preds:
+            _save_y_pred(
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=training_output_path, suffix='retrain_train')
+            _save_y_pred(
+                problem, y_pred_test, data_path=ramp_data_dir,
+                output_path=training_output_path, suffix='retrain_test')
 
     _print_title('----------------------------')
     _print_title('Bagged scores')
