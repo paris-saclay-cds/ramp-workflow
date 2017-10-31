@@ -344,3 +344,10 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         _save_y_pred(
             problem, bagged_test_predictions.y_pred, data_path=ramp_data_dir,
             output_path=training_output_path, suffix='bagged_test')
+        # also save the partial combined scores (CV bagging learning curves)
+        bagged_train_valid_scores_f_name = join(
+            training_output_path, 'bagged_train_valid_scores.csv')
+        np.savetxt(bagged_train_valid_scores_f_name, bagged_train_valid_scores)
+        bagged_test_scores_f_name = join(
+            training_output_path, 'bagged_test_scores.csv')
+        np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
