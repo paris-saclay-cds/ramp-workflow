@@ -1,10 +1,10 @@
+# The RAMP ecosystem
+
 [![Build Status](https://travis-ci.org/paris-saclay-cds/ramp-workflow.svg?branch=master)](https://travis-ci.org/paris-saclay-cds/ramp-workflow)
 [![Coverage](https://codecov.io/gh/paris-saclay-cds/ramp-workflow/branch/master/graphs/badge.svg?)](https://codecov.io/gh/paris-saclay-cds/ramp-workflow/)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Docs](https://img.shields.io/badge/docs-wiki-yellow.svg)](https://github.com/paris-saclay-cds/ramp-workflow/wiki)
 
-
-# The RAMP ecosystem
 
 The [RAMP][rstudio] ecosystem contains two organizations and two libraries. The purpose of the bundle is to __define, build, manage, and optimize data analytics workflows__, typically on the top of open source machine learning libraries like [pandas](http://pandas.pydata.org), [scikit-learn](http://scikit-learn.org/), and [keras](https://github.com/fchollet/keras). The bundle consists of
 
