@@ -68,7 +68,9 @@ def assert_notebook(ramp_kit_dir='.'):
 
 
 def assert_read_problem(ramp_kit_dir='.'):
-    problem = imp.load_source(ramp_kit_dir, join(ramp_kit_dir, 'problem.py'))
+    # giving a random name to the module so it passes looped tests
+    module_name = str(int(1000000000 * np.random.rand()))
+    problem = imp.load_source(module_name, join(ramp_kit_dir, 'problem.py'))
     return problem
 
 

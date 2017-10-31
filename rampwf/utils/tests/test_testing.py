@@ -13,12 +13,17 @@ def test_submission_all_kits():
     try:
         for kit in RAMP_KITS_AVAILABLE:
             kit_dir = fetch_ramp_kit(kit, ramp_kits_home=tmp_dir)
-            assert_submission(
-                ramp_kit_dir=kit_dir, ramp_data_dir=kit_dir,
-                submission='starting_kit', is_pickle=True, save_y_preds=True)
-            # testing assert_notebook on titanic
+            # testing assert_notebook and optional switches on titanic
             if kit == 'titanic':
                 assert_notebook(ramp_kit_dir=kit_dir)
+                assert_submission(
+                    ramp_kit_dir=kit_dir, ramp_data_dir=kit_dir,
+                    submission='starting_kit', is_pickle=True,
+                    save_y_preds=True, retrain=True)
+            else:
+                assert_submission(
+                    ramp_kit_dir=kit_dir, ramp_data_dir=kit_dir,
+                    submission='starting_kit')
 
     finally:
         shutil.rmtree(tmp_dir)
