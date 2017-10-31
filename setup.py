@@ -22,10 +22,9 @@ DISTNAME = 'ramp-workflow'
 DESCRIPTION = descr
 MAINTAINER = 'Balazs Kegl'
 MAINTAINER_EMAIL = 'balazs.kegl@gmail.com'
-URL = 'None'
+URL = 'https://github.com/paris-saclay-cds/ramp-workflow'
 LICENSE = 'BSD (3-clause)'
 DOWNLOAD_URL = 'https://github.com/paris-saclay-cds/ramp-workflow'
-VERSION = version
 
 
 if __name__ == "__main__":
