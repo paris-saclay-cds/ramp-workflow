@@ -174,17 +174,22 @@ def _score_matrix(score_types, ground_truth, predictions,
 
     if verbose:
         try:
-            # try to re-order columns in the printed array
-            df_scores = df_scores.loc[['train', 'test', 'valid'], :]
-        except:
-            # there were some extra steps in the dataset that
-            # we couldn't  handle
-            pass
-        df_repr = repr(df_scores)
-        if indent:
-            df_repr = '\n'.join([indent + line
-                                 for line in df_repr.splitlines()])
-        print(df_repr)
+            # try to re-order columns/rows in the printed array
+            df_scores = df_scores.loc[['train', 'test', 'valid'],
+                                      [key.name for key in score_types]]
+        except Exception:
+            _print_warning("Couldn't re-order the score matrix..")
+        with pd.option_context("display.width", 160):
+            df_repr = repr(df_scores)
+        df_repr_out = []
+        for line, color_key in zip(df_repr.splitlines(),
+                                   [None, None] +
+                                   list(df_scores.index.values)):
+            line = indent + line
+            if color_key is not None and color_key in fg_colors:
+                line = stylize(line, fg(fg_colors[color_key]))
+            df_repr_out.append(line)
+        print('\n'.join(df_repr_out))
     return df_scores
 
 
