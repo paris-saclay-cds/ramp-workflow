@@ -7,7 +7,9 @@ import os
 import imp
 from subprocess import call
 from os.path import join, abspath
+from collections import OrderedDict
 
+import pandas as pd
 import numpy as np
 from colored import stylize, fg, attr
 import cloudpickle as pickle
@@ -133,6 +135,59 @@ def _print_single_score(score_type, ground_truth, predictions, step,
     return score
 
 
+def _score_matrix(score_types, ground_truth, predictions,
+                  indent='', verbose=False):
+    """Pretty print the matrix of scores
+
+    Parameters
+    ----------
+    score_types : list of scoreres
+      a list of scorers to use
+    ground_truth : dict of Predictions
+      the ground truth data
+    predictions : dict of Predictions
+      the predicted data
+    indent : str, default=""
+      indentation if needed
+    verbose : bool, default=False
+      print the resulting dataframe
+    """
+    if set(ground_truth.keys()) != set(predictions.keys()):
+        raise ValueError(('Predictions and ground truth steps '
+                          'do not match:\n'
+                          ' * predictions = {} \n'
+                          ' * ground_truth = {} ')
+                         .format(set(predictions.keys()),
+                                 set(ground_truth.keys())))
+    results = []
+    for step in ground_truth:
+        for scorer in score_types:
+            score = scorer.score_function(ground_truth[step],
+                                          predictions[step])
+            rounded_score = round(score, scorer.precision)
+            results.append({'step': step,
+                            'score': scorer.name,
+                            'value': rounded_score})
+    df_scores = pd.DataFrame(results)
+    df_scores = df_scores.set_index(['step', 'score'])['value']
+    df_scores = df_scores.unstack()
+
+    if verbose:
+        try:
+            # try to re-order columns in the printed array
+            df_scores = df_scores.loc[['train', 'test', 'valid'], :]
+        except:
+            # there were some extra steps in the dataset that
+            # we couldn't  handle
+            pass
+        df_repr = repr(df_scores)
+        if indent:
+            df_repr = '\n'.join([indent + line
+                                 for line in df_repr.splitlines()])
+        print(df_repr)
+    return df_scores
+
+
 def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
                  suffix='test'):
     try:
@@ -249,20 +304,20 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 output_path=fold_output_path, suffix='test')
 
         _print_title('CV fold {}'.format(fold_i))
-        for score_type_i, score_type in enumerate(score_types):
-            # set color prefix to 'official' for the first score
-            c_prefix = ''
-            if score_type == score_types[0]:
-                c_prefix = 'official_'
-            train_train_scoress[fold_i, score_type_i] = _print_single_score(
-                score_type, ground_truth_train_train, predictions_train_train,
-                step='train', indent='\t', c_prefix=c_prefix)
-            train_valid_scoress[fold_i, score_type_i] = _print_single_score(
-                score_type, ground_truth_train_valid, predictions_train_valid,
-                step='valid', indent='\t', c_prefix=c_prefix)
-            test_scoress[fold_i, score_type_i] = _print_single_score(
-                score_type, ground_truth_test, predictions_test,
-                step='test', indent='\t', c_prefix=c_prefix)
+        df_scores = _score_matrix(
+                score_types,
+                ground_truth=OrderedDict([('train', ground_truth_train_train),
+                                          ('valid', ground_truth_train_valid),
+                                          ('test', ground_truth_test)]),
+                predictions=OrderedDict([('train', predictions_train_train),
+                                         ('valid', predictions_train_valid),
+                                         ('test', predictions_test)]),
+                indent='\t', verbose=True)
+
+        for step, container in [('train', train_train_scoress),
+                                ('valid', train_valid_scoress),
+                                ('test', test_scoress)]:
+            container[fold_i, :] = df_scores.loc[step, :].values
 
     _print_title('----------------------------')
     _print_title('Mean CV scores')
