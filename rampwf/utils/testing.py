@@ -175,7 +175,7 @@ def _score_matrix(score_types, ground_truth, predictions,
     if verbose:
         try:
             # try to re-order columns/rows in the printed array
-            df_scores = df_scores.loc[['train', 'test', 'valid'],
+            df_scores = df_scores.loc[['train', 'valid', 'test'],
                                       [key.name for key in score_types]]
         except Exception:
             _print_warning("Couldn't re-order the score matrix..")
@@ -185,9 +185,11 @@ def _score_matrix(score_types, ground_truth, predictions,
         for line, color_key in zip(df_repr.splitlines(),
                                    [None, None] +
                                    list(df_scores.index.values)):
+            if line.strip() == 'step':
+                continue
             line = indent + line
-            if color_key is not None and color_key in fg_colors:
-                line = stylize(line, fg(fg_colors[color_key]))
+            if color_key is not None and 'official_' + color_key in fg_colors:
+                line = stylize(line, fg(fg_colors['official_' + color_key]))
             df_repr_out.append(line)
         print('\n'.join(df_repr_out))
     return df_scores
@@ -310,14 +312,14 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
         _print_title('CV fold {}'.format(fold_i))
         df_scores = _score_matrix(
-                score_types,
-                ground_truth=OrderedDict([('train', ground_truth_train_train),
-                                          ('valid', ground_truth_train_valid),
-                                          ('test', ground_truth_test)]),
-                predictions=OrderedDict([('train', predictions_train_train),
-                                         ('valid', predictions_train_valid),
-                                         ('test', predictions_test)]),
-                indent='\t', verbose=True)
+            score_types,
+            ground_truth=OrderedDict([('train', ground_truth_train_train),
+                                      ('valid', ground_truth_train_valid),
+                                      ('test', ground_truth_test)]),
+            predictions=OrderedDict([('train', predictions_train_train),
+                                     ('valid', predictions_train_valid),
+                                     ('test', predictions_test)]),
+            indent='\t', verbose=True)
 
         for step, container in [('train', train_train_scoress),
                                 ('valid', train_valid_scoress),
