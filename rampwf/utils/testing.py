@@ -18,7 +18,7 @@ from .combine import get_score_cv_bags
 fg_colors = {
     'official_train': 'light_green',
     'official_valid': 'light_blue',
-    'official_test': 'light_red',
+    'official_test': 'red',
     'train': 'dark_sea_green_3b',
     'valid': 'light_slate_blue',
     'test': 'pink_1',
@@ -137,7 +137,7 @@ def _print_single_score(score_type, ground_truth, predictions, step,
 
 def _score_matrix(score_types, ground_truth, predictions,
                   indent='', verbose=False):
-    """Pretty print the matrix of scores
+    """Pretty print the matrix of scores.
 
     Parameters
     ----------
@@ -187,9 +187,24 @@ def _score_matrix(score_types, ground_truth, predictions,
                                    list(df_scores.index.values)):
             if line.strip() == 'step':
                 continue
+            if color_key is None:
+                # table header
+                line = stylize(line, fg('gold_3b') + attr('bold'))
+            if color_key is not None:
+                tokens = line.split()
+                tokens_bak = tokens[:]
+                if 'official_' + color_key in fg_colors:
+                    # line label and official score bold & bright
+                    label_color = fg(fg_colors['official_' + color_key])
+                    tokens[0] = stylize(tokens[0], label_color + attr('bold'))
+                    tokens[1] = stylize(tokens[1], label_color + attr('bold'))
+                if color_key in fg_colors:
+                    # other scores pale
+                    tokens[2:] = [stylize(token, fg(fg_colors[color_key]))
+                                  for token in tokens[2:]]
+                for token_from, token_to in zip(tokens_bak, tokens):
+                    line = line.replace(token_from, token_to)
             line = indent + line
-            if color_key is not None and 'official_' + color_key in fg_colors:
-                line = stylize(line, fg(fg_colors['official_' + color_key]))
             df_repr_out.append(line)
         print('\n'.join(df_repr_out))
     return df_scores
