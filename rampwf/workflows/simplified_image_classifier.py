@@ -91,7 +91,7 @@ def _image_transform(x, transforms):
         if t['name'] == 'rotate':
             angle = np.random.random() * (
                 t['u_angle'] - t['l_angle']) + t['l_angle']
-            rotate(x, angle)
+            rotate(x, angle, preserve_range=True)
     return x
 
 
