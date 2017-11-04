@@ -1,6 +1,5 @@
 language: python
 dist: trusty
-cache: pip
 branches:
   only:
   - master
