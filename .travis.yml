@@ -18,8 +18,6 @@ install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
     - pip install -r testing-requirements.txt
-    # Adding tensorflow here due to failures in Py2.7 build fails with MNIST
-    - pip install tensorflow
     - pip install .
 script:
     - flake8 rampwf --ignore=F401,E211,E265,W503
