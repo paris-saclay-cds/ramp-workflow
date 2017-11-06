@@ -17,6 +17,7 @@ install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
     - pip install -r testing-requirements.txt
+    - pip install tensorflow=1.3
     - pip install .
 script:
     - flake8 rampwf --ignore=F401,E211,E265,W503
