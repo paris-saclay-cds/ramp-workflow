@@ -3,5 +3,4 @@ pytest-cov
 codecov
 flake8
 gitpython
-nbconvert[test]
-colored
+nbconvert

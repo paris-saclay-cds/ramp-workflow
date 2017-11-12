@@ -18,8 +18,11 @@ install:
     - conda create -n testenv --yes pip python=$PYTHON_VERSION
     - source activate testenv
     - pip install -r testing-requirements.txt
-    # Adding tensorflow here due to failures in Py2.7 build fails with MNIST
-    - pip install tensorflow
+    # install tensorflow to avoid: ImportError: No module named google.protobuf
+    # encountered when installing during testing from requirements.txt
+    # pinned to version 1.3 to avoid package collision between tensorflow and
+    # nbconvert
+    - pip install tensorflow==1.3
     - pip install .
 script:
     - flake8 rampwf --ignore=F401,E211,E265,W503
