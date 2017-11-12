@@ -6,7 +6,8 @@ from __future__ import print_function
 from os import listdir
 from os.path import join, isdir
 
-from .testing import assert_submission, assert_notebook, convert_notebook
+from .testing import (
+    assert_submission, assert_notebook, convert_notebook, blend_submissions)
 
 
 def create_ramp_test_submission_parser():
@@ -39,7 +40,7 @@ def create_ramp_test_submission_parser():
                              'after training.')
     parser.add_argument('--save-y-preds', dest='save_y_preds',
                         action='store_true',
-                        help='Specify this flag to save preditions '
+                        help='Specify this flag to save predictions '
                              'after training.')
     parser.add_argument('--retrain', dest='retrain',
                         action='store_true',
@@ -108,3 +109,59 @@ def ramp_convert_notebook():
     parser = create_ramp_test_notebook_parser()
     args = parser.parse_args()
     convert_notebook(ramp_kit_dir=args.ramp_kit_dir)
+
+
+def create_ramp_blend_submissions_parser():
+    import argparse
+    parser = argparse.ArgumentParser(
+        prog='ramp_blend_submissions',
+        description='Blend several submissions.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--ramp_kit_dir',
+                        default='.',
+                        type=str,
+                        help='Root directory of the ramp-kit to test.')
+    parser.add_argument('--ramp_data_dir',
+                        default='.',
+                        type=str,
+                        help='Directory containing the data. This directory'
+                        ' should contain a "data" folder.')
+    parser.add_argument('--submissions',
+                        default='ALL',
+                        type=str,
+                        help='The submissions to blend. They should be located'
+                        ' in the "submissions" folder of the starting kit. If'
+                        ' "ALL", all submissions in the directory will be'
+                        ' blended.')
+    parser.add_argument('--save-y-preds', dest='save_y_preds',
+                        action='store_true',
+                        help='Specify this flag to save predictions '
+                             'after training.')
+    parser.add_argument('--min-improvement', dest='min_improvement',
+                        default='0.0',
+                        help='The minimum score improvement when adding.'
+                        ' submissions to the ensemble.')
+    return parser
+
+
+def ramp_blend_submissions():
+    parser = create_ramp_blend_submissions_parser()
+    args = parser.parse_args()
+
+    save_y_preds = False
+    if args.save_y_preds:
+        save_y_preds = True
+
+    if args.submissions == "ALL":
+        ramp_submission_dir = join(args.ramp_kit_dir, 'submissions')
+        submissions = [directory
+                       for directory in listdir(ramp_submission_dir)
+                       if isdir(join(ramp_submission_dir, directory))]
+    else:
+        submissions = args.submissions.split(',')
+
+    blend_submissions(ramp_kit_dir=args.ramp_kit_dir,
+                      ramp_data_dir=args.ramp_data_dir,
+                      submissions=submissions,
+                      save_y_preds=save_y_preds,
+                      min_improvement=float(args.min_improvement))
