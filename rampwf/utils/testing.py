@@ -578,7 +578,8 @@ def _run_submission_on_full_train(problem, module_path, X_train, y_train,
 def _bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
                      predictions_test_list, training_output_path,
                      ramp_data_dir='.', score_type_index=0,
-                     save_y_preds=False, score_table_title='Bagged scores'):
+                     save_y_preds=False, score_table_title='Bagged scores',
+                     score_f_name_prefix=''):
     _print_title('----------------------------')
     _print_title(score_table_title)
     _print_title('----------------------------')
@@ -605,16 +606,19 @@ def _bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         _save_submission(
             problem, bagged_valid_predictions.y_pred,
             data_path=ramp_data_dir, output_path=training_output_path,
-            suffix='bagged_train')
+            suffix='{}_bagged_train'.format(score_f_name_prefix))
         _save_submission(
             problem, bagged_test_predictions.y_pred, data_path=ramp_data_dir,
-            output_path=training_output_path, suffix='bagged_test')
+            output_path=training_output_path,
+            suffix='{}_bagged_test'.format(score_f_name_prefix))
         # also save the partial combined scores (CV bagging learning curves)
         bagged_train_valid_scores_f_name = join(
-            training_output_path, 'bagged_valid_scores.csv')
+            training_output_path,
+            '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
         np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
         bagged_test_scores_f_name = join(
-            training_output_path, 'bagged_test_scores.csv')
+            training_output_path,
+            '{}_bagged_test_scores.csv'.format(score_f_name_prefix))
         np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
 
 
@@ -769,11 +773,13 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         problem, cv, y_train, y_test, combined_predictions_valid_list,
         combined_predictions_test_list, training_output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=0,
-        save_y_preds=save_y_preds, score_table_title='Combined bagged scores')
+        save_y_preds=save_y_preds, score_table_title='Combined bagged scores',
+        score_f_name_prefix='foldwise_best')
     # bagging the foldwise best submissions
     _bag_submissions(
         problem, cv, y_train, y_test, foldwise_best_predictions_valid_list,
         foldwise_best_predictions_test_list, training_output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=0,
         save_y_preds=save_y_preds,
-        score_table_title='Foldwise best bagged scores')
+        score_table_title='Foldwise best bagged scores',
+        score_f_name_prefix='combined')
