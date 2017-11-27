@@ -8,8 +8,10 @@ y_array can be a set of binary labels or a regressor value. The values in
 y_array are assumed to be paired exactly with the values in the first
 dimension of X_ds.
 """
-import imp
+
 import pandas as pd
+
+from ..utils.importing import import_file
 
 
 class GridFeatureExtractor(object):
@@ -19,10 +21,7 @@ class GridFeatureExtractor(object):
     def train_submission(self, module_path, X_ds, y_array, train_is=None):
         if train_is is None:
             train_is = slice(None, None, None)
-        submitted_feature_extractor_file = '{}/{}.py'.format(
-            module_path, self.element_names[0])
-        feature_extractor = imp.load_source(
-            self.element_names[0], submitted_feature_extractor_file)
+        feature_extractor = import_file(module_path, self.element_names[0])
         fe = feature_extractor.FeatureExtractor()
         dim_set = pd.Series(list(X_ds.dims.keys()))
         time_dim = dim_set[dim_set.str.contains("time")][0]

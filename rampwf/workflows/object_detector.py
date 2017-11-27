@@ -1,7 +1,8 @@
 from __future__ import division
 
-import imp
 import numpy as np
+
+from ..utils.importing import import_file
 
 
 class ObjectDetector(object):
@@ -60,10 +61,7 @@ class ObjectDetector(object):
             train_is = slice(None, None, None)
 
         # object detector model
-        submitted_model_file = '{}/{}.py'.format(
-            module_path, self.element_names[0])
-        detector = imp.load_source(
-            self.element_names[0], submitted_model_file)
+        detector = import_file(module_path, self.element_names[0])
         clf = detector.ObjectDetector()
 
         # train and return fitted model
