@@ -13,6 +13,7 @@ os.environ['RAMP_TEST_MODE'] = '1'
 
 @pytest.mark.parametrize('kit', RAMP_KITS_AVAILABLE)
 def test_submission_all_kits(kit):
+    orig_dir = os.getcwd()
     tmp_dir = mkdtemp()
     try:
         kit_dir = fetch_ramp_kit(kit, ramp_kits_home=tmp_dir)
@@ -27,6 +28,7 @@ def test_submission_all_kits(kit):
             assert_submission(
                 ramp_kit_dir=kit_dir, ramp_data_dir=kit_dir,
                 submission='starting_kit')
-
     finally:
+        # fetch_ramp_kit will cd into the starting kit directory, go back here
+        os.chdir(orig_dir)
         shutil.rmtree(tmp_dir)
