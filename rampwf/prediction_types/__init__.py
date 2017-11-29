@@ -2,6 +2,7 @@ from .clustering import make_clustering
 from .combined import make_combined
 from .detection import make_detection
 from .multiclass import make_multiclass
+from .ranking import make_ranking
 from .regression import make_regression
 
 __all__ = [
@@ -9,5 +10,6 @@ __all__ = [
     'make_combined',
     'make_detection',
     'make_multiclass',
+    'make_ranking',
     'make_regression',
 ]
