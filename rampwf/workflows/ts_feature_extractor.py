@@ -30,8 +30,10 @@ bigger than the corresponding `check_index`.
 
 # Author: Balazs Kegl <balazs.kegl@gmail.com>
 # License: BSD 3 clause
-import imp
+
 import numpy as np
+
+from ..utils.importing import import_file
 
 
 class TimeSeriesFeatureExtractor(object):
@@ -56,10 +58,7 @@ class TimeSeriesFeatureExtractor(object):
             # is computed below
             train_is = np.arange(len(y_array))
         n_burn_in = X_ds.n_burn_in
-        submitted_ts_feature_extractor_file = '{}/{}.py'.format(
-            module_path, self.element_names[0])
-        ts_feature_extractor = imp.load_source(
-            self.element_names[0], submitted_ts_feature_extractor_file)
+        ts_feature_extractor = import_file(module_path, self.element_names[0])
         ts_fe = ts_feature_extractor.FeatureExtractor()
         # Fit is not required in the submissions but we add it here in case
         # of, e.g., a recurrent neural net which is impossible to train once

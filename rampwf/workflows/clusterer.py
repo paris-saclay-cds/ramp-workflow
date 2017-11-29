@@ -22,8 +22,9 @@ into `prediction_types.Clustering` and evaluated by
 # Author: Balazs Kegl <balazs.kegl@gmail.com>
 # License: BSD 3 clause
 
-import imp
 import numpy as np
+
+from ..utils.importing import import_file
 
 
 class Clusterer(object):
@@ -33,10 +34,7 @@ class Clusterer(object):
     def train_submission(self, module_path, X_array, y_array, train_is=None):
         if train_is is None:
             train_is = slice(None, None, None)
-        submitted_clusterer_file = '{}/{}.py'.format(
-            module_path, self.element_names[0])
-        clusterer = imp.load_source(
-            self.element_names[0], submitted_clusterer_file)
+        clusterer = import_file(module_path, self.element_names[0])
         ctr = clusterer.Clusterer()
         ctr.fit(X_array[train_is], y_array[train_is])
         return ctr
