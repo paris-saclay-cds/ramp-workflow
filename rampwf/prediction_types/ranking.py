@@ -95,8 +95,8 @@ def _combine(cls, predictions_list, index_list=None):
         index_list = range(len(predictions_list))
     y_comb_list = np.array(
         [np.array(
-            [rankdata(predictions_list[i].y_pred[:, 0]),
-             len(predictions_list[i].y_pred) - 
+            [len(predictions_list[i].y_pred) - 
+             rankdata(predictions_list[i].y_pred[:, 0]),
              rankdata(predictions_list[i].y_pred[:, 1])]).T
             for i in index_list])
     # I expect to see RuntimeWarnings in this block
