@@ -26,11 +26,13 @@ class SoftAccuracy(BaseScoreType):
 
     def __call__(self, y_true_proba, y_proba):
         # Normalize rows
+        y_proba = np.clip(y_proba, 0, 1)
         y_proba_normalized = y_proba / np.sum(y_proba, axis=1, keepdims=True)
         # Smooth true probabilities with score_matrix
         y_true_smoothed = y_true_proba.dot(self.score_matrix)
         # Compute dot product between the predicted probabilities and
         # the smoothed true "probabilites" ("" because it does not sum to 1)
         scores = np.sum(y_proba_normalized * y_true_smoothed, axis=1)
+        scores = np.nan_to_num(scores)
         score = np.mean(scores)
         return score
