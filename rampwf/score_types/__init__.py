@@ -1,5 +1,6 @@
 from .accuracy import Accuracy
 from .balanced_accuracy import BalancedAccuracy
+from .base import BaseScoreType
 from .brier_score import (
     BrierScore, BrierSkillScore, BrierScoreReliability, BrierScoreResolution)
 from .clustering_efficiency import ClusteringEfficiency
@@ -22,6 +23,7 @@ from .soft_accuracy import SoftAccuracy
 __all__ = [
     'Accuracy',
     'BalancedAccuracy',
+    'BaseScoreType',
     'BrierScore',
     'BrierScoreReliability',
     'BrierScoreResolution',
