@@ -15,7 +15,7 @@ class ObjectDetector(object):
     image_preprocessor.py and object_detector_model.py (they can be
     modified by changing `workflow_element_names`).
 
-    image_preprocessor.py needs a `tranform` function, which
+    image_preprocessor.py needs a `transform` function, which
     is used for preprocessing the images. It takes an image as input
     and it returns an image as an output. Optionally, image_preprocessor.py
     can also have a function `transform_test`, which is used only to preprocess
