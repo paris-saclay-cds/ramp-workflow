@@ -39,7 +39,10 @@ class Predictions(BasePrediction):
         if index_list is None:  # we combine the full list
             index_list = range(len(predictions_list))
         y_comb_list = [predictions_list[i].y_pred for i in index_list]
+        n_preds = len(y_comb_list)
 
+        # for all pairs of the predictions: combine its detections and keep
+        # those combinations that have a IOU > threshold
         matches = []
         matches_combined = []
 
@@ -55,6 +58,10 @@ class Predictions(BasePrediction):
             idx1 = idx1[ious > cls.iou_threshold]
             idx2 = idx2[ious > cls.iou_threshold]
 
+            # add each matching combination to list as (model_idx, pred_idx)
+            # where:
+            # model_idx is the index into y_comb_list
+            # pred_idx is the index into y_comb_list[model_idx]
             for i1, i2 in zip(idx1, idx2):
                 comb = (np.asarray(pred1[i1]) + np.array(pred2[i2])) / 2
                 matches.append(((mod1, i1), (mod2, i2)))
@@ -65,21 +72,34 @@ class Predictions(BasePrediction):
             combined_predictions = cls(y_pred=combined)
             return combined_predictions, matches
 
+        # the matches (set of (model_idx, pred_idx) tuples) are the nodes of
+        # our graph:
+        # - TODO: remove redundant edges/nodes
+        # - convert to adjacency matrix
+        # - get connected components of matrix
         nodes = sorted(set([x for y in matches for x in y]))
         M = create_adjacency_matrix_from_edge_list(nodes, matches)
         match_groups = get_connected_components(nodes, M)
 
-        preds_combined = []
-
+        # each connected set of detections is combined into a single (c,x,y,r)
         for group in match_groups:
 
+            # convert list of (model_idx, pred_idx) tuples into actual
+            # predictions
             preds = []
             for mod, idx in group:
                 preds.append(y_comb_list[mod][idx])
 
             preds = np.array(preds)
-            pred_combined = np.average(preds[:, 1:], weights=preds[:, 0], axis=0)
-            conf = preds[:, 0].sum() / 3
+
+            # (x, y, r) are averaged weighted with the confidence
+            pred_combined = np.average(preds[:, 1:], weights=preds[:, 0],
+                                       axis=0)
+
+            # the confidence is averaged taking into account missing
+            # predictions
+            preds_combined = []
+            conf = preds[:, 0].sum() / n_preds
             pred_combined = np.insert(pred_combined, 0, conf)
 
             preds_combined.append(pred_combined)
