@@ -6,6 +6,7 @@
 import itertools
 
 import numpy as np
+from scipy import sparse
 
 from .base import BasePrediction
 from ..score_types.detection.iou import cc_iou
@@ -33,29 +34,58 @@ class Predictions(BasePrediction):
         pass
 
     @classmethod
-    def combine(cls, predictions_list, index_list=None):
+    def combine(cls, predictions_list, index_list=None, greedy=False):
 
         if index_list is None:  # we combine the full list
             index_list = range(len(predictions_list))
         y_comb_list = [predictions_list[i].y_pred for i in index_list]
 
         matches = []
+        matches_combined = []
 
-        for a, b in itertools.combinations(y_comb_list, 2):
-            idx1, idx2, ious = _match_tuples([(x, y, r) for (c, x, y, r) in a],
-                                             [(x, y, r) for (c, x, y, r) in b])
+        for mod1, mod2 in itertools.combinations(range(len(y_comb_list)), 2):
+
+            pred1 = y_comb_list[mod1]
+            pred2 = y_comb_list[mod2]
+
+            idx1, idx2, ious = _match_tuples(
+                [(x, y, r) for (c, x, y, r) in pred1],
+                [(x, y, r) for (c, x, y, r) in pred2])
 
             idx1 = idx1[ious > cls.iou_threshold]
             idx2 = idx2[ious > cls.iou_threshold]
 
             for i1, i2 in zip(idx1, idx2):
-                combined = (np.asarray(a[i1]) + np.array(b[i2])) / 2
-                matches.append(combined)
-        print(matches)
-        combined = _greedy_nms(matches)
+                comb = (np.asarray(pred1[i1]) + np.array(pred2[i2])) / 2
+                matches.append(((mod1, i1), (mod2, i2)))
+                matches_combined.append(comb)
 
-        combined_predictions = cls(y_pred=combined)
-        return combined_predictions
+        if greedy:
+            combined = _greedy_nms(matches_combined)
+            combined_predictions = cls(y_pred=combined)
+            return combined_predictions, matches
+
+        nodes = sorted(set([x for y in matches for x in y]))
+        M = create_adjacency_matrix_from_edge_list(nodes, matches)
+        match_groups = get_connected_components(nodes, M)
+
+        preds_combined = []
+
+        for group in match_groups:
+
+            preds = []
+            for mod, idx in group:
+                preds.append(y_comb_list[mod][idx])
+
+            preds = np.array(preds)
+            pred_combined = np.average(preds[:, 1:], weights=preds[:, 0], axis=0)
+            conf = preds[:, 0].sum() / 3
+            pred_combined = np.insert(pred_combined, 0, conf)
+
+            preds_combined.append(pred_combined)
+
+        combined_predictions = cls(y_pred=np.array(preds_combined))
+        return combined_predictions, matches
 
     def set_valid_in_train(self, predictions, test_is):
         """Set a cross-validation slice."""
@@ -100,3 +130,30 @@ def _greedy_nms(y_pred, iou_threshold=0.45):
         boxes_left = boxes_left[similarities <= iou_threshold]
 
     return np.array(maxima)
+
+
+def create_adjacency_matrix_from_edge_list(nodes, matches):
+    # code based on nx.to_scipy_sparse_matrix
+
+    nlen = len(nodes)
+    index = dict(zip(nodes, range(nlen)))
+
+    row, col, data = zip(*((index[u], index[v], 1)
+                         for u, v in matches
+                         if u in index and v in index))
+
+    # symmetrize matrix
+    d = data + data
+    r = row + col
+    c = col + row
+
+    M = sparse.coo_matrix((d, (r, c)), shape=(nlen, nlen), dtype='int8')
+
+    return M
+
+
+def get_connected_components(nodes, matrix):
+    ncon, labels = sparse.csgraph.connected_components(matrix, directed=False)
+    a_nodes = np.empty(len(nodes), dtype=object)
+    a_nodes[:] = nodes
+    return [a_nodes[labels == i] for i in range(ncon)]
