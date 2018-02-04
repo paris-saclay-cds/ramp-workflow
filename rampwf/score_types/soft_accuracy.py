@@ -36,4 +36,6 @@ class SoftAccuracy(BaseScoreType):
         # the smoothed true "probabilites" ("" because it does not sum to 1)
         scores = np.sum(y_proba_normalized * y_true_smoothed, axis=1)
         score = np.mean(scores)
+        # to pick up all zero probabilities
+        score = np.nan_to_num(score)
         return score
