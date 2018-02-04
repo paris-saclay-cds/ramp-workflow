@@ -28,6 +28,7 @@ y_proba_4 = np.array([-1, 0.1, -2])
 y_proba_5 = np.array([0, 0, 0])
 
 
+
 def test_soft_accuracy():
     score_1 = SoftAccuracy(score_matrix=score_matrix_1)
     assert score_1(np.array([y_true_proba_1]), np.array([y_proba_1])) == 1
