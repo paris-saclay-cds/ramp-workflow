@@ -167,6 +167,10 @@ def combine_predictions(preds_list, iou_threshold, greedy=False):
         combined = _greedy_nms(matches_combined)
         return combined, matches
 
+    # if matches is empty, return directly
+    if not matches:
+        return [], matches
+
     # the matches (set of (model_idx, pred_idx) tuples) are the nodes of
     # our graph:
     # - TODO: remove redundant edges/nodes
