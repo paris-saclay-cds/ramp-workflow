@@ -8,6 +8,7 @@
 # License: BSD 3 clause
 
 import numpy as np
+import warnings
 from .base import BasePrediction
 
 
@@ -62,6 +63,24 @@ def _y_pred_label(self):
     return self.label_names[self.y_pred_label_index]
 
 
+@classmethod
+def _combine(cls, predictions_list, index_list=None):
+    if index_list is None:  # we combine the full list
+        index_list = range(len(predictions_list))
+    y_comb_list = np.array(
+        [predictions_list[i].y_pred for i in index_list])
+    # clipping probas into [0, 1], also taking care of the case of all zeros
+    y_comb_list = np.clip(y_comb_list, 10 ** -15, 1 - 10 ** -15)
+    # normalizing probabilities
+    y_comb_list = y_comb_list / np.sum(y_comb_list, axis=2, keepdims=True)
+    # I expect to see RuntimeWarnings in this block
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', category=RuntimeWarning)
+        y_comb = np.nanmean(y_comb_list, axis=0)
+    combined_predictions = cls(y_pred=y_comb)
+    return combined_predictions
+
+
 def make_multiclass(label_names=[]):
     Predictions = type(
         'Predictions',
@@ -74,5 +93,6 @@ def make_multiclass(label_names=[]):
          '_init_from_pred_labels': _init_from_pred_labels,
          'y_pred_label_index': _y_pred_label_index,
          'y_pred_label': _y_pred_label,
+         'combine': _combine,
          })
     return Predictions

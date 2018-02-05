@@ -5,7 +5,7 @@
 
 import numpy as np
 from rampwf.prediction_types import make_multiclass
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 
 def test_init():
@@ -109,3 +109,36 @@ def test_set_valid_in_train():
         [1, 0, 0],
         [0, 0, 1],
     ]))
+
+
+def test_combine():
+    label_names = ['Class_1', 'Class_2', 'Class_3']
+    Predictions = make_multiclass(label_names=label_names)
+    ps_11 = [0.7, 0.1, 0.2]
+    ps_12 = [0.1, 0.8, 0.1]
+    ps_13 = [0.2, 0.5, 0.3]
+    predictions_1 = Predictions(y_pred=[ps_11, ps_12, ps_13])
+    ps_21 = [0.3, 0.4, 0.3]
+    ps_22 = [0.5, 0.2, 0.3]
+    ps_23 = [0.1, 0.5, 0.4]
+    predictions_2 = Predictions(y_pred=[ps_21, ps_22, ps_23])
+    combined = Predictions.combine(
+        predictions_list=[predictions_1, predictions_2],
+        index_list=[0, 1])
+    ps_combined_11 = [0.5, 0.25, 0.25]
+    ps_combined_12 = [0.3, 0.5, 0.2]
+    ps_combined_13 = [0.15, 0.5, 0.35]
+    assert_array_almost_equal(
+        combined.y_pred, [ps_combined_11, ps_combined_12, ps_combined_13])
+    ps_31 = [-1, 0, 0.5]
+    ps_32 = [-1, -1, 0]
+    ps_33 = [0, 0.2, 0.3]
+    predictions_3 = Predictions(y_pred=[ps_31, ps_32, ps_33])
+    combined = Predictions.combine(
+        predictions_list=[predictions_1, predictions_3],
+        index_list=[0, 1])
+    ps_combined_21 = [0.35, 0.05, 0.6]
+    ps_combined_22 = [0.05 + 1./6, 0.4 + 1./6, 0.05 + 1./6]
+    ps_combined_23 = [0.1, 0.45, 0.45]
+    assert_array_almost_equal(
+        combined.y_pred, [ps_combined_21, ps_combined_22, ps_combined_23])
