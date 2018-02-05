@@ -46,7 +46,8 @@ class Predictions(BasePrediction):
 
         for i in range(n_preds):
 
-            preds_list = [preds[i] for preds in y_comb_list]
+            preds_list = [preds[i] for preds in y_comb_list
+                          if preds[i] is not None]
 
             preds_combined, _ = combine_predictions(
                 preds_list, cls.iou_threshold, greedy=greedy)
