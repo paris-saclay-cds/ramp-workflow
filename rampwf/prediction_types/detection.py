@@ -123,7 +123,8 @@ def create_adjacency_matrix_from_edge_list(nodes, matches):
 
 
 def get_connected_components(nodes, matrix):
-    ncon, labels = sparse.csgraph.connected_components(matrix, directed=False)
+    from scipy.sparse.csgraph import connected_components
+    ncon, labels = connected_components(matrix, directed=False)
     a_nodes = np.empty(len(nodes), dtype=object)
     a_nodes[:] = nodes
     return [a_nodes[labels == i] for i in range(ncon)]
