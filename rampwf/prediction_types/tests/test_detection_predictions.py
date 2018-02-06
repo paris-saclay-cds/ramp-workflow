@@ -53,3 +53,16 @@ def test_combine_ignore_none():
     expected[:] = [[(2. / 3, 1, 1, 1)], [(1, 3, 3, 1)]]
     assert_allclose(expected[0], y_pred_combined[0])
     assert_allclose(expected[1], y_pred_combined[1])
+
+
+def test_combine_zero_conf():
+
+    pred1 = Predictions(
+        y_pred=[[(0, 1, 1, 1)], [(0, 1, 1, 1)]])
+    pred2 = Predictions(
+        y_pred=[[(1, 1.1, 1.1, 1)], [(0, 1, 1, 1)]])
+
+    y_pred_combined = Predictions.combine([pred1, pred2]).y_pred
+
+    expected = [[(0.5, 1.1, 1.1, 1)], [(0., 1, 1, 1)]]
+    [assert_array_equal(x, y) for x, y in zip(y_pred_combined, expected)]

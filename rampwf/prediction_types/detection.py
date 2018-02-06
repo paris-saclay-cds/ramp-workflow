@@ -195,13 +195,20 @@ def combine_predictions(preds_list, iou_threshold, greedy=False):
 
         preds = np.array(preds)
 
-        # (x, y, r) are averaged weighted with the confidence
-        pred_combined = np.average(preds[:, 1:], weights=preds[:, 0], axis=0)
+        # combine in a single (c, x, y, r)
+        if preds[:, 0].sum() == 0:
+            # corner case of all confidence being zero: just taking mean
+            # because weighted average will fail
+            pred_combined = np.mean(preds, axis=0)
+        else:
+            # (x, y, r) are averaged weighted with the confidence
+            pred_combined = np.average(preds[:, 1:], weights=preds[:, 0],
+                                       axis=0)
 
-        # the confidence is averaged taking into account missing
-        # predictions
-        conf = preds[:, 0].sum() / n_preds
-        pred_combined = np.insert(pred_combined, 0, conf)
+            # the confidence is averaged taking into account missing
+            # predictions
+            conf = preds[:, 0].sum() / n_preds
+            pred_combined = np.insert(pred_combined, 0, conf)
 
         preds_combined.append(pred_combined)
 
