@@ -269,6 +269,9 @@ def test_cc_intersection():
         cc_intersection(-1, 1, 1)
         cc_intersection(1, -1, 1)
         cc_intersection(1, 1, -1)
+    
+    # floating point corner case
+    assert cc_intersection(11.0, 6.0, 4.999999999999999) == 0
 
 
 def test_cc_intersection_completely_overlapping():
