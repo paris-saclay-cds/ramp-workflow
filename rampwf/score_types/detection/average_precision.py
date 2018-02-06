@@ -82,7 +82,10 @@ def _add_id(y):
             tmp = np.insert(tmp, 0, i, axis=1)
             y_new.append(tmp)
 
-    return np.vstack(y_new)
+    if y_new:
+        return np.vstack(y_new)
+    else:
+        return np.array([[]])
 
 
 def precision_recall_curve_greedy(y_true, y_pred, iou_threshold=0.5):
@@ -111,6 +114,8 @@ def precision_recall_curve_greedy(y_true, y_pred, iou_threshold=0.5):
     """
     # flatten y_pred into single array and add column with img id
     y_pred2 = _add_id(y_pred)
+    if not y_pred2.size:
+        return np.array([]), np.array([]), np.array([])
 
     # Sorting predicted objects by decreasing confidence
     y_pred2_sorted = y_pred2[np.argsort(y_pred2[:, 1])[::-1], :]
