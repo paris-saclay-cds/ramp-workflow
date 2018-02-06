@@ -54,6 +54,20 @@ def test_combine_ignore_none():
     assert_allclose(expected[0], y_pred_combined[0])
     assert_allclose(expected[1], y_pred_combined[1])
 
+    # corner case: no overlap in folds
+    pred1 = Predictions(
+        y_pred=[[(1., 1, 1, 1)], None, None])
+    pred2 = Predictions(
+        y_pred=[None, [(1., 3, 3, 1)], None])
+    pred3 = Predictions(
+        y_pred=[None, None, [(1., 3, 3, 1)]])
+
+    y_pred_combined = Predictions.combine([pred1, pred2, pred3]).y_pred
+
+    expected = [[(1., 1, 1, 1)], [(1., 3, 3, 1)], [(1., 3, 3, 1)]]
+    assert len(expected) == len(y_pred_combined)
+    [assert_array_equal(x, y) for x, y in zip(y_pred_combined, expected)]
+
 
 def test_combine_zero_conf():
 
