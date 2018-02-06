@@ -39,11 +39,11 @@ def test_combine_no_match():
 def test_combine_ignore_none():
 
     pred1 = Predictions(
-        y_pred=[[(1, 1, 1, 1)], None])
+        y_pred=[[(1., 1, 1, 1)], None])
     pred2 = Predictions(
-        y_pred=[[(1, 1, 1, 1)], [(1, 3, 3, 1)]])
+        y_pred=[[(1., 1, 1, 1)], [(1., 3, 3, 1)]])
     pred3 = Predictions(
-        y_pred=[[(1, 3, 3, 1)], [(1, 3, 3, 1)]])
+        y_pred=[[(1., 3, 3, 1)], [(1., 3, 3, 1)]])
 
     y_pred_combined = Predictions.combine([pred1, pred2, pred3]).y_pred
 
