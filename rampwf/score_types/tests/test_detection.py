@@ -158,6 +158,14 @@ def test_average_precision():
     assert ap(y_true, y_pred) == 0.5
 
     # no match
+    y_true = [[], []]
+    y_pred = [[], []]
+    assert ap(y_true, y_pred) == 0
+    y_true = [[(1, 1, 1)], []]
+    y_pred = [[], []]
+    assert ap(y_true, y_pred) == 0
+
+    # only empty predictions
     y_true = [[(1, 1, 1)]]
     y_pred = [[(1, 3, 3, 1)]]
     assert ap(y_true, y_pred) == 0
