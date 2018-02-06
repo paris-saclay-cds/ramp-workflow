@@ -138,7 +138,7 @@ def test_combine():
         predictions_list=[predictions_1, predictions_3],
         index_list=[0, 1])
     ps_combined_21 = [0.35, 0.05, 0.6]
-    ps_combined_22 = [0.05 + 1./6, 0.4 + 1./6, 0.05 + 1./6]
+    ps_combined_22 = [0.05 + 1. / 6, 0.4 + 1. / 6, 0.05 + 1. / 6]
     ps_combined_23 = [0.1, 0.45, 0.45]
     assert_array_almost_equal(
         combined.y_pred, [ps_combined_21, ps_combined_22, ps_combined_23])

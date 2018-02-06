@@ -50,6 +50,6 @@ def test_combine_ignore_none():
     # first item: 2 out of 3 match -> confidence of 2/3
     # second item: ignore None, so 2 out of 2 match -> confidence of 2/2 = 1
     expected = np.empty(2, dtype=object)
-    expected[:] = [[(2./3, 1, 1, 1)], [(1, 3, 3, 1)]]
+    expected[:] = [[(2. / 3, 1, 1, 1)], [(1, 3, 3, 1)]]
     assert_allclose(expected[0], y_pred_combined[0])
     assert_allclose(expected[1], y_pred_combined[1])
