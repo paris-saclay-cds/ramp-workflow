@@ -16,7 +16,8 @@ class DrugSpectra(object):
     def train_submission(self, module_path, X_df, y_array, train_is=None):
         if train_is is None:
             train_is = slice(None, None, None)
-        X_train_df = X_df.iloc[train_is]
+        # Avoid setting with copy warning
+        X_train_df = X_df.iloc[train_is].copy()
         y_train_array = y_array[train_is]
         y_train_clf_array = y_train_array[:, 0]
         y_train_reg_array = y_train_array[:, 1].astype(float)
@@ -41,6 +42,8 @@ class DrugSpectra(object):
         labels, fe_clf, clf, fe_reg, reg = trained_model
         y_proba_clf = self.feature_extractor_classifier_workflow.\
             test_submission((fe_clf, clf), X_df)
+        # Avoid setting with copy warning
+        X_df = X_df.copy()
         # Concatenating ground y_proba to X_train_df.
         for i, label in enumerate(labels):
             X_df.loc[:, label] = y_proba_clf[:, i]
