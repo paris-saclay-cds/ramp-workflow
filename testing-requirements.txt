@@ -4,3 +4,4 @@ codecov
 flake8
 gitpython
 nbconvert
+seaborn

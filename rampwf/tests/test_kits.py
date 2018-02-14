@@ -1,9 +1,13 @@
 import os
 
-from rampwf.utils.testing import assert_submission
+from rampwf.utils.testing import assert_submission, assert_notebook
 
 
 PATH = os.path.dirname(__file__)
+
+
+def test_notebook_testing():
+    assert_notebook(ramp_kit_dir=os.path.join(PATH, "kits", "iris"))
 
 
 def test_iris():
