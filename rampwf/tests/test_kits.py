@@ -44,3 +44,12 @@ def test_air_passengers():
         ramp_data_dir=os.path.join(PATH, "kits", "air_passengers"),
         submission='starting_kit', is_pickle=True,
         save_y_preds=False, retrain=False)
+
+
+def test_drug_spectra():
+
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "drug_spectra"),
+        ramp_data_dir=os.path.join(PATH, "kits", "drug_spectra"),
+        submission='starting_kit', is_pickle=True,
+        save_y_preds=False, retrain=False)
