@@ -5,3 +5,6 @@ flake8
 gitpython
 nbconvert
 seaborn
+netCDF4
+xarray
+
