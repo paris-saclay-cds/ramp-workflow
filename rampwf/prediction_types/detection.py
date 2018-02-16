@@ -34,7 +34,8 @@ class Predictions(BasePrediction):
         pass
 
     @classmethod
-    def combine(cls, predictions_list, index_list=None, greedy=False):
+    def combine(cls, predictions_list, index_list=None, greedy=False,
+                method=None):
 
         if index_list is None:  # we combine the full list
             index_list = range(len(predictions_list))
@@ -54,8 +55,12 @@ class Predictions(BasePrediction):
                 # the single one that is not None
                 preds_combined = preds_list[0]
             else:
-                preds_combined, _ = combine_predictions(
-                    preds_list, cls.iou_threshold, greedy=greedy)
+                if method is not None:
+                    preds_combined = combine_predictions_GMM(
+                        preds_list, method=method)
+                else:
+                    preds_combined, _ = combine_predictions(
+                        preds_list, cls.iou_threshold, greedy=greedy)
 
             y_preds_combined[i] = preds_combined
 
@@ -218,3 +223,57 @@ def combine_predictions(preds_list, iou_threshold, greedy=False):
         preds_combined.append(pred_combined)
 
     return preds_combined, matches
+
+
+def _sample_predictions(preds, n_samples=100):
+    from scipy.stats import multivariate_normal
+
+    samples = []
+
+    for pred in preds:
+        for (c, x, y, r) in pred:
+            rv = multivariate_normal([x, y], r)
+            n = int(n_samples * c)
+            smpls = rv.rvs(n)
+            samples.append(smpls)
+
+    if samples:
+        return np.vstack(samples)
+    else:
+        return []
+
+
+def _find_mixture_gaussians_hdbscan(data, max_n_samples):
+    import hdbscan
+    km = hdbscan.HDBSCAN(allow_single_cluster=True)
+    labels = km.fit_predict(data)
+
+    n_clusters = len(np.unique(labels))
+
+    objs = []
+
+    for i in range(n_clusters):
+        mask = labels == i
+        c = mask.sum() / max_n_samples
+        x, y = data[mask].mean(axis=0)
+        r = np.sqrt(np.mean((data[mask] - np.array([x, y]))**2)) * 2
+        objs.append((c, x, y, r))
+    return objs
+
+
+def combine_predictions_GMM(preds, n_samples=100, method='hdbscan'):
+
+    samples = _sample_predictions(preds, n_samples)
+    n_preds = [len(p) for p in preds]
+    max_n_samples = n_samples * len(preds)
+
+    if method == 'hdbscan':
+        if max(n_preds) > 0:
+            blended = _find_mixture_gaussians_hdbscan(
+                samples, max_n_samples=max_n_samples)
+        else:
+            blended = []
+    else:
+        raise ValueError("method={} is not supported".format(method))
+
+    return blended
