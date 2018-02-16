@@ -248,7 +248,7 @@ def _find_mixture_gaussians_hdbscan(data, max_n_samples):
     km = hdbscan.HDBSCAN(allow_single_cluster=True)
     labels = km.fit_predict(data)
 
-    n_clusters = len(np.unique(labels))
+    n_clusters = len(np.unique(labels[labels >=0]))
 
     objs = []
 
