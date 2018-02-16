@@ -243,12 +243,28 @@ def _sample_predictions(preds, n_samples=100):
         return []
 
 
+def _find_mixture_gaussians_kmean(data, n_clusters, max_n_samples):
+    from sklearn.cluster import KMeans
+    km = KMeans(n_clusters=n_clusters)
+    labels = km.fit_predict(data)
+
+    objs = []
+
+    for i in range(n_clusters):
+        mask = labels == i
+        c = mask.sum() / max_n_samples
+        x, y = km.cluster_centers_[i]
+        r = np.mean((data[mask] - km.cluster_centers_[i])**2)
+        objs.append((c, x, y, r))
+    return objs
+
+
 def _find_mixture_gaussians_hdbscan(data, max_n_samples):
     import hdbscan
     km = hdbscan.HDBSCAN(allow_single_cluster=True)
     labels = km.fit_predict(data)
 
-    n_clusters = len(np.unique(labels[labels >=0]))
+    n_clusters = len(np.unique(labels[labels >= 0]))
 
     objs = []
 
@@ -256,7 +272,7 @@ def _find_mixture_gaussians_hdbscan(data, max_n_samples):
         mask = labels == i
         c = mask.sum() / max_n_samples
         x, y = data[mask].mean(axis=0)
-        r = np.sqrt(np.mean((data[mask] - np.array([x, y]))**2)) * 2
+        r = np.mean((data[mask] - np.array([x, y]))**2)
         objs.append((c, x, y, r))
     return objs
 
@@ -271,6 +287,14 @@ def combine_predictions_GMM(preds, n_samples=100, method='hdbscan'):
         if max(n_preds) > 0:
             blended = _find_mixture_gaussians_hdbscan(
                 samples, max_n_samples=max_n_samples)
+        else:
+            blended = []
+    elif method.startswith('kmeans-'):  # eg 'kmeans-median'
+        func = method.split('-')[1]
+        n = int(getattr(np, func)(n_preds))
+        if n > 0:
+            blended = _find_mixture_gaussians_kmean(
+                samples, n_clusters=n, max_n_samples=max_n_samples)
         else:
             blended = []
     else:
