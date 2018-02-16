@@ -28,7 +28,8 @@ fg_colors = {
 
 
 def _print_title(string):
-    print(stylize(string.encode('utf-8'), fg(fg_colors['title']) + attr('bold')))
+    print(stylize(string.encode('utf-8'),
+                  fg(fg_colors['title']) + attr('bold')))
 
 
 def _print_warning(string):
