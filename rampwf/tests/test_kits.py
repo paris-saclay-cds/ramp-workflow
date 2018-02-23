@@ -53,3 +53,12 @@ def test_drug_spectra():
         ramp_data_dir=os.path.join(PATH, "kits", "drug_spectra"),
         submission='starting_kit', is_pickle=True,
         save_y_preds=False, retrain=False)
+
+
+def test_mars_craters():
+
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "mars_craters"),
+        ramp_data_dir=os.path.join(PATH, "kits", "mars_craters"),
+        submission='starting_kit', is_pickle=True,
+        save_y_preds=False, retrain=False)
