@@ -8,3 +8,6 @@ coverage.xml
 ramp_workflow.egg-info
 .cache
 Makefile
+
+# included test starting kits
+training_output/
