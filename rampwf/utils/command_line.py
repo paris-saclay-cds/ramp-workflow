@@ -130,9 +130,10 @@ def create_ramp_blend_submissions_parser():
                         default='ALL',
                         type=str,
                         help='The submissions to blend. They should be located'
-                        ' in the "submissions" folder of the starting kit. If'
-                        ' "ALL", all submissions in the directory will be'
-                        ' blended.')
+                        ' in the "submissions" folder of the starting kit.'
+                        ' Specify submissions separated by a comma without'
+                        ' spaces. If "ALL", all submissions in the directory'
+                        ' will be blended.')
     parser.add_argument('--save-y-preds', dest='save_y_preds',
                         action='store_true',
                         help='Specify this flag to save predictions '
