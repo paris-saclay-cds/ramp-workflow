@@ -1,7 +1,8 @@
 from __future__ import division
 
-import imp
 import numpy as np
+
+from ..utils.importing import import_file
 
 
 class ObjectDetector(object):
@@ -14,7 +15,7 @@ class ObjectDetector(object):
     image_preprocessor.py and object_detector_model.py (they can be
     modified by changing `workflow_element_names`).
 
-    image_preprocessor.py needs a `tranform` function, which
+    image_preprocessor.py needs a `transform` function, which
     is used for preprocessing the images. It takes an image as input
     and it returns an image as an output. Optionally, image_preprocessor.py
     can also have a function `transform_test`, which is used only to preprocess
@@ -60,10 +61,7 @@ class ObjectDetector(object):
             train_is = slice(None, None, None)
 
         # object detector model
-        submitted_model_file = '{}/{}.py'.format(
-            module_path, self.element_names[0])
-        detector = imp.load_source(
-            self.element_names[0], submitted_model_file)
+        detector = import_file(module_path, self.element_names[0])
         clf = detector.ObjectDetector()
 
         # train and return fitted model
