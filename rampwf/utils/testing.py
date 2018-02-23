@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 from colored import stylize, fg, attr
 import cloudpickle as pickle
-from .combine import get_score_cv_bags
+from .combine import get_score_cv_bags, blend_on_fold
 
 fg_colors = {
     'official_train': 'light_green',
@@ -267,10 +267,78 @@ def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
     """Save a prediction vector in file.
 
     If problem.save_y_pred is implemented, y_pred is passed to it. Otherwise,
-    np.savetxt is used on y_pred. If it crashes, a warning it raised. The file
+    np.savez_compressed is used on y_pred. If it crashes, a warning is raised.
+    The file is (typically) in
+    submissions/<submission_name>/training_output/y_pred_<suffix>.npz or
+    submissions/<submission_name>/training_output/fold_<i>/y_pred_<suffix>.npz.
+
+    Parameters
+    ----------
+    problem : a problem object
+        loaded from problem.py, may implement save_y_pred
+    y_pred : a prediction vector
+        a vector of predictions to be saved
+    data_path : str, (default='.')
+        the directory of the ramp-kit to be tested for submission, maybe
+        needed by problem.save_y_pred for, e.g., merging with an index vector
+    output_path : str, (default='.')
+        the directory where (typically) y_pred_<suffix>.npz will be saved
+    suffix : str, (default='test')
+        suffix in (typically) y_pred_<suffix>.npz, can be used in
+        problem.save_y_pred to, e.g., save only test predictions
+    """
+    try:
+        # We try using custom made problem.save_y_pred
+        # obligatory to implement if np.savez_compressed doesn't work on y_pred
+        problem.save_y_pred(y_pred, data_path, output_path, suffix)
+    except AttributeError:
+        # We fall back to numpy savez_compressed
+        try:
+            y_pred_f_name = join(output_path, 'y_pred_{}'.format(suffix))
+            np.savez_compressed(y_pred_f_name, y_pred=y_pred)
+        except Exception as e:
+            _print_warning(
+                "Warning: model can't be saved.\n{}\n".format(e) +
+                'Consider implementing custom save_y_pred in problem.py\n')
+
+
+def _load_y_pred(problem, data_path='.', input_path='.', suffix='test'):
+    """Load a file into a prediction vector.
+
+    If problem.load_y_pred is implemented, y_pred is loaded by it. Otherwise,
+    np.load is used. If it crashes, the exception is raised. The input file
     is (typically) in
-    submissions/<submission_name>/training_output/y_pred_<suffix>.csv or
-    submissions/<submission_name>/training_output/fold_<i>/y_pred_<suffix>.csv.
+    submissions/<submission_name>/training_output/y_pred_<suffix>.npz or
+    submissions/<submission_name>/training_output/fold_<i>/y_pred_<suffix>.npz.
+
+    Parameters
+    ----------
+    problem : a problem object
+        loaded from problem.py, may implement save_y_pred
+    data_path : str, (default='.')
+        the directory of the ramp-kit to be tested for submission, maybe
+        needed by problem.save_y_pred for, e.g., merging with an index vector
+    input_path : str, (default='.')
+        the directory where (typically) y_pred_<suffix>.npz will be saved
+    suffix : str, (default='test')
+        suffix in (typically) y_pred_<suffix>.npz
+    """
+    try:
+        # We try using custom made problem.load_y_pred
+        # obligatory to implement if np.load doesn't work
+        return problem.load_y_pred(data_path, input_path, suffix)
+    except AttributeError:
+        # We fall back to numpy load
+        y_pred_f_name = join(input_path, 'y_pred_{}.npz'.format(suffix))
+        return np.load(y_pred_f_name)['y_pred']
+
+
+def _save_submission(problem, y_pred, data_path='.', output_path='.',
+                     suffix='test'):
+    """Custom save a prediction vector in file to, e.g., submit to Kaggle.
+
+    If problem.save_submission is implemented, y_pred is passed to it.
+    Otherwise nothing happens (the exception is caught silently).
 
     Parameters
     ----------
@@ -288,21 +356,13 @@ def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
         problem.save_y_pred to, e.g., save only test predictions
     """
     try:
-        # We try using custom made problem.save_y_pred
+        # We try using custom made problem.save_submission
         # it may need to re-read the data, e.g., for ids, so we send
-        # it the data path
-        problem.save_y_pred(y_pred, data_path, output_path, suffix)
+        # it the data path. See, e.g.,
+        # https://github.com/ramp-kits/kaggle_seguro/blob/master/problem.py
+        problem.save_submission(y_pred, data_path, output_path, suffix)
     except AttributeError:
-        # We fall back to numpy save
-        try:
-            y_pred_f_name = join(output_path, 'y_pred_{}.csv'.format(suffix))
-            np.savetxt(y_pred_f_name, y_pred)
-        except Exception as e:
-            _print_warning(
-                "Warning: model can't be saved.\n{}\n".format(e) +
-                'Consider implementing custom save_y_pred in problem.py\n' +
-                'See https://github.com/ramp-kits/kaggle_seguro/' +
-                'blob/master/problem.py')
+        pass
 
 
 def _pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
@@ -507,12 +567,59 @@ def _run_submission_on_full_train(problem, module_path, X_train, y_train,
     _print_df_scores(df_scores_rounded, score_types, indent='\t')
 
     if save_y_preds:
-        _save_y_pred(
+        _save_submission(
             problem, y_pred_train, data_path=ramp_data_dir,
             output_path=output_path, suffix='retrain_train')
-        _save_y_pred(
+        _save_submission(
             problem, y_pred_test, data_path=ramp_data_dir,
             output_path=output_path, suffix='retrain_test')
+
+
+def _bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
+                     predictions_test_list, training_output_path,
+                     ramp_data_dir='.', score_type_index=0,
+                     save_y_preds=False, score_table_title='Bagged scores',
+                     score_f_name_prefix=''):
+    _print_title('----------------------------')
+    _print_title(score_table_title)
+    _print_title('----------------------------')
+    valid_is_list = [valid_is for (train_is, valid_is) in cv]
+    ground_truths_train = problem.Predictions(y_true=y_train)
+    ground_truths_test = problem.Predictions(y_true=y_test)
+    score_type = problem.score_types[score_type_index]
+    bagged_valid_predictions, bagged_valid_scores =\
+        get_score_cv_bags(
+            score_type, predictions_valid_list,
+            ground_truths_train, test_is_list=valid_is_list)
+    bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
+        score_type, predictions_test_list, ground_truths_test)
+
+    df_scores = _score_matrix_from_scores(
+        [score_type], ['valid', 'test'],
+        [[bagged_valid_scores[-1]], [bagged_test_scores[-1]]])
+    df_scores_rounded = _round_df_scores(df_scores, [score_type])
+    _print_df_scores(df_scores_rounded, [score_type], indent='\t')
+
+    if save_y_preds:
+        # y_pred_bagged_train.csv contains _out of sample_ (validation)
+        # predictions, but not for all points (contains nans)
+        _save_submission(
+            problem, bagged_valid_predictions.y_pred,
+            data_path=ramp_data_dir, output_path=training_output_path,
+            suffix='{}_bagged_train'.format(score_f_name_prefix))
+        _save_submission(
+            problem, bagged_test_predictions.y_pred, data_path=ramp_data_dir,
+            output_path=training_output_path,
+            suffix='{}_bagged_test'.format(score_f_name_prefix))
+        # also save the partial combined scores (CV bagging learning curves)
+        bagged_train_valid_scores_f_name = join(
+            training_output_path,
+            '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
+        np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
+        bagged_test_scores_f_name = join(
+            training_output_path,
+            '{}_bagged_test_scores.csv'.format(score_f_name_prefix))
+        np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
@@ -548,7 +655,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             os.mkdir(training_output_path)
 
     # saving predictions for CV bagging after the CV loop
-    predictions_train_valid_list = []
+    predictions_valid_list = []
     predictions_test_list = []
     df_scores_list = []
 
@@ -562,7 +669,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 os.mkdir(fold_output_path)
         _print_title('CV fold {}'.format(fold_i))
 
-        predictions_train_valid, predictions_test, df_scores =\
+        predictions_valid, predictions_test, df_scores =\
             _run_submission_on_cv_fold(
                 problem, module_path, X_train, y_train, X_test, y_test,
                 score_types, is_pickle, save_y_preds, fold_output_path,
@@ -572,7 +679,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
         # saving predictions for CV bagging after the CV loop
         df_scores_list.append(df_scores)
-        predictions_train_valid_list.append(predictions_train_valid)
+        predictions_valid_list.append(predictions_valid)
         predictions_test_list.append(predictions_test)
 
     _print_title('----------------------------')
@@ -590,42 +697,89 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             problem, module_path, X_train, y_train, X_test, y_test,
             score_types, is_pickle, save_y_preds, training_output_path,
             ramp_data_dir)
+    _bag_submissions(
+        problem, cv, y_train, y_test, predictions_valid_list,
+        predictions_test_list, training_output_path,
+        ramp_data_dir=ramp_data_dir, score_type_index=0,
+        save_y_preds=save_y_preds)
 
-    _print_title('----------------------------')
-    _print_title('Bagged scores')
-    _print_title('----------------------------')
+
+def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
+                      save_y_preds=False, min_improvement=0.0):
+    problem = assert_read_problem(ramp_kit_dir)
+    _print_title('Blending {}'.format(problem.problem_title))
+    X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
-    ground_truths_train = problem.Predictions(y_true=y_train)
-    ground_truths_test = problem.Predictions(y_true=y_test)
-    score_type = score_types[0]
-    bagged_train_valid_predictions, bagged_train_valid_scores =\
-        get_score_cv_bags(
-            problem.Predictions, score_type, predictions_train_valid_list,
-            ground_truths_train, test_is_list=valid_is_list)
-    bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
-        problem.Predictions, score_type, predictions_test_list,
-        ground_truths_test)
+    score_types = assert_score_types(ramp_kit_dir)
+    contributivitys = np.zeros(len(submissions))
 
-    df_scores = _score_matrix_from_scores(
-        score_types[0:1], ['valid', 'test'],
-        [[bagged_train_valid_scores[-1]], [bagged_test_scores[-1]]])
-    df_scores_rounded = _round_df_scores(df_scores, score_types[0:1])
-    _print_df_scores(df_scores_rounded, score_types[0:1], indent='\t')
+    combined_predictions_valid_list = []
+    foldwise_best_predictions_valid_list = []
+    combined_predictions_test_list = []
+    foldwise_best_predictions_test_list = []
+    for fold_i, valid_is in enumerate(valid_is_list):
+        _print_title('CV fold {}'.format(fold_i))
+        ground_truths_valid = problem.Predictions(y_true=y_train[valid_is])
+        predictions_valid_list = []
+        predictions_test_list = []
+        for submission in submissions:
+            module_path = join(ramp_kit_dir, 'submissions', submission)
+            training_output_path = join(module_path, 'training_output')
+            fold_output_path = join(
+                training_output_path, 'fold_{}'.format(fold_i))
+            y_pred_train = _load_y_pred(
+                problem, data_path=ramp_data_dir,
+                input_path=fold_output_path, suffix='train')
+            y_pred_test = _load_y_pred(
+                problem, data_path=ramp_data_dir,
+                input_path=fold_output_path, suffix='test')
+            predictions_valid = problem.Predictions(
+                y_pred=y_pred_train[valid_is])
+            predictions_valid_list.append(predictions_valid)
+            predictions_test = problem.Predictions(y_pred=y_pred_test)
+            predictions_test_list.append(predictions_test)
 
-    if save_y_preds:
-        # y_pred_bagged_train.csv contains _out of sample_ (validation)
-        # predictions, but not for all points (contains nans)
-        _save_y_pred(
-            problem, bagged_train_valid_predictions.y_pred,
-            data_path=ramp_data_dir, output_path=training_output_path,
-            suffix='bagged_train')
-        _save_y_pred(
-            problem, bagged_test_predictions.y_pred, data_path=ramp_data_dir,
-            output_path=training_output_path, suffix='bagged_test')
-        # also save the partial combined scores (CV bagging learning curves)
-        bagged_train_valid_scores_f_name = join(
-            training_output_path, 'bagged_train_valid_scores.csv')
-        np.savetxt(bagged_train_valid_scores_f_name, bagged_train_valid_scores)
-        bagged_test_scores_f_name = join(
-            training_output_path, 'bagged_test_scores.csv')
-        np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
+        best_index_list = blend_on_fold(
+            predictions_valid_list, ground_truths_valid, score_types[0],
+            min_improvement=min_improvement)
+
+        # we share a unit of 1. among the contributive submissions
+        unit_contributivity = 1. / len(best_index_list)
+        for i in best_index_list:
+            contributivitys[i] += unit_contributivity
+
+        combined_predictions_valid_list.append(
+            problem.Predictions.combine(predictions_valid_list))
+        foldwise_best_predictions_valid_list.append(predictions_valid_list[0])
+        combined_predictions_test_list.append(
+            problem.Predictions.combine(predictions_test_list))
+        foldwise_best_predictions_test_list.append(predictions_test_list[0])
+
+    contributivitys /= len(cv)
+    contributivitys_df = pd.DataFrame()
+    contributivitys_df['submission'] = np.array(submissions)
+    contributivitys_df['contributivity'] = np.round(contributivitys, 3)
+    contributivitys_df = contributivitys_df.reset_index()
+    contributivitys_df = contributivitys_df.sort_values(
+        'contributivity', ascending=False)
+    print(contributivitys_df.to_string(index=False))
+
+    training_output_path = join(ramp_kit_dir, 'training_output')
+    if not os.path.exists(training_output_path):
+        os.mkdir(training_output_path)
+    # bagging the foldwise ensembles
+    _bag_submissions(
+        problem, cv, y_train, y_test, combined_predictions_valid_list,
+        combined_predictions_test_list, training_output_path,
+        ramp_data_dir=ramp_data_dir, score_type_index=0,
+        save_y_preds=save_y_preds, score_table_title='Combined bagged scores',
+        score_f_name_prefix='foldwise_best')
+    # bagging the foldwise best submissions
+    _bag_submissions(
+        problem, cv, y_train, y_test, foldwise_best_predictions_valid_list,
+        foldwise_best_predictions_test_list, training_output_path,
+        ramp_data_dir=ramp_data_dir, score_type_index=0,
+        save_y_preds=save_y_preds,
+        score_table_title='Foldwise best bagged scores',
+        score_f_name_prefix='combined')
