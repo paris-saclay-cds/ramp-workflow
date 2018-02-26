@@ -1,7 +1,7 @@
 # coding: utf-8
 
 """Provide utils to test ramp-kits."""
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import os
 import imp
@@ -27,12 +27,13 @@ fg_colors = {
 }
 
 
-def _print_title(str):
-    print(stylize(str, fg(fg_colors['title']) + attr('bold')))
+def _print_title(string):
+    print(stylize(string.encode('utf-8'),
+                  fg(fg_colors['title']) + attr('bold')))
 
 
-def _print_warning(str):
-    print(stylize(str, fg(fg_colors['warning'])))
+def _print_warning(string):
+    print(stylize(string.encode('utf-8'), fg(fg_colors['warning'])))
 
 
 def _delete_line_from_file(f_name, line_to_delete):
@@ -73,7 +74,7 @@ def assert_notebook(ramp_kit_dir='.'):
 
 def assert_read_problem(ramp_kit_dir='.'):
     # giving a random name to the module so it passes looped tests
-    module_name = str(int(1000000000 * np.random.rand()))
+    module_name = "{}".format(np.random.randint(1000000000))
     problem = imp.load_source(module_name, join(ramp_kit_dir, 'problem.py'))
     return problem
 
@@ -107,7 +108,7 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def _mean_score_matrix(df_scores_list, score_types):
-    u"""Construct a mean ± std score dataframe from a list of score dataframes.
+    """Construct a mean ± std score dataframe from a list of score dataframes.
 
     Parameters
     ----------
@@ -153,7 +154,9 @@ def _score_matrix_from_scores(score_types, steps, scoress):
     for step, scores in zip(steps, scoress):
         for score_type, score in zip(score_types, scores):
             results.append(
-                {'step': str(step), 'score': score_type.name, 'value': score})
+                {'step': "{}".format(step),
+                 'score': score_type.name,
+                 'value': score})
     df_scores = pd.DataFrame(results)
     df_scores = df_scores.set_index(['step', 'score'])['value']
     df_scores = df_scores.unstack()
@@ -232,8 +235,10 @@ def _print_df_scores(df_scores, score_types, indent=''):
             ordered_index, [score_type.name for score_type in score_types]]
     except Exception:
         _print_warning("Couldn't re-order the score matrix..")
+
     with pd.option_context("display.width", 160):
         df_repr = repr(df_scores)
+
     df_repr_out = []
     for line, color_key in zip(df_repr.splitlines(),
                                [None, None] +
@@ -259,7 +264,8 @@ def _print_df_scores(df_scores, score_types, indent=''):
                 line = line.replace(token_from, token_to)
         line = indent + line
         df_repr_out.append(line)
-    print('\n'.join(df_repr_out))
+    scores = '\n'.join(df_repr_out).encode('utf-8')
+    print(scores)
 
 
 def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
