@@ -6,47 +6,19 @@ from __future__ import print_function
 import os
 import imp
 from subprocess import call
-from os.path import join, abspath
 from collections import OrderedDict
 
-import pandas as pd
 import numpy as np
-from colored import stylize, fg, attr
+import pandas as pd
 import cloudpickle as pickle
+
+from .misc import delete_line_from_file
+from .colors import print_title, print_warning, print_df_scores
 from .combine import get_score_cv_bags, blend_on_fold
-
-fg_colors = {
-    'official_train': 'light_green',
-    'official_valid': 'light_blue',
-    'official_test': 'red',
-    'train': 'dark_sea_green_3b',
-    'valid': 'light_slate_blue',
-    'test': 'pink_1',
-    'title': 'gold_3b',
-    'warning': 'grey_46',
-}
-
-
-def _print_title(str):
-    print(stylize(str, fg(fg_colors['title']) + attr('bold')))
-
-
-def _print_warning(str):
-    print(stylize(str, fg(fg_colors['warning'])))
-
-
-def _delete_line_from_file(f_name, line_to_delete):
-    with open(f_name, "r+") as f:
-        lines = f.readlines()
-        f.seek(0)
-        for line in lines:
-            if line != line_to_delete:
-                f.write(line)
-        f.truncate()
 
 
 def execute_notebook(ramp_kit_dir='.'):
-    problem_name = abspath(ramp_kit_dir).split('/')[-1]
+    problem_name = os.path.abspath(ramp_kit_dir).split('/')[-1]
     print('Testing if the notebook can be executed')
     call(
         'jupyter nbconvert --execute {}/{}_starting_kit.ipynb '.format(
@@ -56,11 +28,11 @@ def execute_notebook(ramp_kit_dir='.'):
 
 
 def convert_notebook(ramp_kit_dir='.'):
-    problem_name = abspath(ramp_kit_dir).split('/')[-1]
+    problem_name = os.path.abspath(ramp_kit_dir).split('/')[-1]
     print('Testing if the notebook can be converted to html')
     call('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
         ramp_kit_dir, problem_name), shell=True)
-    _delete_line_from_file(
+    delete_line_from_file(
         '{}/{}_starting_kit.html'.format(ramp_kit_dir, problem_name),
         '<link rel="stylesheet" href="custom.css">\n')
 
@@ -74,18 +46,19 @@ def assert_notebook(ramp_kit_dir='.'):
 def assert_read_problem(ramp_kit_dir='.'):
     # giving a random name to the module so it passes looped tests
     module_name = str(int(1000000000 * np.random.rand()))
-    problem = imp.load_source(module_name, join(ramp_kit_dir, 'problem.py'))
+    problem = imp.load_source(module_name,
+                              os.path.join(ramp_kit_dir, 'problem.py'))
     return problem
 
 
 def assert_title(ramp_kit_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
-    _print_title('Testing {}'.format(problem.problem_title))
+    print_title('Testing {}'.format(problem.problem_title))
 
 
 def assert_data(ramp_kit_dir='.', ramp_data_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
-    _print_title('Reading train and test files from {}/data ...'.format(
+    print_title('Reading train and test files from {}/data ...'.format(
         ramp_data_dir))
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     X_test, y_test = problem.get_test_data(path=ramp_data_dir)
@@ -95,7 +68,7 @@ def assert_data(ramp_kit_dir='.', ramp_data_dir='.'):
 def assert_cv(ramp_kit_dir='.', ramp_data_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
-    _print_title('Reading cv ...')
+    print_title('Reading cv ...')
     cv = list(problem.get_cv(X_train, y_train))
     return cv
 
@@ -123,7 +96,7 @@ def _mean_score_matrix(df_scores_list, score_types):
     scores = np.array([df_scores.values for df_scores in df_scores_list])
     meanss = scores.mean(axis=0)
     stdss = scores.std(axis=0)
-    # we use unicode no break space so split in _print_df_scores works
+    # we use unicode no break space so split in print_df_scores works
     strs = np.array([[
         u'{val}\u00A0±\u00A0{std}'.format(
             val=round(mean, score_type.precision),
@@ -211,57 +184,6 @@ def _round_df_scores(df_scores, score_types):
     return df_scores_copy
 
 
-def _print_df_scores(df_scores, score_types, indent=''):
-    """Pretty print the scores dataframe.
-
-    Parameters
-    ----------
-    df_scores : pd.DataFrame
-        the score dataframe
-    score_types : list of score types
-        a list of score types to use
-    indent : str, default=''
-        indentation if needed
-    """
-    try:
-        # try to re-order columns/rows in the printed array
-        # we may not have all train, valid, test, so need to select
-        index_order = np.array(['train', 'valid', 'test'])
-        ordered_index = index_order[np.isin(index_order, df_scores.index)]
-        df_scores = df_scores.loc[
-            ordered_index, [score_type.name for score_type in score_types]]
-    except Exception:
-        _print_warning("Couldn't re-order the score matrix..")
-    with pd.option_context("display.width", 160):
-        df_repr = repr(df_scores)
-    df_repr_out = []
-    for line, color_key in zip(df_repr.splitlines(),
-                               [None, None] +
-                               list(df_scores.index.values)):
-        if line.strip() == 'step':
-            continue
-        if color_key is None:
-            # table header
-            line = stylize(line, fg(fg_colors['title']) + attr('bold'))
-        if color_key is not None:
-            tokens = line.split()
-            tokens_bak = tokens[:]
-            if 'official_' + color_key in fg_colors:
-                # line label and official score bold & bright
-                label_color = fg(fg_colors['official_' + color_key])
-                tokens[0] = stylize(tokens[0], label_color + attr('bold'))
-                tokens[1] = stylize(tokens[1], label_color + attr('bold'))
-            if color_key in fg_colors:
-                # other scores pale
-                tokens[2:] = [stylize(token, fg(fg_colors[color_key]))
-                              for token in tokens[2:]]
-            for token_from, token_to in zip(tokens_bak, tokens):
-                line = line.replace(token_from, token_to)
-        line = indent + line
-        df_repr_out.append(line)
-    print('\n'.join(df_repr_out))
-
-
 def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
                  suffix='test'):
     """Save a prediction vector in file.
@@ -294,10 +216,11 @@ def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
     except AttributeError:
         # We fall back to numpy savez_compressed
         try:
-            y_pred_f_name = join(output_path, 'y_pred_{}'.format(suffix))
+            y_pred_f_name = os.path.join(output_path,
+                                         'y_pred_{}'.format(suffix))
             np.savez_compressed(y_pred_f_name, y_pred=y_pred)
         except Exception as e:
-            _print_warning(
+            print_warning(
                 "Warning: model can't be saved.\n{}\n".format(e) +
                 'Consider implementing custom save_y_pred in problem.py\n')
 
@@ -329,7 +252,8 @@ def _load_y_pred(problem, data_path='.', input_path='.', suffix='test'):
         return problem.load_y_pred(data_path, input_path, suffix)
     except AttributeError:
         # We fall back to numpy load
-        y_pred_f_name = join(input_path, 'y_pred_{}.npz'.format(suffix))
+        y_pred_f_name = os.path.join(input_path,
+                                     'y_pred_{}.npz'.format(suffix))
         return np.load(y_pred_f_name)['y_pred']
 
 
@@ -384,14 +308,14 @@ def _pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
         either the input workflow or the pickled and reloaded workflow
     """
     try:
-        model_file = join(fold_output_path, model_name)
+        model_file = os.path.join(fold_output_path, model_name)
         with open(model_file, 'wb') as pickle_file:
             pickle.dump(trained_workflow, pickle_file)
         with open(model_file, 'r') as pickle_file:
             trained_workflow = pickle.load(pickle_file)
     except Exception as e:
-        _print_warning("Warning: model can't be pickled.")
-        _print_warning(e)
+        print_warning("Warning: model can't be pickled.")
+        print_warning(e)
     return trained_workflow
 
 
@@ -564,7 +488,7 @@ def _run_submission_on_full_train(problem, module_path, X_train, y_train,
                                  ('test', predictions_test)]),
     )
     df_scores_rounded = _round_df_scores(df_scores, score_types)
-    _print_df_scores(df_scores_rounded, score_types, indent='\t')
+    print_df_scores(df_scores_rounded, score_types, indent='\t')
 
     if save_y_preds:
         _save_submission(
@@ -580,9 +504,9 @@ def _bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
                      ramp_data_dir='.', score_type_index=0,
                      save_y_preds=False, score_table_title='Bagged scores',
                      score_f_name_prefix=''):
-    _print_title('----------------------------')
-    _print_title(score_table_title)
-    _print_title('----------------------------')
+    print_title('----------------------------')
+    print_title(score_table_title)
+    print_title('----------------------------')
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     ground_truths_train = problem.Predictions(y_true=y_train)
     ground_truths_test = problem.Predictions(y_true=y_test)
@@ -598,7 +522,7 @@ def _bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         [score_type], ['valid', 'test'],
         [[bagged_valid_scores[-1]], [bagged_test_scores[-1]]])
     df_scores_rounded = _round_df_scores(df_scores, [score_type])
-    _print_df_scores(df_scores_rounded, [score_type], indent='\t')
+    print_df_scores(df_scores_rounded, [score_type], indent='\t')
 
     if save_y_preds:
         # y_pred_bagged_train.csv contains _out of sample_ (validation)
@@ -612,11 +536,11 @@ def _bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
             output_path=training_output_path,
             suffix='{}_bagged_test'.format(score_f_name_prefix))
         # also save the partial combined scores (CV bagging learning curves)
-        bagged_train_valid_scores_f_name = join(
+        bagged_train_valid_scores_f_name = os.path.join(
             training_output_path,
             '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
         np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
-        bagged_test_scores_f_name = join(
+        bagged_test_scores_f_name = os.path.join(
             training_output_path,
             '{}_bagged_test_scores.csv'.format(score_f_name_prefix))
         np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
@@ -644,13 +568,13 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     score_types = assert_score_types(ramp_kit_dir)
 
-    module_path = join(ramp_kit_dir, 'submissions', submission)
-    _print_title('Training {} ...'.format(module_path))
+    module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
+    print_title('Training {} ...'.format(module_path))
 
     training_output_path = ''
     if is_pickle or save_y_preds:
         # creating submissions/<submission>/training_output dir
-        training_output_path = join(module_path, 'training_output')
+        training_output_path = os.path.join(module_path, 'training_output')
         if not os.path.exists(training_output_path):
             os.mkdir(training_output_path)
 
@@ -663,11 +587,11 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         fold_output_path = ''
         if is_pickle or save_y_preds:
             # creating submissions/<submission>/training_output/fold_<i> dir
-            fold_output_path = join(
+            fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
             if not os.path.exists(fold_output_path):
                 os.mkdir(fold_output_path)
-        _print_title('CV fold {}'.format(fold_i))
+        print_title('CV fold {}'.format(fold_i))
 
         predictions_valid, predictions_test, df_scores =\
             _run_submission_on_cv_fold(
@@ -675,24 +599,24 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 score_types, is_pickle, save_y_preds, fold_output_path,
                 fold, ramp_data_dir)
         df_scores_rounded = _round_df_scores(df_scores, score_types)
-        _print_df_scores(df_scores_rounded, score_types, indent='\t')
+        print_df_scores(df_scores_rounded, score_types, indent='\t')
 
         # saving predictions for CV bagging after the CV loop
         df_scores_list.append(df_scores)
         predictions_valid_list.append(predictions_valid)
         predictions_test_list.append(predictions_test)
 
-    _print_title('----------------------------')
-    _print_title('Mean CV scores')
-    _print_title('----------------------------')
+    print_title('----------------------------')
+    print_title('Mean CV scores')
+    print_title('----------------------------')
     df_mean_scores = _mean_score_matrix(df_scores_list, score_types)
-    _print_df_scores(df_mean_scores, score_types, indent='\t')
+    print_df_scores(df_mean_scores, score_types, indent='\t')
 
     if retrain:
         # We retrain on the full training set
-        _print_title('----------------------------')
-        _print_title('Retrain scores')
-        _print_title('----------------------------')
+        print_title('----------------------------')
+        print_title('Retrain scores')
+        print_title('----------------------------')
         _run_submission_on_full_train(
             problem, module_path, X_train, y_train, X_test, y_test,
             score_types, is_pickle, save_y_preds, training_output_path,
@@ -707,7 +631,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                       save_y_preds=False, min_improvement=0.0):
     problem = assert_read_problem(ramp_kit_dir)
-    _print_title('Blending {}'.format(problem.problem_title))
+    print_title('Blending {}'.format(problem.problem_title))
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
     cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
@@ -719,14 +643,14 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     combined_predictions_test_list = []
     foldwise_best_predictions_test_list = []
     for fold_i, valid_is in enumerate(valid_is_list):
-        _print_title('CV fold {}'.format(fold_i))
+        print_title('CV fold {}'.format(fold_i))
         ground_truths_valid = problem.Predictions(y_true=y_train[valid_is])
         predictions_valid_list = []
         predictions_test_list = []
         for submission in submissions:
-            module_path = join(ramp_kit_dir, 'submissions', submission)
-            training_output_path = join(module_path, 'training_output')
-            fold_output_path = join(
+            module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
+            training_output_path = os.path.join(module_path, 'training_output')
+            fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
             y_pred_train = _load_y_pred(
                 problem, data_path=ramp_data_dir,
@@ -765,7 +689,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         'contributivity', ascending=False)
     print(contributivitys_df.to_string(index=False))
 
-    training_output_path = join(ramp_kit_dir, 'training_output')
+    training_output_path = os.path.join(ramp_kit_dir, 'training_output')
     if not os.path.exists(training_output_path):
         os.mkdir(training_output_path)
     # bagging the foldwise ensembles
