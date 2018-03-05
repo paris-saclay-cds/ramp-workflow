@@ -5,36 +5,17 @@ from __future__ import print_function
 
 import os
 import imp
-from subprocess import call
 from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 import cloudpickle as pickle
 
-from .misc import delete_line_from_file
-from .colors import print_title, print_warning, print_df_scores
 from .combine import get_score_cv_bags, blend_on_fold
-
-
-def execute_notebook(ramp_kit_dir='.'):
-    problem_name = os.path.abspath(ramp_kit_dir).split('/')[-1]
-    print('Testing if the notebook can be executed')
-    call(
-        'jupyter nbconvert --execute {}/{}_starting_kit.ipynb '.format(
-            ramp_kit_dir, problem_name) +
-        '--ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL ' +
-        '--ExecutePreprocessor.timeout=600', shell=True)
-
-
-def convert_notebook(ramp_kit_dir='.'):
-    problem_name = os.path.abspath(ramp_kit_dir).split('/')[-1]
-    print('Testing if the notebook can be converted to html')
-    call('jupyter nbconvert --to html {}/{}_starting_kit.ipynb'.format(
-        ramp_kit_dir, problem_name), shell=True)
-    delete_line_from_file(
-        '{}/{}_starting_kit.html'.format(ramp_kit_dir, problem_name),
-        '<link rel="stylesheet" href="custom.css">\n')
+from .notebook import execute_notebook, convert_notebook
+from .colors import print_title, print_warning, print_df_scores
+from .score import (score_matrix, score_matrix_from_scores, round_df_scores,
+                    mean_score_matrix)
 
 
 def assert_notebook(ramp_kit_dir='.'):
@@ -77,111 +58,6 @@ def assert_score_types(ramp_kit_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
     score_types = problem.score_types
     return score_types
-
-
-def _mean_score_matrix(df_scores_list, score_types):
-    u"""Construct a mean ± std score dataframe from a list of score dataframes.
-
-    Parameters
-    ----------
-    df_scores_list : list of pd.DataFrame
-        a list of score data frames to average
-    score_types : list of score types
-        a list of score types to use
-
-    Returns
-    -------
-    df_scores : the mean ± std score dataframe
-    """
-    scores = np.array([df_scores.values for df_scores in df_scores_list])
-    meanss = scores.mean(axis=0)
-    stdss = scores.std(axis=0)
-    # we use unicode no break space so split in print_df_scores works
-    strs = np.array([[
-        u'{val}\u00A0±\u00A0{std}'.format(
-            val=round(mean, score_type.precision),
-            std=round(std, score_type.precision + 1))
-        for mean, std, score_type in zip(means, stds, score_types)]
-        for means, stds in zip(meanss, stdss)])
-    df_scores = pd.DataFrame(
-        strs, columns=df_scores_list[0].columns, index=df_scores_list[0].index)
-    return df_scores
-
-
-def _score_matrix_from_scores(score_types, steps, scoress):
-    """Construct a score dataframe from a matrix of scores.
-
-    Parameters
-    ----------
-    score_types : list of score types
-        a list of score types to use, score_type.name serves as column index
-    steps : a list of strings
-        subset of ['train', 'valid', 'test'], serves as row index
-
-    Returns
-    -------
-    df_scores : the score dataframe
-    """
-    results = []
-    for step, scores in zip(steps, scoress):
-        for score_type, score in zip(score_types, scores):
-            results.append(
-                {'step': str(step), 'score': score_type.name, 'value': score})
-    df_scores = pd.DataFrame(results)
-    df_scores = df_scores.set_index(['step', 'score'])['value']
-    df_scores = df_scores.unstack()
-    return df_scores
-
-
-def _score_matrix(score_types, ground_truth, predictions):
-    """Construct a score dataframe by scoring predictions against ground truth.
-
-    Parameters
-    ----------
-    score_types : list of score types
-        a list of score types to use, score_type.name serves as column index
-    ground_truth : dict of Predictions
-        the ground truth data
-    predictions : dict of Predictions
-        the predicted data
-
-    Returns
-    -------
-    df_scores : pd.DataFrame
-        table of scores (rows = train/valid/test steps, columns = scores)
-    """
-    if set(ground_truth.keys()) != set(predictions.keys()):
-        raise ValueError(('Predictions and ground truth steps '
-                          'do not match:\n'
-                          ' * predictions = {} \n'
-                          ' * ground_truth = {} ')
-                         .format(set(predictions.keys()),
-                                 set(ground_truth.keys())))
-    steps = ground_truth.keys()
-    scoress = [[
-        score_type.score_function(ground_truth[step], predictions[step])
-        for score_type in score_types] for step in ground_truth]
-    return _score_matrix_from_scores(score_types, steps, scoress)
-
-
-def _round_df_scores(df_scores, score_types):
-    """Round scores to the precision set in the score type.
-
-    Parameters
-    ----------
-    df_scores : pd.DataFrame
-        the score dataframe
-    score_types : list of score types
-
-    Returns
-    -------
-    df_scores : the dataframe with rounded scores
-    """
-    df_scores_copy = df_scores.copy()
-    for column, score_type in zip(df_scores_copy, score_types):
-        df_scores_copy[column] = [round(score, score_type.precision)
-                                  for score in df_scores_copy[column]]
-    return df_scores_copy
 
 
 def _save_y_pred(problem, y_pred, data_path='.', output_path='.',
@@ -429,7 +305,7 @@ def _run_submission_on_cv_fold(problem, module_path, X_train, y_train,
             problem, y_pred_test, data_path=ramp_data_dir,
             output_path=fold_output_path, suffix='test')
 
-    df_scores = _score_matrix(
+    df_scores = score_matrix(
         score_types,
         ground_truth=OrderedDict([('train', ground_truth_train_train),
                                   ('valid', ground_truth_train_valid),
@@ -480,14 +356,14 @@ def _run_submission_on_full_train(problem, module_path, X_train, y_train,
     predictions_test = problem.Predictions(y_pred=y_pred_test)
     ground_truth_test = problem.Predictions(y_true=y_test)
 
-    df_scores = _score_matrix(
+    df_scores = score_matrix(
         score_types,
         ground_truth=OrderedDict([('train', ground_truth_train),
                                   ('test', ground_truth_test)]),
         predictions=OrderedDict([('train', predictions_train),
                                  ('test', predictions_test)]),
     )
-    df_scores_rounded = _round_df_scores(df_scores, score_types)
+    df_scores_rounded = round_df_scores(df_scores, score_types)
     print_df_scores(df_scores_rounded, score_types, indent='\t')
 
     if save_y_preds:
@@ -518,10 +394,10 @@ def _bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
         score_type, predictions_test_list, ground_truths_test)
 
-    df_scores = _score_matrix_from_scores(
+    df_scores = score_matrix_from_scores(
         [score_type], ['valid', 'test'],
         [[bagged_valid_scores[-1]], [bagged_test_scores[-1]]])
-    df_scores_rounded = _round_df_scores(df_scores, [score_type])
+    df_scores_rounded = round_df_scores(df_scores, [score_type])
     print_df_scores(df_scores_rounded, [score_type], indent='\t')
 
     if save_y_preds:
@@ -598,7 +474,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 problem, module_path, X_train, y_train, X_test, y_test,
                 score_types, is_pickle, save_y_preds, fold_output_path,
                 fold, ramp_data_dir)
-        df_scores_rounded = _round_df_scores(df_scores, score_types)
+        df_scores_rounded = round_df_scores(df_scores, score_types)
         print_df_scores(df_scores_rounded, score_types, indent='\t')
 
         # saving predictions for CV bagging after the CV loop
@@ -609,7 +485,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     print_title('----------------------------')
     print_title('Mean CV scores')
     print_title('----------------------------')
-    df_mean_scores = _mean_score_matrix(df_scores_list, score_types)
+    df_mean_scores = mean_score_matrix(df_scores_list, score_types)
     print_df_scores(df_mean_scores, score_types, indent='\t')
 
     if retrain:
