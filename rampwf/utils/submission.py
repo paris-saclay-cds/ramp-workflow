@@ -9,9 +9,9 @@ import numpy as np
 
 from .misc import pickle_model
 from .prediction import save_y_pred
+from .combine import get_score_cv_bags
 from .colors import print_title, print_df_scores
-from .score import (score_matrix, round_df_scores, get_score_cv_bags,
-                    score_matrix_from_scores)
+from .score import score_matrix, round_df_scores, score_matrix_from_scores
 
 
 def save_submissions(problem, y_pred, data_path='.', output_path='.',
