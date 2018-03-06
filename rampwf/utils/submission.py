@@ -6,11 +6,11 @@ import os
 from collections import OrderedDict
 
 import numpy as np
+import cloudpickle as pickle
 
-from .misc import pickle_model
 from .prediction import save_y_pred
 from .combine import get_score_cv_bags
-from .colors import print_title, print_df_scores
+from .colors import print_title, print_df_scores, print_warning
 from .score import score_matrix, round_df_scores, score_matrix_from_scores
 
 
@@ -271,3 +271,33 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
             training_output_path,
             '{}_bagged_test_scores.csv'.format(score_f_name_prefix))
         np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
+
+
+def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
+    """Pickle and reload trained workflow.
+
+    If workflow can't be pickled, print warning and return origina' workflow.
+
+    Parameters
+    ----------
+    fold_output_path : str
+        the path into which the model will be pickled
+    trained_workflow : a rampwf.workflow
+        the workflow to be pickled
+    model_name : str (default='model.pkl')
+        the file name of the pickled workflow
+    Returns
+    -------
+    trained_workflow : a rampwf.workflow
+        either the input workflow or the pickled and reloaded workflow
+    """
+    try:
+        model_file = os.path.join(fold_output_path, model_name)
+        with open(model_file, 'wb') as pickle_file:
+            pickle.dump(trained_workflow, pickle_file)
+        with open(model_file, 'r') as pickle_file:
+            trained_workflow = pickle.load(pickle_file)
+    except Exception as e:
+        print_warning("Warning: model can't be pickled.")
+        print_warning(e)
+    return trained_workflow
