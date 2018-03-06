@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from .combine import blend_on_fold
-from .prediction import load_y_pred
+from .io import load_y_pred
 from .pretty_print import print_title, print_df_scores
 from .notebook import execute_notebook, convert_notebook
 from .scoring import round_df_scores, mean_score_matrix
