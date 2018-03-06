@@ -11,9 +11,9 @@ import pandas as pd
 
 from .combine import blend_on_fold
 from .prediction import load_y_pred
-from .colors import print_title, print_df_scores
+from .pretty_print import print_title, print_df_scores
 from .notebook import execute_notebook, convert_notebook
-from .score import round_df_scores, mean_score_matrix
+from .scoring import round_df_scores, mean_score_matrix
 from .submission import (bag_submissions, run_submission_on_cv_fold,
                          run_submission_on_full_train)
 

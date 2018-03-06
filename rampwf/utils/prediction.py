@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-from .colors import print_warning
+from .pretty_print import print_warning
 
 
 def save_y_pred(problem, y_pred, data_path='.', output_path='.',
