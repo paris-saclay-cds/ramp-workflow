@@ -28,6 +28,15 @@ def test_boston_housing():
         save_y_preds=False, retrain=False)
 
 
+def test_titanic():
+
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "titanic"),
+        ramp_data_dir=os.path.join(PATH, "kits", "titanic"),
+        submission='starting_kit', is_pickle=True,
+        save_y_preds=False, retrain=False)
+
+
 def test_el_nino():
 
     assert_submission(
