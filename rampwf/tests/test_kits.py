@@ -1,6 +1,7 @@
 import os
 
-from rampwf.utils.testing import assert_submission, assert_notebook
+from rampwf.utils.testing import (
+    assert_submission, assert_notebook, blend_submissions)
 
 
 PATH = os.path.dirname(__file__)
@@ -11,12 +12,20 @@ def test_notebook_testing():
 
 
 def test_iris():
-
     assert_submission(
         ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
         submission='starting_kit', is_pickle=True,
         save_y_preds=True, retrain=True)
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        submission='random_forest_10_10', is_pickle=True,
+        save_y_preds=True, retrain=True)
+    blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"))
 
 
 def test_boston_housing():
