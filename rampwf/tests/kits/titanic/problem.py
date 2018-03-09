@@ -25,6 +25,7 @@ score_types = [
     rw.score_types.BrierScoreResolution(name="BS Res", precision=3),
     rw.score_types.NormalizedGini(name='ngini', precision=3),
     rw.score_types.BalancedAccuracy(name='bac', precision=3),
+    rw.score_types.MacroAveragedRecall(name='mar', precision=3),
 ]
 
 
