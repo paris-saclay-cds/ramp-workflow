@@ -22,9 +22,8 @@ def execute_notebook(ramp_kit_dir='.'):
     problem_name = os.path.abspath(ramp_kit_dir).split('/')[-1]
     print('Testing if the notebook can be executed')
     subprocess.call(
-        'jupyter nbconvert --execute {}/{}_starting_kit.ipynb'
-        .format(ramp_kit_dir, problem_name)+
-        '--ExecutePreprocessor.timeout=600', shell=True)
+        'jupyter nbconvert --to notebook --execute {}/{}_starting_kit.ipynb'
+        .format(ramp_kit_dir, problem_name), shell=True)
 
 
 def convert_notebook(ramp_kit_dir='.'):
