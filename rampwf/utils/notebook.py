@@ -23,8 +23,7 @@ def execute_notebook(ramp_kit_dir='.'):
     print('Testing if the notebook can be executed')
     subprocess.call(
         'jupyter nbconvert --execute {}/{}_starting_kit.ipynb'
-        .format(ramp_kit_dir, problem_name) +
-        '--ExecutePreprocessor.kernel_name=$IPYTHON_KERNEL ' +
+        .format(ramp_kit_dir, problem_name)+
         '--ExecutePreprocessor.timeout=600', shell=True)
 
 
