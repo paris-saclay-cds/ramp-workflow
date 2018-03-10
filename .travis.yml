@@ -5,9 +5,9 @@ branches:
   only:
   - master
 env:
-  - PYTHON_VERSION=2.7
-  - PYTHON_VERSION=3.5
-  - PYTHON_VERSION=3.6
+  - PYTHON_VERSION=2.7 IPYTHON_KERNEL=python2
+  - PYTHON_VERSION=3.5 IPYTHON_KERNEL=python3
+  - PYTHON_VERSION=3.6 IPYTHON_KERNEL=python3
 before_install:
     - wget -q http://repo.continuum.io/miniconda/Miniconda-3.6.0-Linux-x86_64.sh -O miniconda.sh
     - chmod +x miniconda.sh
