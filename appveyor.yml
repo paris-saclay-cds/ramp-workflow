@@ -24,4 +24,4 @@ install:
   - pip install -e .
 
 test_script:
-  - pytest --pyargs rampwf --cov-report term-missing --cov=rampwf
+  - pytest -s -v --pyargs rampwf --cov-report term-missing --cov=rampwf

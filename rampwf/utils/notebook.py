@@ -44,6 +44,9 @@ def convert_notebook(ramp_kit_dir='.'):
     notebook_filename = os.path.join(
         os.path.abspath(ramp_kit_dir),
         '{}_starting_kit.ipynb'.format(problem_name))
+    print(os.path.abspath(ramp_kit_dir))
+    print('{}_starting_kit.ipynb'.format(problem_name))
+    print(notebook_filename)
     notebook_html_filename = os.path.join(
         os.path.abspath(ramp_kit_dir),
         '{}_starting_kit.html'.format(problem_name))
