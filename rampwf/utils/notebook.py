@@ -24,7 +24,7 @@ def delete_line_from_file(f_name, line_to_delete):
 
 
 def execute_notebook(ramp_kit_dir='.'):
-    problem_name = os.path.abspath(ramp_kit_dir).split('/')[-1]
+    problem_name = os.path.basename(os.path.abspath(ramp_kit_dir))
     print('Testing if the notebook can be executed')
     notebook_filename = os.path.join(
         os.path.abspath(ramp_kit_dir),
@@ -39,7 +39,7 @@ def execute_notebook(ramp_kit_dir='.'):
 
 
 def convert_notebook(ramp_kit_dir='.'):
-    problem_name = os.path.abspath(ramp_kit_dir).split('/')[-1]
+    problem_name = os.path.basename(os.path.abspath(ramp_kit_dir))
     print('Testing if the notebook can be converted to html')
     notebook_filename = os.path.join(
         os.path.abspath(ramp_kit_dir),
