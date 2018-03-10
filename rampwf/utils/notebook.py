@@ -6,10 +6,11 @@ from __future__ import print_function
 
 import os
 import sys
-import shutil
 import subprocess
 
 import nbformat
+import nbconvert
+from nbconvert.exporters import HTMLExporter
 from nbconvert.preprocessors import ExecutePreprocessor
 
 
@@ -32,16 +33,27 @@ def execute_notebook(ramp_kit_dir='.'):
     with open(notebook_filename) as f:
         nb = nbformat.read(f, as_version=4)
         ep = ExecutePreprocessor(timeout=600, kernel_name=kernel_name)
-        ep.preprocess(nb,
-                      {'metadata': {'path': os.path.abspath(ramp_kit_dir)}})
+        ep.preprocess(nb, {'metadata':
+                           {'path': os.path.abspath(ramp_kit_dir)}})
 
 
 def convert_notebook(ramp_kit_dir='.'):
     problem_name = os.path.abspath(ramp_kit_dir).split('/')[-1]
     print('Testing if the notebook can be converted to html')
-    subprocess.call(
-        'jupyter nbconvert --to html {}/{}_starting_kit.ipynb'
-        .format(ramp_kit_dir, problem_name), shell=True)
+    notebook_filename = '{}/{}_starting_kit.ipynb'.format(ramp_kit_dir,
+                                                          problem_name)
+    notebook_html_filename = '{}/{}_starting_kit.html'.format(
+        ramp_kit_dir, problem_name)
+    with open(notebook_filename) as f:
+        nb = nbformat.read(f, as_version=4)
+        nb_html, _ = nbconvert.export(HTMLExporter, nb)
+
+    with open(os.path.join(os.path.abspath(ramp_kit_dir),
+                           notebook_html_filename), 'w') as f:
+        f.write(nb_html.encode('utf-8'))
+    # subprocess.call(
+    #     'jupyter nbconvert --to html {}/{}_starting_kit.ipynb'
+    #     .format(ramp_kit_dir, problem_name), shell=True)
     delete_line_from_file(
         '{}/{}_starting_kit.html'.format(ramp_kit_dir, problem_name),
         '<link rel="stylesheet" href="custom.css">\n')
