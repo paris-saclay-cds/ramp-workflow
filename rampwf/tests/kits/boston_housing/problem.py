@@ -1,7 +1,9 @@
 import os
+
 import pandas as pd
-import rampwf as rw
 from sklearn.model_selection import ShuffleSplit
+
+import rampwf as rw
 
 problem_title = 'Boston housing price regression'
 _target_column_name = 'medv'

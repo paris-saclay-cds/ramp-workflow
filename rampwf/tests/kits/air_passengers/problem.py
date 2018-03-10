@@ -1,7 +1,9 @@
 import os
+
 import pandas as pd
-import rampwf as rw
 from sklearn.model_selection import ShuffleSplit
+
+import rampwf as rw
 
 problem_title = 'Number of air passengers prediction'
 _target_column_name = 'log_PAX'

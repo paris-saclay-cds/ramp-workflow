@@ -11,10 +11,13 @@ scores.
 # License: BSD 3 clause
 
 import os
+
 import numpy as np
 import pandas as pd
-import rampwf as rw
 from sklearn.model_selection import ShuffleSplit
+
+import rampwf as rw
+
 
 problem_title =\
     'Drug classification and concentration estimation from Raman spectra'

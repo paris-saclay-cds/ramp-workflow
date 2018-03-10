@@ -1,7 +1,10 @@
 import os
+
 import pandas as pd
-import rampwf as rw
 from sklearn.model_selection import StratifiedShuffleSplit
+
+import rampwf as rw
+
 
 problem_title = 'Iris classification'
 _target_column_name = 'species'
