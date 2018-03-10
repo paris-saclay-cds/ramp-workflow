@@ -51,9 +51,6 @@ def convert_notebook(ramp_kit_dir='.'):
     with open(os.path.join(os.path.abspath(ramp_kit_dir),
                            notebook_html_filename), 'w') as f:
         f.write(nb_html.encode('utf-8'))
-    # subprocess.call(
-    #     'jupyter nbconvert --to html {}/{}_starting_kit.ipynb'
-    #     .format(ramp_kit_dir, problem_name), shell=True)
     delete_line_from_file(
         '{}/{}_starting_kit.html'.format(ramp_kit_dir, problem_name),
         '<link rel="stylesheet" href="custom.css">\n')
