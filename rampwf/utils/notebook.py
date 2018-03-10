@@ -49,7 +49,7 @@ def convert_notebook(ramp_kit_dir='.'):
         nb_html, _ = nbconvert.export(HTMLExporter, nb)
 
     with open(os.path.join(os.path.abspath(ramp_kit_dir),
-                           notebook_html_filename), 'w') as f:
+                           notebook_html_filename), 'wb') as f:
         f.write(nb_html.encode('utf-8'))
     delete_line_from_file(
         '{}/{}_starting_kit.html'.format(ramp_kit_dir, problem_name),
