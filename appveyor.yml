@@ -1,0 +1,30 @@
+build: false
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Miniconda-x64"
+      PYTHON_VERSION: "2.7.x"
+      PYTHON_ARCH: "64"
+
+    - PYTHON: "C:\\Miniconda3-x64"
+      PYTHON_VERSION: "3.5.x"
+      PYTHON_ARCH: "64"
+
+    - PYTHON: "C:\\Miniconda3-x64"
+      PYTHON_VERSION: "3.6.x"
+      PYTHON_ARCH: "64"
+
+install:
+  # Prepend miniconda installed Python to the PATH of this build
+  # Add Library/bin directory to fix issue
+  # https://github.com/conda/conda/issues/1753
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
+  - conda create -n testenv --yes pip python=$PYTHON_VERSION ipykernel
+  - source activate testenv
+  - pip install -r testing-requirements.txt
+  - pip install .
+
+test_script:
+  - mkdir for_test
+  - cd for_test
+  - pytest --pyargs rampwf --cov-report term-missing --cov=rampwf
