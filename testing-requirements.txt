@@ -2,5 +2,9 @@ pytest
 pytest-cov
 codecov
 flake8
-gitpython
 nbconvert
+jupyter_client
+seaborn
+netCDF4
+xarray
+keras

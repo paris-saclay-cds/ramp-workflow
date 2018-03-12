@@ -1,18 +1,17 @@
+from . import cvs
 from . import prediction_types
 from . import score_types
-from . import workflows
 from . import utils
-from . import kits
-from . import cvs
+from . import workflows
 
 
-__all__ = ['kits',
-           'score_types',
-           'prediction_types',
-           'utils',
-           'workflows',
-           'cvs',
-           ]
+__all__ = [
+    'cvs',
+    'prediction_types',
+    'score_types',
+    'utils',
+    'workflows',
+]
 
 
 from ._version import get_versions
