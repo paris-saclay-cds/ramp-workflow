@@ -158,6 +158,14 @@ def test_average_precision():
     assert ap(y_true, y_pred) == 0.5
 
     # no match
+    y_true = [[], []]
+    y_pred = [[], []]
+    assert ap(y_true, y_pred) == 0
+    y_true = [[(1, 1, 1)], []]
+    y_pred = [[], []]
+    assert ap(y_true, y_pred) == 0
+
+    # only empty predictions
     y_true = [[(1, 1, 1)]]
     y_pred = [[(1, 3, 3, 1)]]
     assert ap(y_true, y_pred) == 0
@@ -261,6 +269,9 @@ def test_cc_intersection():
         cc_intersection(-1, 1, 1)
         cc_intersection(1, -1, 1)
         cc_intersection(1, 1, -1)
+
+    # floating point corner case
+    assert cc_intersection(11.0, 6.0, 4.999999999999999) == 0
 
 
 def test_cc_intersection_completely_overlapping():

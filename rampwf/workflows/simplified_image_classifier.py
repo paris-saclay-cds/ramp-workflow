@@ -1,7 +1,10 @@
 from __future__ import division
+
 import os
-import imp
+
 import numpy as np
+
+from ..utils.importing import import_file
 
 
 class SimplifiedImageClassifier(object):
@@ -51,10 +54,7 @@ class SimplifiedImageClassifier(object):
         folder, X_array = folder_X_array
         if train_is is None:
             train_is = slice(None, None, None)
-        submitted_image_classifier_file = '{}/{}.py'.format(
-            module_path, self.element_names[0])
-        image_classifier = imp.load_source(
-            self.element_names[0], submitted_image_classifier_file)
+        image_classifier = import_file(module_path, self.element_names[0])
         clf = image_classifier.ImageClassifier()
         img_loader = ImageLoader(
             X_array[train_is], y_array[train_is],

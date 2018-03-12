@@ -1,7 +1,10 @@
 from __future__ import division
+
 import os
-import imp
+
 import numpy as np
+
+from ..utils.importing import import_file
 
 
 class ImageClassifier(object):
@@ -73,18 +76,12 @@ class ImageClassifier(object):
         folder, X_array = folder_X_array
         if train_is is None:
             train_is = slice(None, None, None)
-        submitted_image_preprocessor_file = '{}/{}.py'.format(
-            module_path, self.element_names[0])
-        image_preprocessor = imp.load_source(
-            self.element_names[0], submitted_image_preprocessor_file)
+        image_preprocessor = import_file(module_path, self.element_names[0])
         transform_img = image_preprocessor.transform
         transform_test_img = getattr(image_preprocessor,
                                      'transform_test',
                                      transform_img)
-        submitted_batch_classifier_file = '{}/{}.py'.format(
-            module_path, self.element_names[1])
-        batch_classifier = imp.load_source(
-            self.element_names[1], submitted_batch_classifier_file)
+        batch_classifier = import_file(module_path, self.element_names[1])
         clf = batch_classifier.BatchClassifier()
 
         gen_builder = BatchGeneratorBuilder(
