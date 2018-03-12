@@ -50,7 +50,6 @@ def test_soft_accuracy():
     assert score_1(np.array([y_true_proba_3]), np.array([y_proba_3])) == 0.5
     assert score_1(np.array([y_true_proba_3]), np.array([y_proba_4])) == 0.5
 
-
     score_2 = SoftAccuracy(score_matrix=score_matrix_2)
     assert score_2(np.array([y_true_proba_1]), np.array([y_proba_1])) == 1
     assert score_2(np.array([y_true_proba_1]), np.array([y_proba_2])) == 0.5
