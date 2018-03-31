@@ -30,7 +30,7 @@ The [RAMP][rstudio] ecosystem contains two organizations and two libraries. The 
 1. Install the latest `ramp-workflow` library 
 
 ```bash
-$ pip install git+https://github.com/paris-saclay-cds/ramp-workflow.git
+$ pip install https://api.github.com/repos/paris-saclay-cds/ramp-workflow/zipball/master
 ```
 
 This will set up some command line scripts like `ramp_test_submission`.
