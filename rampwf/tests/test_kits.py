@@ -17,12 +17,20 @@ def skip_windows_py27():
         reason="tensorflow not available")
 
 
+def skip_no_tensorflow():
+    try:
+        import tensorflow
+    except ModuleNotFoundError:
+        return pytest.mark.skip(reason='tensorflow not available')
+    return pytest.mark.basic
+
+
 def _generate_grid_path_kits():
     grid = []
     for path_kit in sorted(glob.glob(os.path.join(PATH, 'kits', '*'))):
         if 'digits' in path_kit:
             grid.append(pytest.param(os.path.abspath(path_kit),
-                                     marks=skip_windows_py27()))
+                                     marks=skip_no_tensorflow()))
         else:
             grid.append(os.path.abspath(path_kit))
     return grid
