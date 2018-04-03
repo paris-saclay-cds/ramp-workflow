@@ -8,6 +8,6 @@ seaborn
 netCDF4
 xarray
 scikit-image
-keras; python_version >= '3.5' and sys_platform != 'win32'
-tensorflow; python_version >= '3.5' and sys_platform != 'win32'
+keras; python_version >= '3.5' or (python_version == '2.7 and sys_platform != 'win32')
+tensorflow; python_version >= '3.5' or (python_version == '2.7 and sys_platform != 'win32')
 
