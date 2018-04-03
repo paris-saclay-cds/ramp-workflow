@@ -20,7 +20,7 @@ def skip_windows_py27():
 def skip_no_tensorflow():
     try:
         import tensorflow
-    except ModuleNotFoundError:
+    except ImportError:
         return pytest.mark.skip(reason='tensorflow not available')
     return pytest.mark.basic
 
