@@ -7,6 +7,7 @@ jupyter_client
 seaborn
 netCDF4
 xarray
-keras
-tensorflow
 scikit-image
+keras; python_version >= '3.5'
+tensorflow; python_version >= '3.5'
+

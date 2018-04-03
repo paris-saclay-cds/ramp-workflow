@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 
 import pytest
@@ -10,9 +11,21 @@ from rampwf.utils.testing import (
 PATH = os.path.dirname(__file__)
 
 
+def skip_windows_py27():
+    return pytest.mark.skipif(
+        (sys.platform == 'win32') and (sys.version_info < (3, 5)),
+        reason="tensorflow not available")
+
+
 def _generate_grid_path_kits():
-    return [(os.path.abspath(path_kit,))
-            for path_kit in sorted(glob.glob(os.path.join(PATH, 'kits', '*')))]
+    grid = []
+    for path_kit in sorted(glob.glob(os.path.join(PATH, 'kits', '*'))):
+        if 'digits' in path_kit:
+            grid.append(pytest.param(os.path.abspath(path_kit),
+                                     marks=skip_windows_py27()))
+        else:
+            grid.append(os.path.abspath(path_kit))
+    return grid
 
 
 @pytest.mark.parametrize(
@@ -30,6 +43,7 @@ def test_notebook_testing(path_kit):
     _generate_grid_path_kits()
 )
 def test_submission(path_kit):
+    print(path_kit)
     submissions = sorted(glob.glob(os.path.join(path_kit, 'submissions', '*')))
     for sub in submissions:
         assert_submission(
