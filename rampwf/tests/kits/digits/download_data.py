@@ -35,6 +35,7 @@ def fetch_data():
                               'class': digits.target[:n_train_images]})
     train_csv = train_csv.set_index('id')
     train_csv.to_csv(os.path.join(data_dir, 'train.csv'))
+    print(os.path.join(data_dir, 'train.csv'))
     test_csv = pd.DataFrame({'id': np.array(filenames_image[n_train_images:]),
                              'class': digits.target[n_train_images:]})
     test_csv = test_csv.set_index('id')
