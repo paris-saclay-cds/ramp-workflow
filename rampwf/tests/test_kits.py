@@ -32,9 +32,6 @@ def test_notebook_testing(path_kit):
 def test_submission(path_kit):
     submissions = sorted(glob.glob(os.path.join(path_kit, 'submissions', '*')))
     for sub in submissions:
-        if os.path.isfile(os.path.join(sub, 'download_data.py')):
-            from download_data import fetch_data
-            fetch_data()
         assert_submission(
             ramp_kit_dir=path_kit,
             ramp_data_dir=path_kit,

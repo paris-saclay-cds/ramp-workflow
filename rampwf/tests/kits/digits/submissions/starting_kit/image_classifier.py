@@ -12,7 +12,7 @@ from keras.optimizers import SGD
 class ImageClassifier(object):
 
     def __init__(self):
-        inp = Input((28, 28, 1))
+        inp = Input((8, 8, 1))
         x = Flatten(name='flatten')(inp)
         x = Dense(100, activation='relu', name='fc1')(x)
         out = Dense(10, activation='softmax', name='predictions')(x)
