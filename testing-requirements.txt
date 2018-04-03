@@ -8,3 +8,4 @@ seaborn
 netCDF4
 xarray
 keras
+scikit-image
