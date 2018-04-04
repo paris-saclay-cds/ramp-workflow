@@ -17,10 +17,7 @@ _prediction_label_names = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 Predictions = rw.prediction_types.make_multiclass(
     label_names=_prediction_label_names)
 # An object implementing the workflow
-workflow = rw.workflows.ImageClassifier(
-    test_batch_size=16,
-    chunk_size=256,
-    n_jobs=-1,
+workflow = rw.workflows.SimplifiedImageClassifier(
     n_classes=len(_prediction_label_names),
 )
 
