@@ -20,7 +20,7 @@ Predictions = rw.prediction_types.make_multiclass(
 workflow = rw.workflows.ImageClassifier(
     test_batch_size=16,
     chunk_size=256,
-    n_jobs=-1,
+    n_jobs=1,
     n_classes=len(_prediction_label_names),
 )
 
