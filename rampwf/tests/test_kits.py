@@ -11,12 +11,6 @@ from rampwf.utils.testing import (
 PATH = os.path.dirname(__file__)
 
 
-def skip_windows_py27():
-    return pytest.mark.skipif(
-        (sys.platform == 'win32') and (sys.version_info < (3, 5)),
-        reason="tensorflow not available")
-
-
 def skip_no_tensorflow():
     try:
         import tensorflow
