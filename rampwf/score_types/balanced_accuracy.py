@@ -7,7 +7,7 @@ from .classifier_base import ClassifierBaseScoreType
 
 
 def _balanced_accuracy_score(y_true, y_pred, sample_weight=None,
-                             adjusted=False):
+                             adjusted=True):
     """FIXME: port implementation of balanced accuracy from scikit-learn 0.20.
     """
     C = confusion_matrix(y_true, y_pred, sample_weight=sample_weight)
@@ -24,16 +24,19 @@ def _balanced_accuracy_score(y_true, y_pred, sample_weight=None,
         score /= 1 - chance
     return score
 
+
 class BalancedAccuracy(ClassifierBaseScoreType):
     is_lower_the_better = False
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='balanced_accuracy', precision=2):
+    def __init__(self, name='balanced_accuracy', precision=2, adjusted=True):
         self.name = name
         self.precision = precision
+        self.adjusted = adjusted
 
     def __call__(self, y_true_label_index, y_pred_label_index):
         score = _balanced_accuracy_score(y_true_label_index,
-                                         y_pred_label_index)
+                                         y_pred_label_index,
+                                         adjusted=self.adjusted)
         return score
