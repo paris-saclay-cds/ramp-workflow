@@ -7,11 +7,6 @@ from __future__ import print_function
 import os
 import sys
 
-import nbformat
-import nbconvert
-from nbconvert.exporters import HTMLExporter
-from nbconvert.preprocessors import ExecutePreprocessor
-
 
 def delete_line_from_file(f_name, line_to_delete):
     with open(f_name, "r+") as f:
@@ -24,6 +19,9 @@ def delete_line_from_file(f_name, line_to_delete):
 
 
 def execute_notebook(ramp_kit_dir='.'):
+    import nbformat
+    from nbconvert.preprocessors import ExecutePreprocessor
+
     problem_name = os.path.basename(os.path.abspath(ramp_kit_dir))
     print('Testing if the notebook can be executed')
     notebook_filename = os.path.join(
@@ -39,6 +37,10 @@ def execute_notebook(ramp_kit_dir='.'):
 
 
 def convert_notebook(ramp_kit_dir='.'):
+    import nbformat
+    import nbconvert
+    from nbconvert.exporters import HTMLExporter
+
     problem_name = os.path.basename(os.path.abspath(ramp_kit_dir))
     print('Testing if the notebook can be converted to html')
     notebook_filename = os.path.join(
