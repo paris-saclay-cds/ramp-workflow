@@ -1,22 +1,27 @@
-from .classifier_base import ClassifierBaseScoreType
-from sklearn.metrics import recall_score
+import numpy as np
+
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics.classification import _check_targets
+
+from .classifier_base import ClassifierBaseScoreType
 
 
 def _balanced_accuracy_score(y_true, y_pred, sample_weight=None):
     """FIXME: port implementation of balanced accuracy from scikit-learn 0.20.
     """
-    y_type, y_true, y_pred = _check_targets(y_true, y_pred)
-
-    if y_type != 'binary':
-        raise ValueError('Balanced accuracy is only meaningful '
-                         'for binary classification problems.')
-    # simply wrap the ``recall_score`` function
-    return recall_score(y_true, y_pred,
-                        pos_label=None,
-                        average='macro',
-                        sample_weight=sample_weight)
-
+    C = confusion_matrix(y_true, y_pred, sample_weight=sample_weight)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        per_class = np.diag(C) / C.sum(axis=1)
+    if np.any(np.isnan(per_class)):
+        warnings.warn('y_pred contains classes not in y_true')
+        per_class = per_class[~np.isnan(per_class)]
+    score = np.mean(per_class)
+    if adjusted:
+        n_classes = len(per_class)
+        chance = 1 / n_classes
+        score -= chance
+        score /= 1 - chance
+    return score
 
 class BalancedAccuracy(ClassifierBaseScoreType):
     is_lower_the_better = False
