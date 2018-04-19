@@ -6,7 +6,8 @@ from sklearn.metrics.classification import _check_targets
 from .classifier_base import ClassifierBaseScoreType
 
 
-def _balanced_accuracy_score(y_true, y_pred, sample_weight=None):
+def _balanced_accuracy_score(y_true, y_pred, sample_weight=None,
+                             adjusted=False):
     """FIXME: port implementation of balanced accuracy from scikit-learn 0.20.
     """
     C = confusion_matrix(y_true, y_pred, sample_weight=sample_weight)
