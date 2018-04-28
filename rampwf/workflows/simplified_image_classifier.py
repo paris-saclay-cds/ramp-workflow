@@ -95,6 +95,30 @@ def _image_transform(x, transforms):
     return x
 
 
+def _imread_opencv(filename):
+    import cv2
+    from skimage.io import imread as skimage_imread
+    img = cv2.imread(filename)
+    if img is not None:
+        # RGBA -> RGB
+        if img.shape[2] == 4:
+            img = img[:, :, 0:3]
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    else:
+        # It can happen that Opencv fails to open a file
+        # Open it with skimage
+        img = skimage_imread(filename)
+        if img.shape[2] == 4:
+            img = img[:, :, 0:3]
+        return img
+
+
+def _imread_pillow(filename):
+    from PIL import Image
+    img = Image.open(filename)
+    return np.asarray(img)
+
+
 class ImageLoader(object):
     """
     Load and image and optionally its label.
@@ -126,12 +150,24 @@ class ImageLoader(object):
         Total number of classes.
     """
 
-    def __init__(self, X_array, y_array, folder, n_classes):
+    def __init__(self, X_array, y_array, folder, n_classes, backend='skimage'):
         self.X_array = X_array
         self.y_array = y_array
         self.folder = folder
         self.n_classes = n_classes
         self.nb_examples = len(X_array)
+        self.setup_backend(backend)
+
+    def setup_backend(self, backend):
+        assert backend in ['opencv', 'pillow', 'skimage']
+        self.backend = backend
+        if backend == 'opencv':
+            self._imread = _imread_opencv
+        elif backend == 'pillow':
+            self._imread = _imread_pillow
+        elif backend == 'skimage':
+            from skimage.io import imread as skimage_imread
+            self._imread = skimage_imread
 
     def load(self, index):
         """
@@ -158,14 +194,13 @@ class ImageLoader(object):
         a tuple (x, y).
         At test time, `y_array` is `None`, and `load` returns `x`.
         """
-        from skimage.io import imread
-
         if index < 0 or index >= self.nb_examples:
             raise IndexError("list index out of range")
 
         x = self.X_array[index]
         filename = os.path.join(self.folder, '{}'.format(x))
-        x = imread(filename)
+        x = self._imread(filename)
+
         if self.y_array is not None:
             y = self.y_array[index]
             return x, y
@@ -197,7 +232,6 @@ class ImageLoader(object):
         a tuple (x, y).
         At test time, `y_array` is `None`, and `load` returns `x`.
         """
-        from skimage.io import imread
         from joblib import delayed, Parallel, cpu_count
 
         for index in indexes:
@@ -208,7 +242,7 @@ class ImageLoader(object):
             os.path.join(self.folder, '{}'.format(self.X_array[index]))
             for index in indexes]
         xs = Parallel(n_jobs=n_jobs, backend='threading')(
-            delayed(imread)(filename) for filename in filenames)
+            delayed(self._imread)(filename) for filename in filenames)
 
         if transforms is not None:
             from functools import partial
