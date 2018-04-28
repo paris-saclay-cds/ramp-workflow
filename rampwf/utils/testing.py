@@ -112,6 +112,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 problem, module_path, X_train, y_train, X_test, y_test,
                 score_types, is_pickle, save_y_preds, fold_output_path,
                 fold, ramp_data_dir)
+        if save_y_preds:
+            filename = os.path.join(fold_output_path, 'scores.csv')
+            df_scores.to_csv(filename)
         df_scores_rounded = round_df_scores(df_scores, score_types)
         print_df_scores(df_scores_rounded, score_types, indent='\t')
 
