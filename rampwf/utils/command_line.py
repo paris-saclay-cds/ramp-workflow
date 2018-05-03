@@ -2,9 +2,14 @@
 utils.
 """
 from __future__ import print_function
-
+import sys
 from os import listdir
 from os.path import join, isdir
+from collections import defaultdict
+import os
+import numpy as np
+import pandas as pd
+from tabulate import tabulate
 
 from .testing import (
     assert_submission, assert_notebook, convert_notebook, blend_submissions)
@@ -166,3 +171,270 @@ def ramp_blend_submissions():
                       submissions=submissions,
                       save_y_preds=save_y_preds,
                       min_improvement=float(args.min_improvement))
+
+
+def create_ramp_leaderboard_parser():
+    import argparse
+    parser = argparse.ArgumentParser(
+        prog='ramp_leaderboard',
+        description='RAMP leaderboard, a simple command line to display'
+                    'the leaderboard.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        '--ramp_kit_dir',
+        default='.',
+        type=str,
+        help='Root directory of the ramp-kit to test.'
+    )
+    parser.add_argument(
+        '--cols',
+        default=None,
+        type=str,
+        help='List of columns (separated by ",") to display. By default'
+             'it is "train_metric,valid_metric,test_metric" where metric is'
+             ' the first metric according to alphabetical order. '
+             'Use --help-cols to know what are the column names. Column names '
+             'are of the form "metric_step" where metric could be e.g., "nll",'
+             ' or "acc", and step could be "train", "valid", or "test".'
+    )
+    parser.add_argument(
+        '--sort_by',
+        default=None,
+        type=str,
+        help='List of columns (separated by ",") to sort the leaderboard.'
+             'By default it is "test_metric,valid_metric,train_metric"'
+             'where metric is the first metric according to alphabetical '
+             'order if --metric is not provided otherwise the metric '
+             'provided by --metric.'
+    )
+    parser.add_argument(
+        '--metric',
+        default=None,
+        type=str,
+        help='Metric to display. Instead of specifying --cols, we can'
+             'specify the metric to display. For example, --metric=acc is'
+             'equivalent to --cols=train_acc,valid_acc,test_acc.'
+    )
+    parser.add_argument(
+        '--precision',
+        default=2,
+        type=int,
+        help='Precision for rounding'
+    )
+    parser.add_argument(
+        '--asc',
+        dest='asc',
+        action='store_true',
+        help='Sort ascending'
+    )
+    parser.add_argument(
+        '--desc',
+        dest='asc',
+        action='store_false',
+        help='Sort descending'
+    )
+    parser.add_argument(
+        '--help-cols',
+        dest='help_cols',
+        action='store_true',
+        default=False,
+        help='get the list of columns'
+    )
+    parser.add_argument(
+        '--help-metrics',
+        dest='help_metrics',
+        action='store_true',
+        default=False,
+        help='get the list of metrics'
+    )
+    return parser
+
+
+def ramp_leaderboard():
+    """
+    RAMP leaderboard, a simple command line to display
+    the leaderboard.
+    IMPORTANT: order to display correctly the leaderboard
+    you need to save your predictions, e.g.,
+    using `ramp_test_submission --submission <name> --save-y-preds`
+
+    :param ramp_kit_dir: folder of ramp-kit to use
+    :param cols: list of columns (separated by ",") to display. By default
+        it is "train_metric,valid_metric,test_metric" where metric is
+        the first metric according to alphabetical order. Use --help-cols to
+        know what are the column names. Column names are of the form
+        "metric_step" where metric could be e.g., "nll", or "acc", and step
+        could be "train", "valid", or "test".
+    :param sort_by: list of columns (separated by ",") to sort the leaderboard.
+        By default it is "test_metric,valid_metric,train_metric"
+        where metric is the first metric according to alphabetical order if
+        --metric is not provided otherwise the metric provided by --metric.
+    :param asc: sort ascending if True, otherwise descending
+    :param metric: metric to display. Instead of specifying --cols, we can
+        specify the metric to display. For example, --metric=acc is
+        equivalent to --cols=train_acc,valid_acc,test_acc.
+    :param precision: precision for rounding
+    :param help-cols: get the list of columns
+    :param help-metrics: get the list of metrics
+
+    Examples:
+
+    ramp_leaderboard --metric=acc
+
+    ramp_leaderboard --cols=train_acc,valid_acc,test_acc
+
+    ramp_leaderboard --cols=train_nll --sort-by=train_nll,train_acc --asc
+    """
+    parser = create_ramp_leaderboard_parser()
+    args = parser.parse_args()
+
+    try:
+        scores = _build_scores_dict(args.ramp_kit_dir)
+    except (IOError, OSError) as ex:
+        print(ex)
+        sys.exit(1)
+
+    if len(scores) == 0:
+        print('No submissions are available.')
+        print('(Please make sure that you train '
+              'your submissions using `ramp_test_submission --submission '
+              '<name> --save-y-preds` in order to save the predictions)')
+        sys.exit(0)
+
+    df = _build_leaderboard_df(scores, precision=args.precision)
+    if args.help_cols:
+        for col in df.columns:
+            print(col)
+        sys.exit(0)
+
+    if args.help_metrics:
+        for metric in _get_metrics(df):
+            print(metric)
+        sys.exit(0)
+
+    if args.cols and args.metric:
+        print('--cols and --metric cannot both be provided')
+        sys.exit(1)
+
+    if args.cols:
+        accepted_cols = set(args.cols.split(','))
+        for col in accepted_cols:
+            if col not in df.columns:
+                print('Column "{}" does not exist.'
+                      ' Available columns are : '.format(col))
+                for c in df.columns:
+                    print(c)
+                sys.exit(1)
+        cols = df.columns
+        show_cols = [c for c in cols if c in accepted_cols]
+    elif args.metric:
+        if 'train_' + args.metric not in df.columns:
+            print('Metric "{}" does not exist.'
+                  ' Available metrics are : '.format(args.metric))
+            for metric in _get_metrics(df):
+                print(metric)
+            sys.exit(1)
+        show_cols = [
+            '{}_{}'.format(step, args.metric)
+            for step in ('train', 'valid', 'test')]
+    else:
+        metrics = _get_metrics(df)
+        metrics = sorted(metrics)
+        metric = metrics[0]
+        show_cols = [
+            '{}_{}'.format(step, metric)
+            for step in ('train', 'valid', 'test')]
+    if args.sort_by:
+        sort_cols = args.sort_by.split(',')
+        for col in sort_cols:
+            if col not in df.columns:
+                print('Column "{}" does not exist.'
+                      ' Available columns are : '.format(col))
+                for c in df.columns:
+                    print(c)
+                sys.exit(1)
+    elif args.metric:
+        sort_cols = ['{}_{}'.format(step, args.metric)
+                     for step in ('test', 'valid', 'train')]
+    else:
+        metrics = _get_metrics(df)
+        metrics = sorted(metrics)
+        metric = metrics[0]
+        sort_cols = ['{}_{}'.format(step, metric)
+                     for step in ('test', 'valid', 'train')]
+    df = df.sort_values(by=sort_cols, ascending=args.asc)
+    df = df[['submission'] + show_cols]
+    print(tabulate(df, headers='keys', tablefmt='grid'))
+
+
+def _get_metrics(df):
+    metrics = [
+        c.split('_')[1]
+        for c in df.columns if c.startswith('train')
+    ]
+    metrics = set(metrics)
+    metrics = list(metrics)
+    return metrics
+
+
+def _build_leaderboard_df(scores_dict, precision=2):
+    rows = []
+    for submission_name, scores_folds in scores_dict.items():
+        scs = scores_folds.values()
+        mean_scores = sum([s for s in scs]) / len(scs)
+        std_scores = np.sqrt(
+            sum([s**2 for s in scs]) / len(scs) -
+            mean_scores ** 2
+        )
+        row = {}
+        row['submission'] = submission_name
+        for step in mean_scores.index.values:
+            for metric in mean_scores.columns:
+                colname = '{}_{}'.format(step, metric)
+
+                mu = mean_scores.loc[step, metric]
+                fmt = '{:.' + str(precision) + 'f}'
+                mu = fmt.format(mu)
+
+                fmt = '{:.' + str(precision + 1) + 'f}'
+                std = std_scores.loc[step, metric]
+                std = fmt.format(std)
+                row[colname] = '{} ± {}'.format(mu, std)
+                row[colname + '_mean'] = mu
+                row[colname + '_std'] = std
+        rows.append(row)
+    columns_order = [
+        '{}_{}'.format(step, metric)
+        for metric in mean_scores.columns
+        for step in ('train', 'valid', 'test')
+    ]
+    columns_order += [
+        '{}_{}_{}'.format(step, metric, part)
+        for metric in mean_scores.columns
+        for step in ('train', 'valid', 'test')
+        for part in ('mean', 'std')
+    ]
+    return pd.DataFrame(rows, columns=['submission'] + columns_order)
+
+
+def _build_scores_dict(ramp_kit_dir='.'):
+    submissions_folder = os.path.join(ramp_kit_dir, 'submissions')
+    scores = defaultdict(dict)
+    for submission_name in os.listdir(submissions_folder):
+        submission_folder = os.path.join(submissions_folder, submission_name)
+        training_output = os.path.join(submission_folder, 'training_output')
+        if not os.path.exists(training_output):
+            continue
+        for fold_name in os.listdir(training_output):
+            if not fold_name.startswith('fold_'):
+                continue
+            _, fold_number = fold_name.split('_')
+            fold_number = int(fold_number)
+            scores_file = os.path.join(
+                training_output, fold_name, 'scores.csv')
+            if not os.path.exists(scores_file):
+                continue
+            fold_scores = pd.read_csv(scores_file)
+            fold_scores = fold_scores.set_index('step')
+            scores[submission_name][fold_number] = fold_scores
+    return scores
