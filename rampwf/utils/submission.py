@@ -75,15 +75,16 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         on full set
     Returns
     -------
-    a tuple of the form ((y_pred_train, y_pred_test), (train_time, test_time))
+    a tuple of the form ((y_pred_train, y_pred_test),
+                         (train_time, valid_time, test_time))
 
     y_pred_train : a list of predictions
         on the training (train_train and train_valid) set
     y_pred_test : a list of predictions
         on the test set
-    timing : a tuple of floats (train_time, valid_time, test_time)
-        describing the time in seconds taken for training, validation and
-        testing.
+    train_time : duration in seconds for training
+    valid_time : duration in seconds for validation
+    test_time : duration in seconds for testing
     """
     t0 = time.time()
     trained_workflow = problem.workflow.train_submission(
