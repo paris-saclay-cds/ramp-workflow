@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """The :mod:`rampwf.utils.command_line` submodule provide command line
 utils.
 """
