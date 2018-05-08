@@ -2,6 +2,7 @@
 """
 Utilities to manage the submissions
 """
+import time
 import os
 from collections import OrderedDict
 
@@ -74,22 +75,32 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         on full set
     Returns
     -------
+    a tuple of the form ((y_pred_train, y_pred_test), (train_time, test_time))
+
     y_pred_train : a list of predictions
         on the training (train_train and train_valid) set
     y_pred_test : a list of predictions
         on the test set
+    timing : a tuple of floats (train_time, valid_time, test_time)
+        describing the time in seconds taken for training, validation and
+        testing.
     """
+    t0 = time.time()
     trained_workflow = problem.workflow.train_submission(
         module_path, X_train, y_train, train_is=train_is)
+    train_time = time.time() - t0
     if is_pickle:
         trained_workflow = pickle_model(
             output_path, trained_workflow, model_name)
-
+    t0 = time.time()
     y_pred_train = problem.workflow.test_submission(
         trained_workflow, X_train)
+    valid_time = time.time() - t0
+    t0 = time.time()
     y_pred_test = problem.workflow.test_submission(
         trained_workflow, X_test)
-    return y_pred_train, y_pred_test
+    test_time = time.time() - t0
+    return (y_pred_train, y_pred_test), (train_time, valid_time, test_time)
 
 
 def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
@@ -134,9 +145,12 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
         table of scores (rows = train/valid/test steps, columns = scores)
     """
     train_is, valid_is = fold
-    y_pred_train, y_pred_test = train_test_submission(
+    pred, timing = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
         fold_output_path, train_is=train_is)
+    y_pred_train, y_pred_test = pred
+    train_time, valid_time, test_time = timing
+
     predictions_train_train = problem.Predictions(
         y_pred=y_pred_train[train_is])
     ground_truth_train_train = problem.Predictions(
@@ -155,6 +169,12 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
         save_y_pred(
             problem, y_pred_test, data_path=ramp_data_dir,
             output_path=fold_output_path, suffix='test')
+        with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
+            fd.write(str(train_time))
+        with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
+            fd.write(str(valid_time))
+        with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
+            fd.write(str(test_time))
 
     df_scores = score_matrix(
         score_types,
@@ -199,7 +219,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
     ramp_data_dir : str
         the directory of the data
     """
-    y_pred_train, y_pred_test = train_test_submission(
+    (y_pred_train, y_pred_test), _ = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
         output_path, model_name='retrained_model.pkl')
     predictions_train = problem.Predictions(y_pred=y_pred_train)
