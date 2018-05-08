@@ -368,6 +368,20 @@ def ramp_leaderboard():
 
 
 def _get_metrics(df):
+    """
+    Get the list of metrics used in df
+
+    df : pd.DataFrame
+        data frame with the scores of each submission
+        obtained with _build_leaderboard_df
+
+    Returns
+    -------
+
+    list of str
+
+    Example of return value : ['acc', 'nll']
+    """
     metrics = [
         c.split('_')[1]
         for c in df.columns if c.startswith('train')
@@ -378,6 +392,27 @@ def _get_metrics(df):
 
 
 def _build_leaderboard_df(scores_dict, precision=2):
+    """
+    Get a pd.DataFrame where each row is a submission and each column
+    is the mean or std of score on train or valid or test data for a metric.
+    Column names are prefixed by the 'train' or 'valid' or 'test' and
+    followed by the metric and optionally followed by '_mean' or '_std'.
+    Example of column names are: 'train_acc', 'valid_acc', 'train_acc_mean',
+    'train_acc_std'. 'train_acc' will be a string of the form 'mean ± std'
+    whereas 'train_acc_mean' and 'train_acc_std' will be floats.
+
+    Parameters
+    ----------
+
+    scores_dict : dict
+        scores dictionary returned by _build_scores_dict
+
+    Returns
+    -------
+
+    pd.DataFrame
+
+    """
     rows = []
     for submission_name, scores_folds in scores_dict.items():
         scs = scores_folds.values()
@@ -418,6 +453,23 @@ def _build_leaderboard_df(scores_dict, precision=2):
 
 
 def _build_scores_dict(ramp_kit_dir='.'):
+    """
+    Build a nested dictionary of scores using the training_output/ folder
+    of each submission.
+    The structure of the returned dict can be like this:
+    {
+        'submission1': {
+            0: {'acc': ..., 'nll': ...},
+            1: {'acc': ..., 'nll': ...},
+        },
+        'submission2': {
+            0: {'acc': ..., 'nll': ...},
+            1: {'acc': ..., 'nll': ...},
+        }
+    }
+    0 and 1 are fold numbers.
+    acc and nll are scores.
+    """
     submissions_folder = os.path.join(ramp_kit_dir, 'submissions')
     scores = defaultdict(dict)
     for submission_name in os.listdir(submissions_folder):
