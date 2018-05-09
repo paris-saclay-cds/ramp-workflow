@@ -22,7 +22,6 @@ install:
   # Add Library/bin directory to fix issue
   # https://github.com/conda/conda/issues/1753
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
-  - conda update conda -y
   - conda create -n testenv --yes ipykernel pip python=%PYTHON_VERSION_ENV%
   - activate testenv
   - pip install -r requirements.txt
