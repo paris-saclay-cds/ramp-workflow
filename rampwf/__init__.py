@@ -1,4 +1,5 @@
 from . import cvs
+from . import externals
 from . import prediction_types
 from . import score_types
 from . import utils
@@ -7,6 +8,7 @@ from . import workflows
 
 __all__ = [
     'cvs',
+    'externals',
     'prediction_types',
     'score_types',
     'utils',
