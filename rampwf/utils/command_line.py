@@ -458,7 +458,18 @@ def _build_scores_dict(ramp_kit_dir='.'):
     """
     Build a nested dictionary of scores using the training_output/ folder
     of each submission.
-    The structure of the returned dict can be like this:
+
+    The structure of the folder `ramp_kit_dir` should be
+    something like this:
+
+    submissions/submission1/training_output/fold_0/scores.csv
+    submissions/submission1/training_output/fold_1/scores.csv
+    submissions/submission2/training_output/fold_0/scores.csv
+    submissions/submission2/training_output/fold_1/scores.csv
+
+    The structure of the returned dict corresponding to the above
+    folder structure will be like this:
+
     {
         'submission1': {
             0: {'acc': ..., 'nll': ...},
@@ -469,8 +480,8 @@ def _build_scores_dict(ramp_kit_dir='.'):
             1: {'acc': ..., 'nll': ...},
         }
     }
-    0 and 1 are fold numbers.
-    acc and nll are scores.
+    Here 0 and 1 are fold numbers.
+    'acc' and 'nll' are scores.
     """
     submissions_folder = os.path.join(ramp_kit_dir, 'submissions')
     scores = defaultdict(dict)
