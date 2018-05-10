@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import os
-from tempfile import TemporaryDirectory
+from tempfile import mkdtemp
+from shutil import rmtree
 import pytest
 
 import pandas as pd
@@ -45,10 +48,9 @@ def test_cmd_ramp_test_notebook_parser():
 
 
 def test_cmd_ramp_leaderboard_build_scores_dict():
-
     with TemporaryDirectory() as tmpdirname:
         # case where 'submissions' folder does not exit
-        with pytest.raises(IOError):
+        with pytest.raises(OSError):
             _build_scores_dict(tmpdirname)
 
         # case where 'submissions' folder exists but no scores
@@ -224,6 +226,16 @@ def test_cmd_ramp_leaderboard_build_scores_dict():
             }
         }
         assert scores == expected_scores
+
+
+class TemporaryDirectory(object):
+
+    def __enter__(self):
+        self.tmpdirname = mkdtemp()
+        return self.tmpdirname
+
+    def __exit__(self, *exc):
+        rmtree(self.tmpdirname)
 
 
 def test_cmd_ramp_leaderboard_build_leaderboard_df():
