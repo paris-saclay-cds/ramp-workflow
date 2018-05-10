@@ -303,14 +303,16 @@ def ramp_leaderboard():
               '<name> --save-y-preds` in order to save the predictions)')
         sys.exit(0)
 
+    metrics = _get_metrics(scores)
     df = _build_leaderboard_df(scores, precision=args.precision)
+
     if args.help_cols:
         for col in df.columns:
             print(col)
         sys.exit(0)
 
     if args.help_metrics:
-        for metric in _get_metrics(df):
+        for metric in metrics:
             print(metric)
         sys.exit(0)
 
@@ -318,87 +320,109 @@ def ramp_leaderboard():
         print('--cols and --metric cannot both be provided')
         sys.exit(1)
 
-    if args.cols:
-        accepted_cols = set(args.cols.split(','))
-        for col in accepted_cols:
+    cols = args.cols.split(',') if args.cols else None
+    sort_by = args.sort_by.split(',') if args.sort_by else None
+    df = _filter_and_sort_leaderboard_df(
+        df,
+        metrics=metrics,
+        cols=cols,
+        metric=args.metric,
+        sort_by=sort_by,
+        asc=args.asc
+    )
+    if df is None:
+        sys.exit(1)
+    print(tabulate(df, headers='keys', tablefmt='grid'))
+
+
+def _filter_and_sort_leaderboard_df(
+        df, metrics, cols=None, metric=None,
+        sort_by=None, asc=False):
+    """
+    filters and sorts rows of df where df is a DataFrame obtained
+    using _build_leaderboard_df.
+
+    Parameters
+    ----------
+
+    metrics : list of str
+        list of all metrics available on df
+
+    cols : None or list of str
+        columns to take from df.
+        if a column does not exist in df, the function
+        will return None.
+
+    metric : None or str
+        metric to take from df. Equivalent to
+        specifying cols to ['train_metric', 'valid_metric', 'test_metric'].
+        If the specified metric does not exist, the function will return
+        None.
+        Note that we cannot both provide cols and metric, only one of them has
+        to be provided otherwise the functions returns None.
+
+    sort_by : None or list of str
+        columns to sort by.
+
+    asc : bool
+        True if sorting ascending otherwise descending
+    """
+    if cols and metric:
+        return
+    elif cols is not None:
+        for col in cols:
             if col not in df.columns:
                 print('Column "{}" does not exist.'
                       ' Available columns are : '.format(col))
                 for c in df.columns:
                     print(c)
-                sys.exit(1)
-        cols = df.columns
-        show_cols = [c for c in cols if c in accepted_cols]
-    elif args.metric:
-        if 'train_' + args.metric not in df.columns:
+                return
+        show_cols = cols
+    elif metric is not None:
+        if 'train_' + metric not in df.columns:
             print('Metric "{}" does not exist.'
-                  ' Available metrics are : '.format(args.metric))
-            for metric in _get_metrics(df):
+                  ' Available metrics are : '.format(metric))
+            for metric in metrics:
                 print(metric)
-            sys.exit(1)
+            return
         show_cols = [
-            '{}_{}'.format(step, args.metric)
+            '{}_{}'.format(step, metric)
             for step in ('train', 'valid', 'test')]
     else:
-        metrics = _get_metrics(df)
         metrics = sorted(metrics)
         metric = metrics[0]
         show_cols = [
             '{}_{}'.format(step, metric)
             for step in ('train', 'valid', 'test')]
-    if args.sort_by:
-        sort_cols = args.sort_by.split(',')
+    if sort_by is not None:
+        sort_cols = sort_by
         for col in sort_cols:
             if col not in df.columns:
                 print('Column "{}" does not exist.'
                       ' Available columns are : '.format(col))
                 for c in df.columns:
                     print(c)
-                sys.exit(1)
-    elif args.metric:
-        sort_cols = ['{}_{}'.format(step, args.metric)
+                return
+    elif metric is not None:
+        sort_cols = ['{}_{}_mean'.format(step, metric)
                      for step in ('test', 'valid', 'train')]
     else:
-        metrics = _get_metrics(df)
         metrics = sorted(metrics)
         metric = metrics[0]
         sort_cols = ['{}_{}'.format(step, metric)
                      for step in ('test', 'valid', 'train')]
-    df = df.sort_values(by=sort_cols, ascending=args.asc)
+    df = df.sort_values(by=sort_cols, ascending=asc)
     df = df[['submission'] + show_cols]
-    print(tabulate(df, headers='keys', tablefmt='grid'))
-
-
-def _get_metrics(df):
-    """
-    Get the list of metrics used in df
-
-    df : pd.DataFrame
-        data frame with the scores of each submission
-        obtained with _build_leaderboard_df
-
-    Returns
-    -------
-
-    list of str
-
-    Example of return value : ['acc', 'nll']
-    """
-    metrics = [
-        c.split('_')[1]
-        for c in df.columns if c.startswith('train')
-    ]
-    metrics = set(metrics)
-    metrics = list(metrics)
-    return metrics
+    return df
 
 
 def _build_leaderboard_df(scores_dict, precision=2):
     """
     Get a pd.DataFrame where each row is a submission and each column
     is the mean or std of score on train or valid or test data for a metric.
-    Column names are prefixed by the 'train' or 'valid' or 'test' and
-    followed by the metric and optionally followed by '_mean' or '_std'.
+    There is a column name 'submission' for the submission names.
+    The rest of column names are prefixed by the 'train' or 'valid' or 'test'
+    and followed by the metric and optionally followed by '_mean' or '_std'.
     Example of column names are: 'train_acc', 'valid_acc', 'train_acc_mean',
     'train_acc_std'. 'train_acc' will be a string of the form 'mean ± std'
     whereas 'train_acc_mean' and 'train_acc_std' will be floats.
@@ -414,15 +438,18 @@ def _build_leaderboard_df(scores_dict, precision=2):
 
     pd.DataFrame
 
+
     """
     rows = []
     for submission_name, scores_folds in scores_dict.items():
-        scs = scores_folds.values()
+        scs = [pd.DataFrame(s) for s in scores_folds.values()]
+        # compute mean and std over folds for current submission
         mean_scores = sum([s for s in scs]) / len(scs)
         std_scores = np.sqrt(
             sum([s**2 for s in scs]) / len(scs) -
             mean_scores ** 2
         )
+        # create row for the current submission
         row = {}
         row['submission'] = submission_name
         for step in mean_scores.index.values:
@@ -454,6 +481,30 @@ def _build_leaderboard_df(scores_dict, precision=2):
     return pd.DataFrame(rows, columns=['submission'] + columns_order)
 
 
+def _get_metrics(scores_dict):
+    """
+    Get the list of metrics used scores_dict
+
+    scores_dict : dict
+        dict obtained with _build_scores_dict
+
+    Returns
+    -------
+
+    list of str
+
+    Example of return value : ['acc', 'nll']
+    """
+    metrics = [
+        metric
+        for folds in scores_dict.values()
+        for metrics in folds.values()
+        for metric in metrics.keys()
+    ]
+    metrics = list(set(metrics))
+    return metrics
+
+
 def _build_scores_dict(ramp_kit_dir='.'):
     """
     Build a nested dictionary of scores using the training_output/ folder
@@ -467,21 +518,44 @@ def _build_scores_dict(ramp_kit_dir='.'):
     submissions/submission2/training_output/fold_0/scores.csv
     submissions/submission2/training_output/fold_1/scores.csv
 
+    The scores.csv files should be like the following.
+    There is one required column, "step" which specifies the step,
+    it can be either 'train' or 'valid' or 'test'.
+    The other columns are the metrics and are problem dependent.
+    Example of a scores.csv file:
+
+    step,acc,error,f1_70,nll
+    train,0.57,0.42,0.33,1.17
+    test,0.70,0.29,0.66,0.80
+    valid,0.65,0.35,0.33,0.52
+
     The structure of the returned dict corresponding to the above
     folder structure will be like this:
 
     {
         'submission1': {
-            0: {'acc': ..., 'nll': ...},
-            1: {'acc': ..., 'nll': ...},
+            0: {
+                'acc': {'train': ..., 'valid': ..., 'test': ...},
+                'nll': {'train': ..., 'valid': ..., 'test': ...},
+            },
+            1: {
+                'acc': {'train': ..., 'valid': ..., 'test': ...},
+                'nll': {'train': ..., 'valid': ..., 'test': ...}
+            },
         },
         'submission2': {
-            0: {'acc': ..., 'nll': ...},
-            1: {'acc': ..., 'nll': ...},
+            0: {
+                'acc': {'train': ..., 'valid': ..., 'test': ...},
+                'nll': {'train': ..., 'valid': ..., 'test': ...},
+            },
+            1: {
+                'acc': {'train': ..., 'valid': ..., 'test': ...},
+                'nll': {'train': ..., 'valid': ..., 'test': ...}
+            },
         }
     }
     Here 0 and 1 are fold numbers.
-    'acc' and 'nll' are scores.
+    'acc' and 'nll' are metrics.
     """
     submissions_folder = os.path.join(ramp_kit_dir, 'submissions')
     scores = defaultdict(dict)
@@ -500,6 +574,29 @@ def _build_scores_dict(ramp_kit_dir='.'):
             if not os.path.exists(scores_file):
                 continue
             fold_scores = pd.read_csv(scores_file)
-            fold_scores = fold_scores.set_index('step')
+            fold_scores = fold_scores.set_index('step').to_dict()
             scores[submission_name][fold_number] = fold_scores
+
+    if len(scores) == 0:
+        return scores
+    # check consistency (all the submissions must have the same structure)
+    # -- consistency of nb of folds
+    nb_folds_per_submission = [len(folds) for folds in scores.values()]
+    assert len(set(nb_folds_per_submission)) == 1
+    # -- consistency of metric names
+    metrics_per_submission = [
+        frozenset(metrics.keys())
+        for folds in scores.values()
+        for metrics in folds.values()
+    ]
+    assert len(set(metrics_per_submission)) == 1
+
+    # check correctness of scores dict of each fold of each sumbission
+    # -- we should have 3 steps per fold, 'train', 'valid', 'test'
+    assert all(
+        set(metric.keys()) == set(('train', 'valid', 'test'))
+        for folds in scores.values()
+        for metrics in folds.values()
+        for metric in metrics.values()
+    )
     return scores
