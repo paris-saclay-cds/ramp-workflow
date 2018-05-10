@@ -325,29 +325,6 @@ def test_cmd_ramp_leaderboard_filter_sort_leaderboard_df():
             },
         }
     }
-
-    scores_dict = {
-        'submission1': {
-            0: {
-                'acc': {'train': 0.7, 'valid': 0.3, 'test': 0.1},
-                'nll': {'train': 1.3, 'valid': 1.4, 'test': 1.5},
-            },
-            1: {
-                'acc': {'train': 0.8, 'valid': 0.5, 'test': 0.4},
-                'nll': {'train': 1.2, 'valid': 1.6, 'test': 1.6},
-            }
-        },
-        'submission2': {
-            0: {
-                'acc': {'train': 0.4, 'valid': 0.7, 'test': 0.2},
-                'nll': {'train': 1.1, 'valid': 1.9, 'test': 1.2},
-            },
-            1: {
-                'acc': {'train': 0.3, 'valid': 0.3, 'test': 0.4},
-                'nll': {'train': 1.2, 'valid': 1.0, 'test': 1.1},
-            },
-        }
-    }
     metrics = _get_metrics(scores_dict)
     df = _build_leaderboard_df(scores_dict)
 
