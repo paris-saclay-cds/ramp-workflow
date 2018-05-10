@@ -303,15 +303,14 @@ def ramp_leaderboard():
               '<name> --save-y-preds` in order to save the predictions)')
         sys.exit(0)
 
-    metrics = _get_metrics(scores)
     df = _build_leaderboard_df(scores, precision=args.precision)
-
     if args.help_cols:
         for col in df.columns:
             print(col)
         sys.exit(0)
 
     if args.help_metrics:
+        metrics = _get_metrics(df)
         for metric in metrics:
             print(metric)
         sys.exit(0)
@@ -322,21 +321,23 @@ def ramp_leaderboard():
 
     cols = args.cols.split(',') if args.cols else None
     sort_by = args.sort_by.split(',') if args.sort_by else None
-    df = _filter_and_sort_leaderboard_df(
-        df,
-        metrics=metrics,
-        cols=cols,
-        metric=args.metric,
-        sort_by=sort_by,
-        asc=args.asc
-    )
-    if df is None:
+
+    try:
+        df = _filter_and_sort_leaderboard_df(
+            df,
+            cols=cols,
+            metric=args.metric,
+            sort_by=sort_by,
+            asc=args.asc
+        )
+    except ValueError as ex:
+        print(ex)
         sys.exit(1)
     print(tabulate(df, headers='keys', tablefmt='grid'))
 
 
 def _filter_and_sort_leaderboard_df(
-        df, metrics, cols=None, metric=None,
+        df, cols=None, metric=None,
         sort_by=None, asc=False):
     """
     filters and sorts rows of df where df is a DataFrame obtained
@@ -345,50 +346,62 @@ def _filter_and_sort_leaderboard_df(
     Parameters
     ----------
 
-    metrics : list of str
-        list of all metrics available on df
-
     cols : None or list of str
         columns to take from df.
         if a column does not exist in df, the function
-        will return None.
+        will raise a ValueError.
 
     metric : None or str
         metric to take from df. Equivalent to
         specifying cols to ['train_metric', 'valid_metric', 'test_metric'].
-        If the specified metric does not exist, the function will return
-        None.
+        If the specified metric does not exist, the function will raise a
+        ValueError.
         Note that we cannot both provide cols and metric, only one of them has
         to be provided otherwise the functions returns None.
 
     sort_by : None or list of str
-        columns to sort by.
+        columns to sort by. That is, sort by the col of the first
+        element sort_by, then the second element, etc.
+        If one of the columns do not exist, the function
+        will raise a ValuError
 
     asc : bool
         True if sorting ascending otherwise descending
+
+    Returns
+    -------
+
+    pd.DataFrame : df with filtering and sorting
+
+    Raises
+    ------
+
+    ValueError if one of the `cols` do not exist in `df`, or
+    `metric` do not exist in `df`, or one of the columns in
+    `sort_by` do not exist in `df`.
     """
     if cols and metric:
         return
     elif cols is not None:
+        valid_cols = set(df.columns.tolist())
         for col in cols:
-            if col not in df.columns:
-                print('Column "{}" does not exist.'
-                      ' Available columns are : '.format(col))
-                for c in df.columns:
-                    print(c)
-                return
+            if col not in valid_cols:
+                cols_s = '\n'.join(list(valid_cols))
+                raise ValueError(
+                      'Column "{}" does not exist.'
+                      ' Available columns are : \n'.format(col, cols_s))
         show_cols = cols
     elif metric is not None:
         if 'train_' + metric not in df.columns:
-            print('Metric "{}" does not exist.'
-                  ' Available metrics are : '.format(metric))
-            for metric in metrics:
-                print(metric)
-            return
+            metrics = '\n'.join(_get_metrics(df))
+            raise ValueError(
+                  'Metric "{}" does not exist.'
+                  ' Available metrics are : \n{}'.format(metric, metrics))
         show_cols = [
             '{}_{}'.format(step, metric)
             for step in ('train', 'valid', 'test')]
     else:
+        metrics = _get_metrics(df)
         metrics = sorted(metrics)
         metric = metrics[0]
         show_cols = [
@@ -396,17 +409,18 @@ def _filter_and_sort_leaderboard_df(
             for step in ('train', 'valid', 'test')]
     if sort_by is not None:
         sort_cols = sort_by
+        valid_cols = set(df.columns)
         for col in sort_cols:
-            if col not in df.columns:
-                print('Column "{}" does not exist.'
-                      ' Available columns are : '.format(col))
-                for c in df.columns:
-                    print(c)
-                return
-    elif metric is not None:
+            if col not in valid_cols:
+                cols_s = '\n'.join(list(valid_cols))
+                raise ValueError(
+                      'Column "{}" does not exist.'
+                      ' Available columns are : \n'.format(col, cols_s))
+    elif metric:
         sort_cols = ['{}_{}_mean'.format(step, metric)
                      for step in ('test', 'valid', 'train')]
     else:
+        metrics = _get_metrics(df)
         metrics = sorted(metrics)
         metric = metrics[0]
         sort_cols = ['{}_{}'.format(step, metric)
@@ -441,10 +455,14 @@ def _build_leaderboard_df(scores_dict, precision=2):
 
     """
     rows = []
+    if len(scores_dict) == 0:
+        return pd.DataFrame()
+
     for submission_name, scores_folds in scores_dict.items():
         scs = [pd.DataFrame(s) for s in scores_folds.values()]
         # compute mean and std over folds for current submission
         mean_scores = sum([s for s in scs]) / len(scs)
+        metrics = mean_scores.columns
         std_scores = np.sqrt(
             sum([s**2 for s in scs]) / len(scs) -
             mean_scores ** 2
@@ -469,24 +487,27 @@ def _build_leaderboard_df(scores_dict, precision=2):
         rows.append(row)
     columns_order = [
         '{}_{}'.format(step, metric)
-        for metric in mean_scores.columns
+        for metric in metrics
         for step in ('train', 'valid', 'test')
     ]
     columns_order += [
         '{}_{}_{}'.format(step, metric, part)
-        for metric in mean_scores.columns
+        for metric in metrics
         for step in ('train', 'valid', 'test')
         for part in ('mean', 'std')
     ]
     return pd.DataFrame(rows, columns=['submission'] + columns_order)
 
 
-def _get_metrics(scores_dict):
+def _get_metrics(leaderboard_df):
     """
-    Get the list of metrics used scores_dict
+    Get the list of metrics used in `leaderboard_df`
 
-    scores_dict : dict
-        dict obtained with _build_scores_dict
+    Parameters
+    ----------
+
+    leaderboard_df : pd.DataFrame
+        data frame returned by _build_leaderboard_df
 
     Returns
     -------
@@ -496,10 +517,9 @@ def _get_metrics(scores_dict):
     Example of return value : ['acc', 'nll']
     """
     metrics = [
-        metric
-        for folds in scores_dict.values()
-        for metrics in folds.values()
-        for metric in metrics.keys()
+        col.split('_')[1]
+        for col in leaderboard_df.columns
+        if col.startswith('train_') and col.endswith('_mean')
     ]
     metrics = list(set(metrics))
     return metrics

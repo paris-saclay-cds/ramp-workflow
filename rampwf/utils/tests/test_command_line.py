@@ -325,31 +325,26 @@ def test_cmd_ramp_leaderboard_filter_sort_leaderboard_df():
             },
         }
     }
-    metrics = _get_metrics(scores_dict)
     df = _build_leaderboard_df(scores_dict)
-
     # by default use train_metric/valid_metric/test_metric
     # of the metric first in alphabetical order ('acc' here)
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=None,
         metric=None,
         sort_by=None)
     assert df_.columns.tolist() == [
         'submission', 'train_acc', 'valid_acc', 'test_acc']
     # non existent column
-    df_ = _filter_and_sort_leaderboard_df(
-        df,
-        metrics=metrics,
-        cols=['abc'],
-        metric=None,
-        sort_by=None)
-    assert df_ is None
+    with pytest.raises(ValueError):
+        df_ = _filter_and_sort_leaderboard_df(
+            df,
+            cols=['abc'],
+            metric=None,
+            sort_by=None)
     # no columns
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=[],
         metric=None,
         sort_by=None)
@@ -358,14 +353,12 @@ def test_cmd_ramp_leaderboard_filter_sort_leaderboard_df():
     # some cols
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=['train_nll', 'valid_acc'],
         metric=None,
         sort_by=None)
     assert df_.columns.tolist() == ['submission', 'train_nll', 'valid_acc']
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=['valid_acc', 'train_nll'],
         metric=None,
         sort_by=None)
@@ -373,42 +366,36 @@ def test_cmd_ramp_leaderboard_filter_sort_leaderboard_df():
     # giving both a metric and cols
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=['valid_acc', 'train_nll'],
         metric='acc',
         sort_by=None)
     assert df_ is None
 
     # non existent metric
-    df_ = _filter_and_sort_leaderboard_df(
-        df,
-        metrics=metrics,
-        cols=None,
-        metric='accc',
-        sort_by=None)
-    assert df_ is None
+    with pytest.raises(ValueError):
+        df_ = _filter_and_sort_leaderboard_df(
+            df,
+            cols=None,
+            metric='accc',
+            sort_by=None)
     # giving metric
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=None,
         metric='nll',
         sort_by=None)
     assert df_.columns.tolist() == [
         'submission', 'train_nll', 'valid_nll', 'test_nll']
     # sorting by non existent col
-    df_ = _filter_and_sort_leaderboard_df(
-        df,
-        metrics=metrics,
-        cols=None,
-        metric=None,
-        sort_by=['abc'])
-    assert df_ is None
-
+    with pytest.raises(ValueError):
+        df_ = _filter_and_sort_leaderboard_df(
+            df,
+            cols=None,
+            metric=None,
+            sort_by=['abc'])
     # sorting by col
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=None,
         metric=None,
         sort_by=['test_nll_mean'],
@@ -416,7 +403,6 @@ def test_cmd_ramp_leaderboard_filter_sort_leaderboard_df():
     assert df_['submission'].tolist() == ['submission2', 'submission1']
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=None,
         metric=None,
         sort_by=['test_nll_mean'],
@@ -425,7 +411,6 @@ def test_cmd_ramp_leaderboard_filter_sort_leaderboard_df():
 
     df_ = _filter_and_sort_leaderboard_df(
         df,
-        metrics=metrics,
         cols=None,
         metric=None,
         sort_by=['train_acc_mean'],
@@ -434,7 +419,7 @@ def test_cmd_ramp_leaderboard_filter_sort_leaderboard_df():
 
 
 def test_cmd_ramp_leaderboard_get_metrics():
-    assert _get_metrics({}) == []
+    assert _get_metrics(_build_leaderboard_df({})) == []
     scores_dict = {
         'submission1': {
             0: {
@@ -457,4 +442,5 @@ def test_cmd_ramp_leaderboard_get_metrics():
             },
         }
     }
-    assert set(_get_metrics(scores_dict)) == set(['acc', 'nll'])
+    df = _build_leaderboard_df(scores_dict)
+    assert set(_get_metrics(df)) == set(['acc', 'nll'])
