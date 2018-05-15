@@ -62,7 +62,7 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         returned by problem.get_train_data
     y_train : a list of training ground truth
         returned by problem.get_train_data
-    X_train : a list of testing instances
+    X_test : a list of testing instances or None
         returned by problem.get_test_data
     is_pickle : boolean
         True if the model should be pickled
@@ -98,8 +98,11 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         trained_workflow, X_train)
     valid_time = time.time() - t0
     t0 = time.time()
-    y_pred_test = problem.workflow.test_submission(
-        trained_workflow, X_test)
+    if X_test is None:
+        y_pred_test = None
+    else:
+        y_pred_test = problem.workflow.test_submission(
+            trained_workflow, X_test)
     test_time = time.time() - t0
     return (y_pred_train, y_pred_test), (train_time, valid_time, test_time)
 
@@ -122,7 +125,7 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
         returned by problem.get_train_data
     X_train : a list of testing instances
         returned by problem.get_test_data
-    y_test : a list of testing ground truth
+    y_test : a list of testing ground truth or None
         returned by problem.get_test_data
     score_types : a list of score types
         problem.score_types
@@ -160,33 +163,51 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
         y_pred=y_pred_train[valid_is])
     ground_truth_train_valid = problem.Predictions(
         y_true=y_train[valid_is])
-    predictions_test = problem.Predictions(y_pred=y_pred_test)
-    ground_truth_test = problem.Predictions(y_true=y_test)
+    if y_test is not None:
+        predictions_test = problem.Predictions(y_pred=y_pred_test)
+        ground_truth_test = problem.Predictions(y_true=y_test)
+        if save_y_preds:
+            save_y_pred(
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=fold_output_path, suffix='train')
+            if y_test is not None:
+                save_y_pred(
+                    problem, y_pred_test, data_path=ramp_data_dir,
+                    output_path=fold_output_path, suffix='test')
+            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
+                fd.write(str(train_time))
+            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
+                fd.write(str(valid_time))
+            with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
+                fd.write(str(test_time))
+        df_scores = score_matrix(
+            score_types,
+            ground_truth=OrderedDict([('train', ground_truth_train_train),
+                                      ('valid', ground_truth_train_valid),
+                                      ('test', ground_truth_test)]),
+            predictions=OrderedDict([('train', predictions_train_train),
+                                     ('valid', predictions_train_valid),
+                                     ('test', predictions_test)]),
+        )
+        return predictions_train_valid, predictions_test, df_scores
 
-    if save_y_preds:
-        save_y_pred(
-            problem, y_pred_train, data_path=ramp_data_dir,
-            output_path=fold_output_path, suffix='train')
-        save_y_pred(
-            problem, y_pred_test, data_path=ramp_data_dir,
-            output_path=fold_output_path, suffix='test')
-        with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
-            fd.write(str(train_time))
-        with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
-            fd.write(str(valid_time))
-        with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
-            fd.write(str(test_time))
-
-    df_scores = score_matrix(
-        score_types,
-        ground_truth=OrderedDict([('train', ground_truth_train_train),
-                                  ('valid', ground_truth_train_valid),
-                                  ('test', ground_truth_test)]),
-        predictions=OrderedDict([('train', predictions_train_train),
-                                 ('valid', predictions_train_valid),
-                                 ('test', predictions_test)]),
-    )
-    return predictions_train_valid, predictions_test, df_scores
+    else:
+        if save_y_preds:
+            save_y_pred(
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=fold_output_path, suffix='train')
+            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
+                fd.write(str(train_time))
+            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
+                fd.write(str(valid_time))
+        df_scores = score_matrix(
+            score_types,
+            ground_truth=OrderedDict([('train', ground_truth_train_train),
+                                      ('valid', ground_truth_train_valid)]),
+            predictions=OrderedDict([('train', predictions_train_train),
+                                     ('valid', predictions_train_valid)]),
+        )
+        return predictions_train_valid, None, df_scores
 
 
 def run_submission_on_full_train(problem, module_path, X_train, y_train,
@@ -205,9 +226,9 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         returned by problem.get_train_data
     y_train : a list of training ground truth
         returned by problem.get_train_data
-    X_train : a list of testing instances
+    X_test : a list of testing instances or None
         returned by problem.get_test_data
-    y_test : a list of testing ground truth
+    y_test : a list of testing ground truth or None
         returned by problem.get_test_data
     score_types : a list of score types
         problem.score_types
@@ -225,26 +246,40 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         output_path, model_name='retrained_model.pkl')
     predictions_train = problem.Predictions(y_pred=y_pred_train)
     ground_truth_train = problem.Predictions(y_true=y_train)
-    predictions_test = problem.Predictions(y_pred=y_pred_test)
-    ground_truth_test = problem.Predictions(y_true=y_test)
+    if y_test is not None:
+        predictions_test = problem.Predictions(y_pred=y_pred_test)
+        ground_truth_test = problem.Predictions(y_true=y_test)
 
-    df_scores = score_matrix(
-        score_types,
-        ground_truth=OrderedDict([('train', ground_truth_train),
-                                  ('test', ground_truth_test)]),
-        predictions=OrderedDict([('train', predictions_train),
-                                 ('test', predictions_test)]),
-    )
-    df_scores_rounded = round_df_scores(df_scores, score_types)
-    print_df_scores(df_scores_rounded, score_types, indent='\t')
+        df_scores = score_matrix(
+            score_types,
+            ground_truth=OrderedDict([('train', ground_truth_train),
+                                      ('test', ground_truth_test)]),
+            predictions=OrderedDict([('train', predictions_train),
+                                     ('test', predictions_test)]),
+        )
+        df_scores_rounded = round_df_scores(df_scores, score_types)
+        print_df_scores(df_scores_rounded, score_types, indent='\t')
 
-    if save_y_preds:
-        save_submissions(
-            problem, y_pred_train, data_path=ramp_data_dir,
-            output_path=output_path, suffix='retrain_train')
-        save_submissions(
-            problem, y_pred_test, data_path=ramp_data_dir,
-            output_path=output_path, suffix='retrain_test')
+        if save_y_preds:
+            save_submissions(
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=output_path, suffix='retrain_train')
+            save_submissions(
+                problem, y_pred_test, data_path=ramp_data_dir,
+                output_path=output_path, suffix='retrain_test')
+    else:
+        df_scores = score_matrix(
+            score_types,
+            ground_truth=OrderedDict([('train', ground_truth_train)]),
+            predictions=OrderedDict([('train', predictions_train)]),
+        )
+        df_scores_rounded = round_df_scores(df_scores, score_types)
+        print_df_scores(df_scores_rounded, score_types, indent='\t')
+
+        if save_y_preds:
+            save_submissions(
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=output_path, suffix='retrain_train')
 
 
 def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
@@ -252,46 +287,93 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
                     ramp_data_dir='.', score_type_index=0,
                     save_y_preds=False, score_table_title='Bagged scores',
                     score_f_name_prefix=''):
+    """CV-bag trained submission.
+
+    Parameters
+    ----------
+    problem : problem object
+        imp.loaded from problem.py
+    cv : cross validation object
+        coming from get_cv of problem.py
+    y_train : a list of training ground truth
+        returned by problem.get_train_data
+    y_test : a list of testing ground truth or None
+        returned by problem.get_test_data
+    predictions_valid_list : list of Prediction objects
+        returned by run_submission_on_cv_fold
+    predictions_test_list : list of Prediction objects or None
+        returned by run_submission_on_cv_fold
+    training_output_path : str
+        submissions/<submission>/training_output
+    ramp_data_dir : str
+        the directory of the data
+    score_type_index : int
+        the score type on which we bag
+    save_y_preds : boolean
+        True if predictions should be written in files
+    score_table_title : str
+    score_f_name_prefix : str
+    """
     print_title('----------------------------')
     print_title(score_table_title)
     print_title('----------------------------')
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     ground_truths_train = problem.Predictions(y_true=y_train)
-    ground_truths_test = problem.Predictions(y_true=y_test)
     score_type = problem.score_types[score_type_index]
     bagged_valid_predictions, bagged_valid_scores =\
         get_score_cv_bags(
             score_type, predictions_valid_list,
             ground_truths_train, test_is_list=valid_is_list)
-    bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
-        score_type, predictions_test_list, ground_truths_test)
+    if y_test is not None:
+        ground_truths_test = problem.Predictions(y_true=y_test)
+        bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
+            score_type, predictions_test_list, ground_truths_test)
 
-    df_scores = score_matrix_from_scores(
-        [score_type], ['valid', 'test'],
-        [[bagged_valid_scores[-1]], [bagged_test_scores[-1]]])
-    df_scores_rounded = round_df_scores(df_scores, [score_type])
-    print_df_scores(df_scores_rounded, [score_type], indent='\t')
+        df_scores = score_matrix_from_scores(
+            [score_type], ['valid', 'test'],
+            [[bagged_valid_scores[-1]], [bagged_test_scores[-1]]])
+        df_scores_rounded = round_df_scores(df_scores, [score_type])
+        print_df_scores(df_scores_rounded, [score_type], indent='\t')
 
-    if save_y_preds:
-        # y_pred_bagged_train.csv contains _out of sample_ (validation)
-        # predictions, but not for all points (contains nans)
-        save_submissions(
-            problem, bagged_valid_predictions.y_pred,
-            data_path=ramp_data_dir, output_path=training_output_path,
-            suffix='{}_bagged_train'.format(score_f_name_prefix))
-        save_submissions(
-            problem, bagged_test_predictions.y_pred, data_path=ramp_data_dir,
-            output_path=training_output_path,
-            suffix='{}_bagged_test'.format(score_f_name_prefix))
-        # also save the partial combined scores (CV bagging learning curves)
-        bagged_train_valid_scores_f_name = os.path.join(
-            training_output_path,
-            '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
-        np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
-        bagged_test_scores_f_name = os.path.join(
-            training_output_path,
-            '{}_bagged_test_scores.csv'.format(score_f_name_prefix))
-        np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
+        if save_y_preds:
+            # y_pred_bagged_train.csv contains _out of sample_ (validation)
+            # predictions, but not for all points (contains nans)
+            save_submissions(
+                problem, bagged_valid_predictions.y_pred,
+                data_path=ramp_data_dir, output_path=training_output_path,
+                suffix='{}_bagged_train'.format(score_f_name_prefix))
+            save_submissions(
+                problem, bagged_test_predictions.y_pred,
+                data_path=ramp_data_dir, output_path=training_output_path,
+                suffix='{}_bagged_test'.format(score_f_name_prefix))
+            # also save the partial combined scores (CV bag learning curves)
+            bagged_train_valid_scores_f_name = os.path.join(
+                training_output_path,
+                '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
+            np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
+            bagged_test_scores_f_name = os.path.join(
+                training_output_path,
+                '{}_bagged_test_scores.csv'.format(score_f_name_prefix))
+            np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
+    else:
+        df_scores = score_matrix_from_scores(
+            [score_type], ['valid'],
+            [[bagged_valid_scores[-1]]])
+        df_scores_rounded = round_df_scores(df_scores, [score_type])
+        print_df_scores(df_scores_rounded, [score_type], indent='\t')
+
+        if save_y_preds:
+            # y_pred_bagged_train.csv contains _out of sample_ (validation)
+            # predictions, but not for all points (contains nans)
+            save_submissions(
+                problem, bagged_valid_predictions.y_pred,
+                data_path=ramp_data_dir, output_path=training_output_path,
+                suffix='{}_bagged_train'.format(score_f_name_prefix))
+            # also save the partial combined scores (CV bag learning curves)
+            bagged_train_valid_scores_f_name = os.path.join(
+                training_output_path,
+                '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
+            np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
 
 
 def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
