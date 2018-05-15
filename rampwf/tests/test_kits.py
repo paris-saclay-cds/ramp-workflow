@@ -51,7 +51,7 @@ def test_submission(path_kit):
             ramp_kit_dir=path_kit,
             ramp_data_dir=path_kit,
             submission=os.path.basename(sub), is_pickle=True,
-            save_y_preds=False, retrain=False)
+            save_y_preds=False, retrain=True)
 
 
 def test_blending():
