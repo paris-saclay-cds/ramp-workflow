@@ -20,7 +20,7 @@ install:
     - pip install -r testing-requirements.txt
     - pip install .
 script:
-    - flake8 rampwf --ignore=F401,E211,E265,W503
+    - flake8 rampwf --ignore=F401,E211,E265,W503 --exclude rampwf/externals
     - pytest -s -v --cov=rampwf rampwf
 after_success:
     - codecov
