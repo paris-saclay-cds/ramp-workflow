@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import numpy as np
 from pandas import option_context
-from colored import stylize, fg, attr
+from ..externals.colored import stylize, fg, attr
 
 # Dictionary of term colors used for printing to terminal
 fg_colors = {

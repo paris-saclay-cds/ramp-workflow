@@ -19,4 +19,5 @@ __all__ = ['assert_cv',
            'ramp_convert_notebook',
            'ramp_test_notebook',
            'ramp_test_submission',
+           'import_file'
            ]
