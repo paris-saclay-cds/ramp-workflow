@@ -12,7 +12,7 @@ PATH = os.path.dirname(__file__)
 
 def skip_no_tensorflow():
     try:
-        import tensorflow
+        import tensorflow  # noqa
     except ImportError:
         return pytest.mark.skip(reason='tensorflow not available')
     return pytest.mark.basic
@@ -55,7 +55,6 @@ def test_submission(path_kit):
                 ramp_data_dir=path_kit,
                 submission=os.path.basename(sub), is_pickle=True,
                 save_y_preds=False, retrain=True)
-
 
 
 def test_blending():
