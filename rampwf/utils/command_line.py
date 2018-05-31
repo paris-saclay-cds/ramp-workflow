@@ -11,7 +11,7 @@ from collections import defaultdict
 import os
 import numpy as np
 import pandas as pd
-from tabulate import tabulate
+from ..externals.tabulate import tabulate
 
 from .testing import (
     assert_submission, assert_notebook, convert_notebook, blend_submissions)
