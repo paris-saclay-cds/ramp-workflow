@@ -388,15 +388,15 @@ def _filter_and_sort_leaderboard_df(
             if col not in valid_cols:
                 cols_s = '\n'.join(list(valid_cols))
                 raise ValueError(
-                      'Column "{}" does not exist.'
-                      ' Available columns are : \n'.format(col, cols_s))
+                    'Column "{}" does not exist.'
+                    ' Available columns are : \n'.format(col, cols_s))
         show_cols = cols
     elif metric is not None:
         if 'train_' + metric not in df.columns:
             metrics = '\n'.join(_get_metrics(df))
             raise ValueError(
-                  'Metric "{}" does not exist.'
-                  ' Available metrics are : \n{}'.format(metric, metrics))
+                'Metric "{}" does not exist.'
+                ' Available metrics are : \n{}'.format(metric, metrics))
         show_cols = [
             '{}_{}'.format(step, metric)
             for step in ('train', 'valid', 'test')]
@@ -414,8 +414,8 @@ def _filter_and_sort_leaderboard_df(
             if col not in valid_cols:
                 cols_s = '\n'.join(list(valid_cols))
                 raise ValueError(
-                      'Column "{}" does not exist.'
-                      ' Available columns are : \n'.format(col, cols_s))
+                    'Column "{}" does not exist.'
+                    ' Available columns are : \n'.format(col, cols_s))
     elif metric:
         sort_cols = ['{}_{}_mean'.format(step, metric)
                      for step in ('test', 'valid', 'train')]
