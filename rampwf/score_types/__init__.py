@@ -15,6 +15,7 @@ from .make_combined import MakeCombined
 from .mare import MARE
 from .negative_log_likelihood import NegativeLogLikelihood
 from .normalized_gini import NormalizedGini
+from .normalized_rmse import NormalizedRMSE
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
@@ -42,6 +43,7 @@ __all__ = [
     'MARE',
     'NegativeLogLikelihood',
     'NormalizedGini',
+    'NormalizedRMSE',
     'OSPA',
     'RelativeRMSE',
     'RMSE',
