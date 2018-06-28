@@ -3,6 +3,7 @@ from .classifier import Classifier
 from .clusterer import Clusterer
 from .drug_spectra import DrugSpectra
 from .el_nino import ElNino
+from .mechanics import Mechanics
 from .feature_extractor import FeatureExtractor
 from .feature_extractor_classifier import FeatureExtractorClassifier
 from .feature_extractor_regressor import FeatureExtractorRegressor
@@ -19,6 +20,7 @@ __all__ = [
     'Clusterer',
     'DrugSpectra',
     'ElNino',
+    'Mechanics',
     'FeatureExtractor',
     'FeatureExtractorClassifier',
     'FeatureExtractorRegressor',
