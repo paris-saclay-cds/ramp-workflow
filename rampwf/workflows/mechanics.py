@@ -17,7 +17,6 @@ import numpy as np
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .regressor import Regressor
 
-# TEST COMMENT
 class Mechanics(object):
     def __init__(self, check_sizes, check_indexs, workflow_element_names=[
             'ts_feature_extractor', 'regressor']):
@@ -27,6 +26,9 @@ class Mechanics(object):
         self.regressor_workflow = Regressor([self.element_names[1]])
 
     def train_submission(self, module_path, X_ds, y_array, train_is=None):
+        print("training...")
+        print("I AM IN DEVELOPMENT XXX")
+
         """
         Train a time series feature extractor + regressor workflow.
 
@@ -39,7 +41,13 @@ class Mechanics(object):
         if train_is is None:
             # slice doesn't work here because of the way `extended_train_is`
             # is computed below
-            train_is = np.arange(len(y_array))
+            train_is = np.arange(0, len(y_array))
+
+        print("I AM IN DEVELOPMENT YYY")
+
+        print("X_ds : ", X_ds)
+        print("y_array : ", y_array.shape)
+
         ts_fe = self.ts_feature_extractor_workflow.train_submission(
             module_path, X_ds, y_array)
 
@@ -47,10 +55,12 @@ class Mechanics(object):
         # X_ds contains burn-in so it needs to be extended by n_burn_in
         # timesteps. This assumes that train_is is a block of consecutive
         # time points.
-        burn_in_range = np.arange(train_is[-1], train_is[-1] + n_burn_in)
-        extended_train_is = np.concatenate((train_is, burn_in_range))
-        X_train_ds = X_ds.isel(time=extended_train_is)
+#        burn_in_range = np.arange(train_is[-1], train_is[-1] + n_burn_in)
+#        extended_train_is = np.concatenate((train_is, burn_in_range))
+#        X_train_ds = X_ds.isel(time=extended_train_is)
         # At this point X_train_ds is n_burn_in longer than y_array[train_is]
+
+        X_train_ds = X_ds
 
         # ts_fe.transform should return an array corresponding to time points
         # without burn in, so X_train_array and y_array[train_is] should now
@@ -63,6 +73,7 @@ class Mechanics(object):
         return ts_fe, reg
 
     def test_submission(self, trained_model, X_ds):
+        print("testing...")
         ts_fe, reg = trained_model
         X_test_array = self.ts_feature_extractor_workflow.test_submission(
             ts_fe, X_ds)
