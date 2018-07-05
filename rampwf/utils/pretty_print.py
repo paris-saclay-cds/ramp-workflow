@@ -45,11 +45,15 @@ def print_df_scores(df_scores, score_types, indent=''):
         # try to re-order columns/rows in the printed array
         # we may not have all train, valid, test, so need to select
         index_order = np.array(['train', 'valid', 'test'])
-        ordered_index = index_order[np.isin(index_order, df_scores.index)]
+        # uncomment once numpy 1.13 can be installed. For now it's 
+        # clashing with keras
+        # ordered_index = index_order[np.isin(index_order, df_scores.index)]
+        ordered_index = index_order[np.in1d(index_order, df_scores.index)]
         df_scores = df_scores.loc[
             ordered_index, [score_type.name for score_type in score_types]]
     except Exception:
         print_warning("Couldn't re-order the score matrix..")
+
     with option_context("display.width", 160):
         df_repr = repr(df_scores)
     df_repr_out = []
