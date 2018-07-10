@@ -4,6 +4,7 @@ utils.
 """
 from __future__ import print_function
 from __future__ import unicode_literals
+import re
 import sys
 from os import listdir
 from os.path import join, isdir
@@ -517,7 +518,7 @@ def _get_metrics(leaderboard_df):
     Example of return value : ['acc', 'nll']
     """
     metrics = [
-        col.split('_')[1]
+        re.search('train_(.+)_mean', col).group(1)
         for col in leaderboard_df.columns
         if col.startswith('train_') and col.endswith('_mean')
     ]
