@@ -152,6 +152,8 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
 
     print("train_is : ", train_is)
     print("valid_is : ", valid_is)
+    print("X_train : ", X_train)
+    print("X_test : ", X_test)
 
     pred, timing = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,

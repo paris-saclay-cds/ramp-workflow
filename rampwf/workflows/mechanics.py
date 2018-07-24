@@ -17,6 +17,7 @@ import numpy as np
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .regressor import Regressor
 
+
 class Mechanics(object):
     def __init__(self, check_sizes, check_indexs, workflow_element_names=[
             'ts_feature_extractor', 'regressor']):
@@ -29,19 +30,14 @@ class Mechanics(object):
         print("training...")
         print("I AM IN DEVELOPMENT XXX")
 
-        """
-        Train a time series feature extractor + regressor workflow.
+        print(train_is)
 
-        `X_ds` is `n_burn_in` longer than `y_array` since `y_array` contains
-        targets without the initial burn in period. `train_is` are wrt
-        `y_array`, so `X_ds` has to be _extended_ by `n_burn_in` when sent to
-        the time series feature extractor.
-
-        """
         if train_is is None:
             # slice doesn't work here because of the way `extended_train_is`
             # is computed below
             train_is = np.arange(0, len(y_array))
+
+        print(train_is)
 
         print("I AM IN DEVELOPMENT YYY")
 
@@ -50,15 +46,6 @@ class Mechanics(object):
 
         ts_fe = self.ts_feature_extractor_workflow.train_submission(
             module_path, X_ds, y_array)
-
-        n_burn_in = X_ds.n_burn_in
-        # X_ds contains burn-in so it needs to be extended by n_burn_in
-        # timesteps. This assumes that train_is is a block of consecutive
-        # time points.
-#        burn_in_range = np.arange(train_is[-1], train_is[-1] + n_burn_in)
-#        extended_train_is = np.concatenate((train_is, burn_in_range))
-#        X_train_ds = X_ds.isel(time=extended_train_is)
-        # At this point X_train_ds is n_burn_in longer than y_array[train_is]
 
         X_train_ds = X_ds
 
@@ -77,5 +64,6 @@ class Mechanics(object):
         ts_fe, reg = trained_model
         X_test_array = self.ts_feature_extractor_workflow.test_submission(
             ts_fe, X_ds)
-        y_pred = self.regressor_workflow.test_submission(reg, X_test_array)
+        y_pred = self.regressor_workflow.test_submission(
+            reg, X_test_array)
         return y_pred
