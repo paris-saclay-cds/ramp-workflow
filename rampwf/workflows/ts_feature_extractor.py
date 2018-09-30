@@ -53,11 +53,12 @@ class TimeSeriesFeatureExtractor(object):
         `ts_fe.fit`.
 
         """
+
+        n_burn_in = X_ds.n_burn_in
         if train_is is None:
             # slice doesn't work here because of the way `extended_train_is`
             # is computed below
-            train_is = np.arange(len(y_array))
-        n_burn_in = X_ds.n_burn_in
+            train_is = np.arange(len(y_array) - n_burn_in)
         ts_feature_extractor = import_file(module_path, self.element_names[0])
         ts_fe = ts_feature_extractor.FeatureExtractor()
         # Fit is not required in the submissions but we add it here in case
@@ -66,6 +67,8 @@ class TimeSeriesFeatureExtractor(object):
         # per time step).
         try:
             burn_in_range = np.arange(train_is[-1], train_is[-1] + n_burn_in)
+            print("train_is : ", train_is)
+            print("burn_in_range : ", burn_in_range)
             extended_train_is = np.concatenate((train_is, burn_in_range))
             X_train_ds = X_ds.isel(time=extended_train_is)
             y_array_train = y_array[train_is]
@@ -86,7 +89,9 @@ class TimeSeriesFeatureExtractor(object):
         future.
 
         """
+        print("Checking not to look to future")
         ts_fe = trained_model
+ #       print(X_ds)
         X_test_array = ts_fe.transform(X_ds)
 
         # Checking if feature extractor looks ahead: we change the input
@@ -98,6 +103,8 @@ class TimeSeriesFeatureExtractor(object):
             # We use a short prefix to save time
             X_check_ds = X_ds.isel(
                 time=slice(0, n_burn_in + check_size)).copy(deep=True)
+#            print(X_check_ds)
+
             # Adding random noise to future.
             # Assigning Dataset slices is not yet supported so we need to
             # iterate over the arrays. To generalize we should maybe check
@@ -108,6 +115,10 @@ class TimeSeriesFeatureExtractor(object):
                     n_burn_in + check_index, None))] += np.random.normal()
             # Calling transform on changed future.
             X_check_array = ts_fe.transform(X_check_ds)
+#            print("Checking future look : ")
+#            print("X_check_array : ", X_check_array[:check_size])
+#            print("X_test_array : ", X_test_array[:check_size])
+
             X_neq = np.not_equal(
                 X_test_array[:check_size], X_check_array[:check_size])
             x_neq = np.any(X_neq, axis=1)

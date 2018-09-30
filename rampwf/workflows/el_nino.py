@@ -17,7 +17,6 @@ import numpy as np
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .regressor import Regressor
 
-
 class ElNino(object):
     def __init__(self, check_sizes, check_indexs, workflow_element_names=[
             'ts_feature_extractor', 'regressor']):
