@@ -6,6 +6,7 @@ from .brier_score import (
 from .clustering_efficiency import ClusteringEfficiency
 from .classification_error import ClassificationError
 from .combined import Combined
+from .cyclic_rmse import CyclicRMSE
 from .detection import (
     OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
     AverageDetectionPrecision, DetectionAveragePrecision)
@@ -32,6 +33,7 @@ __all__ = [
     'ClassificationError',
     'ClusteringEfficiency',
     'Combined',
+    'CyclicRMSE',
     'DetectionPrecision',
     'DetectionRecall',
     'DetectionAveragePrecision',
