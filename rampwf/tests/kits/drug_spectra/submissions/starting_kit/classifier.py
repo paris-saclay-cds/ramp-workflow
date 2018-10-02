@@ -7,7 +7,7 @@ from sklearn.base import BaseEstimator
 
 class Classifier(BaseEstimator):
     def __init__(self):
-        self.n_components = 100
+        self.n_components = 50
         self.n_estimators = 10
         self.clf = Pipeline([
             ('pca', PCA(n_components=self.n_components)),
