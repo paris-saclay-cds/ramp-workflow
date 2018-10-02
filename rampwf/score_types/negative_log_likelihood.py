@@ -14,5 +14,5 @@ class NegativeLogLikelihood(BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true_proba, y_proba):
-        score = log_loss(y_true_proba, y_pred_proba)
+        score = log_loss(y_true_proba, y_proba)
         return score
