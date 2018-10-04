@@ -155,14 +155,21 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
     y_pred_train, y_pred_test = pred
     train_time, valid_time, test_time = timing
 
+    def subset(y_pred, ids):
+        if hasattr(y_pred, 'iloc'):
+            return y_pred.iloc[ids]
+        else:
+            return y_pred[ids]
+
     predictions_train_train = problem.Predictions(
-        y_pred=y_pred_train[train_is])
+        y_pred=subset(y_pred_train, train_is))
     ground_truth_train_train = problem.Predictions(
-        y_true=y_train[train_is])
+        y_true=subset(y_train, train_is))
     predictions_train_valid = problem.Predictions(
-        y_pred=y_pred_train[valid_is])
+        y_pred=subset(y_pred_train, valid_is))
     ground_truth_train_valid = problem.Predictions(
-        y_true=y_train[valid_is])
+        y_true=subset(y_train, valid_is))
+
     if y_test is not None:
         predictions_test = problem.Predictions(y_pred=y_pred_test)
         ground_truth_test = problem.Predictions(y_true=y_test)
