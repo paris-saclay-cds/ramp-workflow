@@ -336,7 +336,7 @@ def ramp_leaderboard():
     try:
         from ..externals.tabulate import tabulate
         print(tabulate(df, headers='keys', tablefmt='grid'))
-    except:
+    except ImportError as ex:
         print(df)
 
 
