@@ -12,7 +12,6 @@ from collections import defaultdict
 import os
 import numpy as np
 import pandas as pd
-from ..externals.tabulate import tabulate
 
 from .testing import (
     assert_submission, assert_notebook, convert_notebook, blend_submissions)
@@ -334,7 +333,11 @@ def ramp_leaderboard():
     except ValueError as ex:
         print(ex)
         sys.exit(1)
-    print(tabulate(df, headers='keys', tablefmt='grid'))
+    try:
+        from ..externals.tabulate import tabulate
+        print(tabulate(df, headers='keys', tablefmt='grid'))
+    except:
+        print(df)
 
 
 def _filter_and_sort_leaderboard_df(
