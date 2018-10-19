@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from .combine import blend_on_fold
-from .io import load_y_pred
+from .io import load_y_pred, set_state
 from .pretty_print import print_title, print_df_scores
 from .notebook import execute_notebook, convert_notebook
 from .scoring import round_df_scores, mean_score_matrix
@@ -105,6 +105,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 training_output_path, 'fold_{}'.format(fold_i))
             if not os.path.exists(fold_output_path):
                 os.mkdir(fold_output_path)
+            if save_y_preds:
+                print(fold_output_path)
+                set_state('new', save_y_preds, fold_output_path)
         print_title('CV fold {}'.format(fold_i))
 
         predictions_valid, predictions_test, df_scores =\

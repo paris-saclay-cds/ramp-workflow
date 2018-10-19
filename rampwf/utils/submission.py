@@ -2,14 +2,14 @@
 """
 Utilities to manage the submissions
 """
-import time
 import os
+import time
 from collections import OrderedDict
 
 import numpy as np
 import cloudpickle as pickle
 
-from .io import save_y_pred
+from .io import save_y_pred, set_state, print_submission_exception
 from .combine import get_score_cv_bags
 from .pretty_print import print_title, print_df_scores, print_warning
 from .scoring import score_matrix, round_df_scores, score_matrix_from_scores
@@ -48,7 +48,7 @@ def save_submissions(problem, y_pred, data_path='.', output_path='.',
 
 
 def train_test_submission(problem, module_path, X_train, y_train, X_test,
-                          is_pickle, output_path,
+                          is_pickle, save_y_preds, output_path,
                           model_name='model.pkl', train_is=None):
     """Train and test submission, on cv fold if train_is not none.
 
@@ -68,6 +68,8 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         True if the model should be pickled
     output_path : str
         the path into which the model will be pickled
+    save_y_preds : boolean
+        True if predictions should be written in files
     model_name : str (default='model.pkl')
         the file name of the pickled workflow
     train_is : a list of integers (default=None)
@@ -86,24 +88,48 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
     valid_time : duration in seconds for validation
     test_time : duration in seconds for testing
     """
+    # Train
     t0 = time.time()
-    trained_workflow = problem.workflow.train_submission(
-        module_path, X_train, y_train, train_is=train_is)
+    try:
+        trained_workflow = problem.workflow.train_submission(
+            module_path, X_train, y_train, train_is=train_is)
+    except Exception:
+        print_submission_exception(save_y_preds, output_path)
+        set_state('training_error', save_y_preds, output_path)
+        exit(1)
     train_time = time.time() - t0
+    set_state('trained', save_y_preds, output_path)
     if is_pickle:
         trained_workflow = pickle_model(
             output_path, trained_workflow, model_name)
+
+    # Validate
     t0 = time.time()
-    y_pred_train = problem.workflow.test_submission(
-        trained_workflow, X_train)
+    try:
+        y_pred_train = problem.workflow.test_submission(
+            trained_workflow, X_train)
+    except Exception:
+        print_submission_exception(save_y_preds, output_path)
+        set_state('validating_error', save_y_preds, output_path)
+        exit(1)
     valid_time = time.time() - t0
+    set_state('validated', save_y_preds, output_path)
+
+    # Test
     t0 = time.time()
-    if X_test is None:
-        y_pred_test = None
-    else:
-        y_pred_test = problem.workflow.test_submission(
-            trained_workflow, X_test)
+    try:
+        if X_test is None:
+            y_pred_test = None
+        else:
+            y_pred_test = problem.workflow.test_submission(
+                trained_workflow, X_test)
+    except Exception:
+        print_submission_exception(save_y_preds, output_path)
+        set_state('testing_error', save_y_preds, output_path)
+        exit(1)
     test_time = time.time() - t0
+    set_state('tested', save_y_preds, output_path)
+
     return (y_pred_train, y_pred_test), (train_time, valid_time, test_time)
 
 
@@ -151,7 +177,7 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
     train_is, valid_is = fold
     pred, timing = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        fold_output_path, train_is=train_is)
+        save_y_preds, fold_output_path, train_is=train_is)
     y_pred_train, y_pred_test = pred
     train_time, valid_time, test_time = timing
 
@@ -189,6 +215,7 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
                                      ('valid', predictions_train_valid),
                                      ('test', predictions_test)]),
         )
+        set_state('scored', save_y_preds, fold_output_path)
         return predictions_train_valid, predictions_test, df_scores
 
     else:
@@ -207,6 +234,7 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
             predictions=OrderedDict([('train', predictions_train_train),
                                      ('valid', predictions_train_valid)]),
         )
+        set_state('scored', save_y_preds, fold_output_path)
         return predictions_train_valid, None, df_scores
 
 
@@ -243,7 +271,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
     """
     (y_pred_train, y_pred_test), _ = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        output_path, model_name='retrained_model.pkl')
+        save_y_preds, output_path, model_name='retrained_model.pkl')
     predictions_train = problem.Predictions(y_pred=y_pred_train)
     ground_truth_train = problem.Predictions(y_true=y_train)
     if y_test is not None:
