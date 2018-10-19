@@ -61,8 +61,8 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      submission='starting_kit', is_pickle=False,
-                      save_output=False, retrain=False):
+                      submission_dir = '.', submission='starting_kit',
+                      is_pickle=False, save_output=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -82,7 +82,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     score_types = assert_score_types(ramp_kit_dir)
 
-    module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
+    module_path = os.path.join(submission_dir, 'submissions', submission)
     print_title('Training {} ...'.format(module_path))
 
     training_output_path = ''
@@ -106,7 +106,6 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             if not os.path.exists(fold_output_path):
                 os.mkdir(fold_output_path)
             if save_output:
-                print(fold_output_path)
                 set_state('new', save_output, fold_output_path)
         print_title('CV fold {}'.format(fold_i))
 
@@ -149,7 +148,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
-                      save_output=False, min_improvement=0.0):
+                      submission_dir = '.', save_output=False,
+                      min_improvement=0.0):
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
@@ -168,7 +168,8 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         predictions_valid_list = []
         predictions_test_list = []
         for submission in submissions:
-            module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
+            module_path = os.path.join(
+                submission_dir, 'submissions', submission)
             training_output_path = os.path.join(module_path, 'training_output')
             fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
