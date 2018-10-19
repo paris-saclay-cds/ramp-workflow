@@ -83,10 +83,10 @@ def load_y_pred(problem, data_path='.', input_path='.', suffix='test'):
         return np.load(y_pred_f_name)['y_pred']
 
 
-def set_state(state, save_y_preds, output_path):
+def set_state(state, save_output, output_path):
     """Save the submission state (per fold) in <output_path>/state.txt.
 
-    In case save_y_preds is True. Otherwise do nothing.
+    In case save_output is True. Otherwise do nothing.
 
     Parameters
     ----------
@@ -94,24 +94,24 @@ def set_state(state, save_y_preds, output_path):
         The string representing the state. Possible values are 'new',
         'trained', 'validated', 'tested', 'scored', 'training_error',
         'validating_error', 'testing_error'.
-    save_y_preds : boolean
+    save_output : boolean
         True if state should be written in file
     output_path : str
         the path into which 'state.txt' will be saved
     """
-    if save_y_preds:
+    if save_output:
         with open(os.path.join(output_path, 'state.txt'), 'w') as fd:
             fd.write(state)
 
 
-def print_submission_exception(save_y_preds, output_path):
+def print_submission_exception(save_output, output_path):
     """Print the exception trace corresponding the user submission.
 
-    In case save_y_preds is True, also save it into <output_path>/error.txt
+    In case save_output is True, also save it into <output_path>/error.txt
 
     Parameters
     ----------
-    save_y_preds : boolean
+    save_output : boolean
         True if error should be written in file
     output_path : str
         the path into which 'error.txt' will be saved
@@ -125,7 +125,7 @@ def print_submission_exception(save_y_preds, output_path):
         trace = trace[5:]
     else:
         trace = trace[4:]
-    if save_y_preds:
+    if save_output:
         with open(os.path.join(output_path, 'error.txt'), 'w') as fd:
             for s in trace:
                 fd.write(s)

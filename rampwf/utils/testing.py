@@ -62,7 +62,7 @@ def assert_score_types(ramp_kit_dir='.'):
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       submission='starting_kit', is_pickle=False,
-                      save_y_preds=False, retrain=False):
+                      save_output=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -86,7 +86,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     print_title('Training {} ...'.format(module_path))
 
     training_output_path = ''
-    if is_pickle or save_y_preds:
+    if is_pickle or save_output:
         # creating submissions/<submission>/training_output dir
         training_output_path = os.path.join(module_path, 'training_output')
         if not os.path.exists(training_output_path):
@@ -99,23 +99,23 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
     for fold_i, fold in enumerate(cv):
         fold_output_path = ''
-        if is_pickle or save_y_preds:
+        if is_pickle or save_output:
             # creating submissions/<submission>/training_output/fold_<i> dir
             fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
             if not os.path.exists(fold_output_path):
                 os.mkdir(fold_output_path)
-            if save_y_preds:
+            if save_output:
                 print(fold_output_path)
-                set_state('new', save_y_preds, fold_output_path)
+                set_state('new', save_output, fold_output_path)
         print_title('CV fold {}'.format(fold_i))
 
         predictions_valid, predictions_test, df_scores =\
             run_submission_on_cv_fold(
                 problem, module_path, X_train, y_train, X_test, y_test,
-                score_types, is_pickle, save_y_preds, fold_output_path,
+                score_types, is_pickle, save_output, fold_output_path,
                 fold, ramp_data_dir)
-        if save_y_preds:
+        if save_output:
             filename = os.path.join(fold_output_path, 'scores.csv')
             df_scores.to_csv(filename)
         df_scores_rounded = round_df_scores(df_scores, score_types)
@@ -139,17 +139,17 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         print_title('----------------------------')
         run_submission_on_full_train(
             problem, module_path, X_train, y_train, X_test, y_test,
-            score_types, is_pickle, save_y_preds, training_output_path,
+            score_types, is_pickle, save_output, training_output_path,
             ramp_data_dir)
     bag_submissions(
         problem, cv, y_train, y_test, predictions_valid_list,
         predictions_test_list, training_output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=0,
-        save_y_preds=save_y_preds)
+        save_output=save_output)
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
-                      save_y_preds=False, min_improvement=0.0):
+                      save_output=False, min_improvement=0.0):
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
@@ -217,13 +217,13 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         problem, cv, y_train, y_test, combined_predictions_valid_list,
         combined_predictions_test_list, training_output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=0,
-        save_y_preds=save_y_preds, score_table_title='Combined bagged scores',
+        save_output=save_output, score_table_title='Combined bagged scores',
         score_f_name_prefix='foldwise_best')
     # bagging the foldwise best submissions
     bag_submissions(
         problem, cv, y_train, y_test, foldwise_best_predictions_valid_list,
         foldwise_best_predictions_test_list, training_output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=0,
-        save_y_preds=save_y_preds,
+        save_output=save_output,
         score_table_title='Foldwise best bagged scores',
         score_f_name_prefix='combined')

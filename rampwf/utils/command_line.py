@@ -45,10 +45,10 @@ def create_ramp_test_submission_parser():
     parser.add_argument('--pickle', dest='pickle', action='store_true',
                         help='Specify this flag to pickle the submission '
                              'after training.')
-    parser.add_argument('--save-y-preds', dest='save_y_preds',
+    parser.add_argument('--save-output', dest='save_output',
                         action='store_true',
-                        help='Specify this flag to save predictions '
-                             'after training.')
+                        help='Specify this flag to save predictions, scores, '
+                             'eventual error trace, and state after training.')
     parser.add_argument('--retrain', dest='retrain',
                         action='store_true',
                         help='Specify this flag to retrain the submission '
@@ -68,9 +68,9 @@ def ramp_test_submission():
     if args.pickle:
         is_pickle = True
 
-    save_y_preds = False
-    if args.save_y_preds:
-        save_y_preds = True
+    save_output = False
+    if args.save_output:
+        save_output = True
 
     retrain = False
     if args.retrain:
@@ -89,7 +89,7 @@ def ramp_test_submission():
                           ramp_data_dir=args.ramp_data_dir,
                           submission=sub,
                           is_pickle=is_pickle,
-                          save_y_preds=save_y_preds,
+                          save_output=save_output,
                           retrain=retrain)
 
 
@@ -141,10 +141,10 @@ def create_ramp_blend_submissions_parser():
                         ' Specify submissions separated by a comma without'
                         ' spaces. If "ALL", all submissions in the directory'
                         ' will be blended.')
-    parser.add_argument('--save-y-preds', dest='save_y_preds',
+    parser.add_argument('--save_output', dest='save_output',
                         action='store_true',
                         help='Specify this flag to save predictions '
-                             'after training.')
+                             'after blending.')
     parser.add_argument('--min-improvement', dest='min_improvement',
                         default='0.0',
                         help='The minimum score improvement when adding.'
@@ -156,9 +156,9 @@ def ramp_blend_submissions():
     parser = create_ramp_blend_submissions_parser()
     args = parser.parse_args()
 
-    save_y_preds = False
-    if args.save_y_preds:
-        save_y_preds = True
+    save_output = False
+    if args.save_output:
+        save_output = True
 
     if args.submissions == "ALL":
         ramp_submission_dir = join(args.ramp_kit_dir, 'submissions')
@@ -171,7 +171,7 @@ def ramp_blend_submissions():
     blend_submissions(ramp_kit_dir=args.ramp_kit_dir,
                       ramp_data_dir=args.ramp_data_dir,
                       submissions=submissions,
-                      save_y_preds=save_y_preds,
+                      save_output=save_output,
                       min_improvement=float(args.min_improvement))
 
 
@@ -254,8 +254,8 @@ def create_ramp_leaderboard_parser():
 
 def ramp_leaderboard():
     """
-    RAMP leaderboard, a simple command line to display
-    the leaderboard.
+    RAMP leaderboard, a simple command line to display the leaderboard.
+
     IMPORTANT: order to display correctly the leaderboard
     you need to save your predictions, e.g.,
     using `ramp_test_submission --submission <name> --save-y-preds`
@@ -344,8 +344,9 @@ def _filter_and_sort_leaderboard_df(
         df, cols=None, metric=None,
         sort_by=None, asc=False):
     """
-    filters and sorts rows of df where df is a DataFrame obtained
-    using _build_leaderboard_df.
+    Filter and sorts rows of df.
+
+    df is a DataFrame obtained using _build_leaderboard_df.
 
     Parameters
     ----------
@@ -436,7 +437,9 @@ def _filter_and_sort_leaderboard_df(
 
 def _build_leaderboard_df(scores_dict, precision=2):
     """
-    Get a pd.DataFrame where each row is a submission and each column
+    Get a pd.DataFrame representing the leaderboard.
+
+    Each row is a submission and each column
     is the mean or std of score on train or valid or test data for a metric.
     There is a column name 'submission' for the submission names.
     The rest of column names are prefixed by the 'train' or 'valid' or 'test'
@@ -505,7 +508,7 @@ def _build_leaderboard_df(scores_dict, precision=2):
 
 def _get_metrics(leaderboard_df):
     """
-    Get the list of metrics used in `leaderboard_df`
+    Get the list of metrics used in `leaderboard_df`.
 
     Parameters
     ----------
@@ -531,7 +534,9 @@ def _get_metrics(leaderboard_df):
 
 def _build_scores_dict(ramp_kit_dir='.'):
     """
-    Build a nested dictionary of scores using the training_output/ folder
+    Build a nested dictionary of scores.
+
+    Using the training_output/ folder
     of each submission.
 
     The structure of the folder `ramp_kit_dir` should be
