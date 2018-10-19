@@ -120,12 +120,12 @@ def print_submission_exception(save_y_preds, output_path):
     exc_type, exc_value, exc_traceback = sys.exc_info()
     # print the stack corresponding to user submission
     trace = tb.format_exception(exc_type, exc_value, exc_traceback)
+    for s in trace:
+        print(s)
     if trace[4].find('load_source') > -1:
         trace = trace[5:]
     else:
         trace = trace[4:]
-    for s in trace:
-        print(s)
     if save_y_preds:
         with open(os.path.join(output_path, 'error.txt'), 'w') as fd:
             for s in trace:
