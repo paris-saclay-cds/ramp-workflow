@@ -104,7 +104,6 @@ def set_state(state, save_y_preds, output_path):
             fd.write(state)
 
 
-
 def print_submission_exception(save_y_preds, output_path):
     """Print the exception trace corresponding the user submission.
 
