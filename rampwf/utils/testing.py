@@ -106,7 +106,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             if not os.path.exists(fold_output_path):
                 os.mkdir(fold_output_path)
             if save_output:
-                set_state('new', save_output, fold_output_path)
+                set_state('training', save_output, fold_output_path)
         print_title('CV fold {}'.format(fold_i))
 
         predictions_valid, predictions_test, df_scores =\
