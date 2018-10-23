@@ -61,7 +61,7 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      submission_dir = '.', submission='starting_kit',
+                      submission_dir='.', submission='starting_kit',
                       is_pickle=False, save_output=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
 
@@ -148,7 +148,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
-                      submission_dir = '.', save_output=False,
+                      submission_dir='.', save_output=False,
                       min_improvement=0.0):
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
