@@ -54,6 +54,11 @@ def create_ramp_test_submission_parser():
                         action='store_true',
                         help='Specify this flag to save predictions, scores, '
                              'eventual error trace, and state after training.')
+    parser.add_argument('--save-y-preds', dest='save_output',
+                        action='store_true',
+                        help='Specify this flag to save predictions, scores, '
+                             'eventual error trace, and state after training. '
+                             'Deprecated.')
     parser.add_argument('--retrain', dest='retrain',
                         action='store_true',
                         help='Specify this flag to retrain the submission '
