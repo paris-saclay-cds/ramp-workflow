@@ -9,7 +9,7 @@ from collections import OrderedDict
 import numpy as np
 import cloudpickle as pickle
 
-from .io import save_y_pred
+from .io import save_y_pred, load_y_pred
 from .combine import get_score_cv_bags
 from .pretty_print import print_title, print_df_scores, print_warning
 from .scoring import score_matrix, round_df_scores, score_matrix_from_scores
@@ -149,12 +149,28 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
         table of scores (rows = train/valid/test steps, columns = scores)
     """
     train_is, valid_is = fold
-    pred, timing = train_test_submission(
-        problem, module_path, X_train, y_train, X_test, is_pickle,
-        fold_output_path, train_is=train_is)
-    y_pred_train, y_pred_test = pred
-    train_time, valid_time, test_time = timing
 
+    if save_y_preds:
+        train_time = ""
+        valid_time = ""
+        test_time  = ""
+        try:
+            print("loading saved predictions")
+            y_pred_test = load_y_pred(problem, data_path=ramp_data_dir, input_path=fold_output_path, suffix='test')
+            y_pred_train = load_y_pred(problem, data_path=ramp_data_dir, input_path=fold_output_path, suffix='train')
+        except IOError:
+            print("no predictions to load, re-creating them")
+            pred, timing = train_test_submission(
+                problem, module_path, X_train, y_train, X_test, is_pickle,
+                fold_output_path, train_is=train_is)
+            y_pred_train, y_pred_test = pred
+            train_time, valid_time, test_time = timing
+    else:
+        pred, timing = train_test_submission(
+            problem, module_path, X_train, y_train, X_test, is_pickle,
+            fold_output_path, train_is=train_is)
+        y_pred_train, y_pred_test = pred
+        train_time, valid_time, test_time = timing
     predictions_train_train = problem.Predictions(
         y_pred=y_pred_train[train_is])
     ground_truth_train_train = problem.Predictions(
