@@ -7,7 +7,7 @@ import pandas as pd
 
 
 def mean_score_matrix(df_scores_list, score_types):
-    """Construct a mean ± std score dataframe from a list of score dataframes.
+    u"""Construct a mean ± std score dataframe from a list of score dataframes.
 
     Parameters
     ----------

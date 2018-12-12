@@ -181,6 +181,29 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
     y_pred_train, y_pred_test = pred
     train_time, valid_time, test_time = timing
 
+    if save_output:
+        if y_test is not None:
+            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
+                fd.write(str(train_time))
+            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
+                fd.write(str(valid_time))
+            with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
+                fd.write(str(test_time))
+        else:
+            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
+                fd.write(str(train_time))
+            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
+                fd.write(str(valid_time))
+
+    return score_submission_on_cv_fold(
+        problem, y_train, y_test, score_types, save_output, fold_output_path,
+        fold, ramp_data_dir, y_pred_train, y_pred_test)
+
+
+def score_submission_on_cv_fold(problem, y_train, y_test, score_types,
+                                save_output, fold_output_path, fold,
+                                ramp_data_dir, y_pred_train, y_pred_test):
+    train_is, valid_is = fold
     predictions_train_train = problem.Predictions(
         y_pred=y_pred_train[train_is])
     ground_truth_train_train = problem.Predictions(
@@ -200,12 +223,6 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
                 save_y_pred(
                     problem, y_pred_test, data_path=ramp_data_dir,
                     output_path=fold_output_path, suffix='test')
-            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
-                fd.write(str(train_time))
-            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
-                fd.write(str(valid_time))
-            with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
-                fd.write(str(test_time))
         df_scores = score_matrix(
             score_types,
             ground_truth=OrderedDict([('train', ground_truth_train_train),
@@ -223,10 +240,6 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
             save_y_pred(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=fold_output_path, suffix='train')
-            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
-                fd.write(str(train_time))
-            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
-                fd.write(str(valid_time))
         df_scores = score_matrix(
             score_types,
             ground_truth=OrderedDict([('train', ground_truth_train_train),

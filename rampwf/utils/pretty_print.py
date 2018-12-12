@@ -78,3 +78,10 @@ def print_df_scores(df_scores, score_types, indent=''):
         line = indent + line
         df_repr_out.append(line)
     print('\n'.join(df_repr_out))
+
+
+def print_mean_scores(df_mean_scores, score_types):
+    print_title('----------------------------')
+    print_title('Mean CV scores')
+    print_title('----------------------------')
+    print_df_scores(df_mean_scores, score_types, indent='\t')
