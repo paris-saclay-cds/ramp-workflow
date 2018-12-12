@@ -16,6 +16,8 @@ import pandas as pd
 from .testing import (
     assert_submission, assert_notebook, convert_notebook, blend_submissions)
 
+def ramp_score_submission():
+    ramp_score_submission
 
 def create_ramp_test_submission_parser():
     import argparse

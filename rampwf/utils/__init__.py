@@ -1,6 +1,6 @@
 from .command_line import (
     ramp_test_submission, ramp_test_notebook, ramp_convert_notebook,
-    ramp_blend_submissions)
+    ramp_blend_submissions, ramp_score_submission)
 from .testing import (
     assert_title, assert_data, assert_cv, assert_submission, assert_notebook,
     blend_submissions)
@@ -19,5 +19,6 @@ __all__ = ['assert_cv',
            'ramp_convert_notebook',
            'ramp_test_notebook',
            'ramp_test_submission',
+           'ramp_score_submission',
            'import_file'
            ]
