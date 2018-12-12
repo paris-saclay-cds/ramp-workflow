@@ -76,5 +76,5 @@ if __name__ == "__main__":
                 'ramp_leaderboard='
                 'rampwf.utils.command_line:ramp_leaderboard',
                 'ramp_score_submission='
-                'rampwf.utils.command_line:ramp_score_submission'
+                'rampwf.utils.command_line:ramp_score_submission',
             ]})

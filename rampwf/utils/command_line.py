@@ -14,7 +14,9 @@ import numpy as np
 import pandas as pd
 
 from .testing import (
-    assert_submission, assert_notebook, convert_notebook, blend_submissions, assert_score_submission)
+    assert_submission, assert_notebook, convert_notebook, blend_submissions,
+    assert_score_submission)
+
 
 def create_ramp_test_submission_parser():
     import argparse
@@ -65,7 +67,6 @@ def create_ramp_test_submission_parser():
     return parser
 
 
-
 def ramp_score_submission():
     parser = create_ramp_test_submission_parser()
     args = parser.parse_args()
@@ -80,10 +81,11 @@ def ramp_score_submission():
     else:
         submission = [args.submission]
     for sub in submission:
-        assert_score_submission(ramp_kit_dir=args.ramp_kit_dir,
-                      ramp_data_dir=args.ramp_data_dir,
-                      submission_dir=args.submission_dir,
-                      submission=sub)
+        assert_score_submission(
+            ramp_kit_dir=args.ramp_kit_dir,
+            ramp_data_dir=args.ramp_data_dir,
+            submission_dir=args.submission_dir,
+            submission=sub)
 
 
 def ramp_test_submission():
