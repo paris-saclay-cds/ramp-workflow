@@ -14,10 +14,7 @@ import numpy as np
 import pandas as pd
 
 from .testing import (
-    assert_submission, assert_notebook, convert_notebook, blend_submissions)
-
-def ramp_score_submission():
-    ramp_score_submission
+    assert_submission, assert_notebook, convert_notebook, blend_submissions, assert_score_submission)
 
 def create_ramp_test_submission_parser():
     import argparse
@@ -66,6 +63,27 @@ def create_ramp_test_submission_parser():
                         help='Specify this flag to retrain the submission '
                              'on the full training set after the CV loop.')
     return parser
+
+
+
+def ramp_score_submission():
+    parser = create_ramp_test_submission_parser()
+    args = parser.parse_args()
+    if args.quick_test:
+        import os
+        os.environ['RAMP_TEST_MODE'] = '1'
+    if args.submission == "ALL":
+        ramp_submission_dir = join(args.ramp_kit_dir, 'submissions')
+        submission = [directory
+                      for directory in listdir(ramp_submission_dir)
+                      if isdir(join(ramp_submission_dir, directory))]
+    else:
+        submission = [args.submission]
+    for sub in submission:
+        assert_score_submission(ramp_kit_dir=args.ramp_kit_dir,
+                      ramp_data_dir=args.ramp_data_dir,
+                      submission_dir=args.submission_dir,
+                      submission=sub)
 
 
 def ramp_test_submission():

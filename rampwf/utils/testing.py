@@ -8,12 +8,13 @@ import imp
 
 import numpy as np
 import pandas as pd
+from collections import OrderedDict
 
 from .combine import blend_on_fold
 from .io import load_y_pred, set_state
 from .pretty_print import print_title, print_df_scores
 from .notebook import execute_notebook, convert_notebook
-from .scoring import round_df_scores, mean_score_matrix
+from .scoring import round_df_scores, mean_score_matrix, score_matrix
 from .submission import (bag_submissions, run_submission_on_cv_fold,
                          run_submission_on_full_train)
 
@@ -58,6 +59,56 @@ def assert_score_types(ramp_kit_dir='.'):
     problem = assert_read_problem(ramp_kit_dir)
     score_types = problem.score_types
     return score_types
+
+def assert_score_submission(ramp_kit_dir='.', ramp_data_dir='.',
+                      submission_dir='.', submission='starting_kit'):
+    problem = assert_read_problem(ramp_kit_dir)
+    assert_title(ramp_kit_dir)
+    X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
+    score_types = assert_score_types(ramp_kit_dir)
+
+    module_path = os.path.join(submission_dir, 'submissions', submission)
+
+
+
+    training_output_path = os.path.join(module_path, 'training_output')
+
+
+    for fold_i, fold in enumerate(cv):
+        train_is, valid_is = fold
+        try:
+            fold_output_path = ''
+            fold_output_path = os.path.join(training_output_path, 'fold_{}'.format(fold_i))
+            print_title("Loading saved predictions")
+            y_pred_test = load_y_pred(problem, data_path=ramp_data_dir, input_path=fold_output_path, suffix='test')
+            y_pred_train = load_y_pred(problem, data_path=ramp_data_dir, input_path=fold_output_path, suffix='train')
+        except IOError:
+            print_title("No predictions to load, run ramp_test_submission first")
+            break
+
+        predictions_train_train = problem.Predictions(
+            y_pred=y_pred_train[train_is])
+        ground_truth_train_train = problem.Predictions(
+            y_true=y_train[train_is])
+        predictions_train_valid = problem.Predictions(
+            y_pred=y_pred_train[valid_is])
+        ground_truth_train_valid = problem.Predictions(
+            y_true=y_train[valid_is])
+        predictions_test = problem.Predictions(y_pred=y_pred_test)
+        ground_truth_test = problem.Predictions(y_true=y_test)
+
+        df_scores = score_matrix(
+            score_types,
+            ground_truth=OrderedDict([('train', ground_truth_train_train),
+                                  ('valid', ground_truth_train_valid),
+                                  ('test', ground_truth_test)]),
+             predictions=OrderedDict([('train', predictions_train_train),
+                                 ('valid', predictions_train_valid),
+                                 ('test', predictions_test)]),
+        )
+        df_scores_rounded = round_df_scores(df_scores, score_types)
+        print_df_scores(df_scores_rounded, score_types, indent='\t')
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
