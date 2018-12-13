@@ -53,9 +53,8 @@ def print_df_scores(df_scores, score_types, indent=''):
     with option_context("display.width", 160):
         df_repr = repr(df_scores)
     df_repr_out = []
-    for line, color_key in zip(df_repr.splitlines(),
-                               [None, None] +
-                               list(df_scores.index.values)):
+    for line, color_key in zip(
+            df_repr.splitlines(), [None, None] + list(df_scores.index.values)):
         if line.strip() == 'step':
             continue
         if color_key is None:
