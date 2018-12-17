@@ -61,7 +61,7 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      ramp_submission_dir='./submissions',
+                      ramp_submission_dir='submissions',
                       submission='starting_kit', is_pickle=False,
                       save_y_preds=False, retrain=False):
     """Helper to test a submission from a ramp-kit.

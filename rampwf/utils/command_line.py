@@ -33,7 +33,7 @@ def create_ramp_test_submission_parser():
                         help='Directory containing the data. This directory'
                         ' should contain a "data" folder.')
     parser.add_argument('--ramp_submission_dir',
-                        default='./submissions',
+                        default='submissions',
                         type=str,
                         help='Directory where the submissions are stored. It '
                         'should contain a "submissions" directory.')
