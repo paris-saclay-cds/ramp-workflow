@@ -61,7 +61,7 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      ramp_submission_dir='.',
+                      ramp_submission_dir='./submissions',
                       submission='starting_kit', is_pickle=False,
                       save_y_preds=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
@@ -72,7 +72,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         The directory of the ramp-kit to be tested for submission.
     ramp_data_dir : str, default='.'
         The directory of the data.
-    ramp_submission_dir : str, default='.'
+    ramp_submission_dir : str, default='./submissions'
         The directory of the submissions.
     submission : str, default='starting_kit'
         The name of the submission to be tested.
@@ -91,8 +91,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     score_types = assert_score_types(ramp_kit_dir)
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
-    submission_path = os.path.join(ramp_submission_dir, 'submissions',
-                                   submission)
+    submission_path = os.path.join(ramp_submission_dir, submission)
     print_title('Training {} ...'.format(submission_path))
 
     training_output_path = ''
