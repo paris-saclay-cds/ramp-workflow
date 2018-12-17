@@ -110,7 +110,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     for fold_i, fold in enumerate(cv):
         fold_output_path = ''
         if is_pickle or save_y_preds:
-            # creating <submission_path>/<submission>/training_output/fold_<i> dir
+            # creating <submission_path>/<submission>/training_output/fold_<i>
             fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
             if not os.path.exists(fold_output_path):
@@ -118,7 +118,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         print_title('CV fold {}'.format(fold_i))
 
         predictions_valid, predictions_test, df_scores = \
-        run_submission_on_cv_fold(
+            run_submission_on_cv_fold(
                 problem, submission_path, X_train, y_train, X_test, y_test,
                 score_types, is_pickle, save_y_preds, fold_output_path,
                 fold, ramp_data_dir)
