@@ -22,7 +22,7 @@ def test_cmd_ramp_test_submission_parser():
     args = parser.parse_args([])
     assert args.ramp_kit_dir == '.'
     assert args.ramp_data_dir == '.'
-    assert args.ramp_submission_dir == '.'
+    assert args.ramp_submission_dir == 'submissions'
     assert args.submission == 'starting_kit'
 
     # specifying keyword args
