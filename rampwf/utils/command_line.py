@@ -32,6 +32,11 @@ def create_ramp_test_submission_parser():
                         type=str,
                         help='Directory containing the data. This directory'
                         ' should contain a "data" folder.')
+    parser.add_argument('--ramp_submission_dir',
+                        default='.',
+                        type=str,
+                        help='Directory where the submissions are stored. It '
+                        'should contain a "submissions" directory.')
     parser.add_argument('--submission',
                         default='starting_kit',
                         type=str,
@@ -87,6 +92,7 @@ def ramp_test_submission():
     for sub in submission:
         assert_submission(ramp_kit_dir=args.ramp_kit_dir,
                           ramp_data_dir=args.ramp_data_dir,
+                          ramp_submission_dir=args.ramp_submission_dir,
                           submission=sub,
                           is_pickle=is_pickle,
                           save_y_preds=save_y_preds,

@@ -53,6 +53,7 @@ def test_submission(path_kit):
             assert_submission(
                 ramp_kit_dir=path_kit,
                 ramp_data_dir=path_kit,
+                ramp_submission_dir=path_kit,
                 submission=os.path.basename(sub), is_pickle=True,
                 save_y_preds=False, retrain=True)
 
