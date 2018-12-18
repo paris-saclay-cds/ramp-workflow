@@ -22,15 +22,17 @@ def test_cmd_ramp_test_submission_parser():
     args = parser.parse_args([])
     assert args.ramp_kit_dir == '.'
     assert args.ramp_data_dir == '.'
+    assert args.ramp_submission_dir == 'submissions'
     assert args.submission == 'starting_kit'
 
     # specifying keyword args
     parser = create_ramp_test_submission_parser()
     args = parser.parse_args([
         '--ramp_kit_dir', './titanic/', '--ramp_data_dir', './titanic/',
-        '--submission', 'other'])
+        '--ramp_submission_dir', './titanic', '--submission', 'other'])
     assert args.ramp_kit_dir == './titanic/'
     assert args.ramp_data_dir == './titanic/'
+    assert args.ramp_submission_dir == './titanic'
     assert args.submission == 'other'
 
 

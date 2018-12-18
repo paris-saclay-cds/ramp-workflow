@@ -53,6 +53,7 @@ def test_submission(path_kit):
             assert_submission(
                 ramp_kit_dir=path_kit,
                 ramp_data_dir=path_kit,
+                ramp_submission_dir=os.path.join(path_kit, 'submissions'),
                 submission=os.path.basename(sub), is_pickle=True,
                 save_y_preds=False, retrain=True)
 
@@ -61,11 +62,13 @@ def test_blending():
     assert_submission(
         ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
         submission='starting_kit', is_pickle=True,
         save_y_preds=True, retrain=True)
     assert_submission(
         ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
         submission='random_forest_10_10', is_pickle=True,
         save_y_preds=True, retrain=True)
     blend_submissions(
