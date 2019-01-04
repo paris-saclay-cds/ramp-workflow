@@ -7,14 +7,13 @@ import os
 from collections import Iterable
 from collections import OrderedDict
 
-import numpy as np
 import pandas as pd
 import cloudpickle as pickle
 
 from .io import save_y_pred
 from .combine import get_score_cv_bags
 from .pretty_print import print_title, print_df_scores, print_warning
-from .scoring import score_matrix, round_df_scores, score_matrix_from_scores
+from .scoring import score_matrix, round_df_scores
 
 
 def save_submissions(problem, y_pred, data_path='.', output_path='.',
