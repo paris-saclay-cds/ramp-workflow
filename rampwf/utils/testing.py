@@ -150,7 +150,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     bag_submissions(
         problem, cv, y_train, y_test, predictions_valid_list,
         predictions_test_list, training_output_path,
-        ramp_data_dir=ramp_data_dir, score_type_index=0,
+        ramp_data_dir=ramp_data_dir, score_type_index=None,
         save_y_preds=save_y_preds)
 
 

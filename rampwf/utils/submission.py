@@ -4,9 +4,11 @@ Utilities to manage the submissions
 """
 import time
 import os
+from collections import Iterable
 from collections import OrderedDict
 
 import numpy as np
+import pandas as pd
 import cloudpickle as pickle
 
 from .io import save_y_pred
@@ -307,8 +309,8 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         submissions/<submission>/training_output
     ramp_data_dir : str
         the directory of the data
-    score_type_index : int
-        the score type on which we bag
+    score_type_index : int or None.
+        The score type on which we bag. If None, all scores will be computed.
     save_y_preds : boolean
         True if predictions should be written in files
     score_table_title : str
@@ -319,21 +321,44 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     print_title('----------------------------')
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     ground_truths_train = problem.Predictions(y_true=y_train)
+    score_type_index = (slice(None) if score_type_index is None
+                        else score_type_index)
     score_type = problem.score_types[score_type_index]
-    bagged_valid_predictions, bagged_valid_scores =\
-        get_score_cv_bags(
-            score_type, predictions_valid_list,
-            ground_truths_train, test_is_list=valid_is_list)
+    score_type = ([score_type] if not isinstance(score_type, Iterable)
+                  else score_type)
+
+    bagged_valid_score_pred = {score.name: get_score_cv_bags(
+        score, predictions_valid_list, ground_truths_train,
+        test_is_list=valid_is_list
+    ) for score in score_type}
+    # get the predictions for the validation set
+    bagged_valid_predictions = bagged_valid_score_pred[
+        next(iter(bagged_valid_score_pred))][0]
+    # get the different score for the validation set
+    bagged_valid_scores = {key: value[1][-1]
+                           for key, value in bagged_valid_score_pred.items()}
+
     if y_test is not None:
         ground_truths_test = problem.Predictions(y_true=y_test)
-        bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
-            score_type, predictions_test_list, ground_truths_test)
+        bagged_test_score_pred = {score.name: get_score_cv_bags(
+            score, predictions_test_list, ground_truths_test
+        ) for score in score_type}
+        # get the predictions for the validation set
+        bagged_test_predictions = bagged_test_score_pred[
+            next(iter(bagged_test_score_pred))][0]
+        # get the different score for the validation set
+        bagged_test_scores = {
+            key: value[1][-1] for key, value in bagged_test_score_pred.items()
+        }
 
+        # create the dataframe
         df_scores = score_matrix_from_scores(
-            [score_type], ['valid', 'test'],
-            [[bagged_valid_scores[-1]], [bagged_test_scores[-1]]])
-        df_scores_rounded = round_df_scores(df_scores, [score_type])
-        print_df_scores(df_scores_rounded, [score_type], indent='\t')
+            score_type, ['valid', 'test'],
+            [[bagged_valid_scores[score.name] for score in score_type],
+             [bagged_test_scores[score.name] for score in score_type]]
+        )
+        df_scores_rounded = round_df_scores(df_scores, score_type)
+        print_df_scores(df_scores_rounded, score_type, indent='\t')
 
         if save_y_preds:
             # y_pred_bagged_train.csv contains _out of sample_ (validation)
@@ -347,20 +372,17 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
                 data_path=ramp_data_dir, output_path=training_output_path,
                 suffix='{}_bagged_test'.format(score_f_name_prefix))
             # also save the partial combined scores (CV bag learning curves)
-            bagged_train_valid_scores_f_name = os.path.join(
-                training_output_path,
-                '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
-            np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
-            bagged_test_scores_f_name = os.path.join(
-                training_output_path,
-                '{}_bagged_test_scores.csv'.format(score_f_name_prefix))
-            np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
+            bagged_scores_filename = os.path.join(
+                training_output_path, 'bagged_scores.csv'
+            )
+            df_scores.to_csv(bagged_scores_filename)
     else:
         df_scores = score_matrix_from_scores(
-            [score_type], ['valid'],
-            [[bagged_valid_scores[-1]]])
-        df_scores_rounded = round_df_scores(df_scores, [score_type])
-        print_df_scores(df_scores_rounded, [score_type], indent='\t')
+            score_type, ['valid'],
+            [[bagged_valid_scores[score.name] for score in score_type]]
+        )
+        df_scores_rounded = round_df_scores(df_scores, score_type)
+        print_df_scores(df_scores_rounded, score_type, indent='\t')
 
         if save_y_preds:
             # y_pred_bagged_train.csv contains _out of sample_ (validation)
@@ -370,10 +392,10 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
                 data_path=ramp_data_dir, output_path=training_output_path,
                 suffix='{}_bagged_train'.format(score_f_name_prefix))
             # also save the partial combined scores (CV bag learning curves)
-            bagged_train_valid_scores_f_name = os.path.join(
-                training_output_path,
-                '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
-            np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
+            bagged_scores_filename = os.path.join(
+                training_output_path, 'bagged_scores.csv'
+            )
+            df_scores.to_csv(bagged_scores_filename)
 
 
 def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
