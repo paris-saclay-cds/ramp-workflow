@@ -4,7 +4,6 @@ Utility methods to print the results in a terminal using term colors
 """
 from __future__ import print_function
 
-import numpy as np
 from pandas import option_context
 from ..externals.colored import stylize, fg, attr
 
@@ -29,15 +28,13 @@ def print_warning(str):
     print(stylize(str, fg(fg_colors['warning'])))
 
 
-def print_df_scores(df_scores, score_types, indent=''):
+def print_df_scores(df_scores, indent=''):
     """Pretty print the scores dataframe.
 
     Parameters
     ----------
     df_scores : pd.DataFrame
         the score dataframe
-    score_types : list of score types
-        a list of score types to use
     indent : str, default=''
         indentation if needed
     """
