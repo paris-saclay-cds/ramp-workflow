@@ -338,11 +338,10 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         test_idx = ([valid_is for (train_is, valid_is) in cv]
                     if step == 'valid' else None)
         score_dict = {}
-        for score_type in score_types:
+        for st in score_types:
             pred, scores = get_score_cv_bags(
-                score_type, pred_list, gt_list, test_is_list=test_idx
-            )
-            score_dict[score_type.name] = {
+                st, pred_list, gt_list, test_is_list=test_idx)
+            score_dict[st.name] = {
                 key: val for key, val in enumerate(scores)}
         bagged_scores[step] = score_dict
         # the predictions will always be the same for all score and we store
