@@ -3,7 +3,8 @@
 Utilities for saving and loading predictions
 """
 import os
-
+import sys
+import traceback as tb
 import numpy as np
 
 from .pretty_print import print_warning
@@ -80,3 +81,51 @@ def load_y_pred(problem, data_path='.', input_path='.', suffix='test'):
         y_pred_f_name = os.path.join(input_path,
                                      'y_pred_{}.npz'.format(suffix))
         return np.load(y_pred_f_name)['y_pred']
+
+
+def set_state(state, save_output, output_path):
+    """Save the submission state (per fold) in <output_path>/state.txt.
+
+    In case save_output is True. Otherwise do nothing.
+
+    Parameters
+    ----------
+    state : str
+        The string representing the state. Possible values are 'new',
+        'trained', 'validated', 'tested', 'scored', 'training_error',
+        'validating_error', 'testing_error'.
+    save_output : boolean
+        True if state should be written in file
+    output_path : str
+        the path into which 'state.txt' will be saved
+    """
+    if save_output:
+        with open(os.path.join(output_path, 'state.txt'), 'w') as fd:
+            fd.write(state)
+
+
+def print_submission_exception(save_output, output_path):
+    """Print the exception trace corresponding the user submission.
+
+    In case save_output is True, also save it into <output_path>/error.txt
+
+    Parameters
+    ----------
+    save_output : boolean
+        True if error should be written in file
+    output_path : str
+        the path into which 'error.txt' will be saved
+    """
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    # print the stack corresponding to user submission
+    trace = tb.format_exception(exc_type, exc_value, exc_traceback)
+    for s in trace:
+        print(s)
+    if trace[4].find('load_source') > -1:
+        trace = trace[5:]
+    else:
+        trace = trace[4:]
+    if save_output:
+        with open(os.path.join(output_path, 'error.txt'), 'w') as fd:
+            for s in trace:
+                fd.write(s)

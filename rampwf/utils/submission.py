@@ -2,15 +2,15 @@
 """
 Utilities to manage the submissions
 """
-import time
 import os
+import time
 from collections import Iterable
 from collections import OrderedDict
 
 import pandas as pd
 import cloudpickle as pickle
 
-from .io import save_y_pred
+from .io import save_y_pred, set_state, print_submission_exception
 from .combine import get_score_cv_bags
 from .pretty_print import print_title, print_df_scores, print_warning
 from .scoring import score_matrix, round_df_scores, reorder_df_scores
@@ -49,7 +49,7 @@ def save_submissions(problem, y_pred, data_path='.', output_path='.',
 
 
 def train_test_submission(problem, module_path, X_train, y_train, X_test,
-                          is_pickle, output_path,
+                          is_pickle, save_output, output_path,
                           model_name='model.pkl', train_is=None):
     """Train and test submission, on cv fold if train_is not none.
 
@@ -69,6 +69,8 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         True if the model should be pickled
     output_path : str
         the path into which the model will be pickled
+    save_output : boolean
+        True if predictions should be written in files
     model_name : str (default='model.pkl')
         the file name of the pickled workflow
     train_is : a list of integers (default=None)
@@ -87,30 +89,54 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
     valid_time : duration in seconds for validation
     test_time : duration in seconds for testing
     """
+    # Train
     t0 = time.time()
-    trained_workflow = problem.workflow.train_submission(
-        module_path, X_train, y_train, train_is=train_is)
+    try:
+        trained_workflow = problem.workflow.train_submission(
+            module_path, X_train, y_train, train_is=train_is)
+    except Exception:
+        print_submission_exception(save_output, output_path)
+        set_state('training_error', save_output, output_path)
+        exit(1)
     train_time = time.time() - t0
+    set_state('trained', save_output, output_path)
     if is_pickle:
         trained_workflow = pickle_model(
             output_path, trained_workflow, model_name)
+
+    # Validate
     t0 = time.time()
-    y_pred_train = problem.workflow.test_submission(
-        trained_workflow, X_train)
+    try:
+        y_pred_train = problem.workflow.test_submission(
+            trained_workflow, X_train)
+    except Exception:
+        print_submission_exception(save_output, output_path)
+        set_state('validating_error', save_output, output_path)
+        exit(1)
     valid_time = time.time() - t0
+    set_state('validated', save_output, output_path)
+
+    # Test
     t0 = time.time()
-    if X_test is None:
-        y_pred_test = None
-    else:
-        y_pred_test = problem.workflow.test_submission(
-            trained_workflow, X_test)
+    try:
+        if X_test is None:
+            y_pred_test = None
+        else:
+            y_pred_test = problem.workflow.test_submission(
+                trained_workflow, X_test)
+    except Exception:
+        print_submission_exception(save_output, output_path)
+        set_state('testing_error', save_output, output_path)
+        exit(1)
     test_time = time.time() - t0
+    set_state('tested', save_output, output_path)
+
     return (y_pred_train, y_pred_test), (train_time, valid_time, test_time)
 
 
 def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
                               X_test, y_test, score_types,
-                              is_pickle, save_y_preds, fold_output_path,
+                              is_pickle, save_output, fold_output_path,
                               fold, ramp_data_dir):
     """Run submission, compute and return predictions and scores on cv.
 
@@ -132,7 +158,7 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
         problem.score_types
     is_pickle : boolean
         True if the model should be pickled
-    save_y_preds : boolean
+    save_output : boolean
         True if predictions should be written in files
     fold_output_path : str
         the path into which the model will be pickled
@@ -152,7 +178,7 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
     train_is, valid_is = fold
     pred, timing = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        fold_output_path, train_is=train_is)
+        save_output, fold_output_path, train_is=train_is)
     y_pred_train, y_pred_test = pred
     train_time, valid_time, test_time = timing
 
@@ -167,7 +193,7 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
     if y_test is not None:
         predictions_test = problem.Predictions(y_pred=y_pred_test)
         ground_truth_test = problem.Predictions(y_true=y_test)
-        if save_y_preds:
+        if save_output:
             save_y_pred(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=fold_output_path, suffix='train')
@@ -190,10 +216,11 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
                                      ('valid', predictions_train_valid),
                                      ('test', predictions_test)]),
         )
+        set_state('scored', save_output, fold_output_path)
         return predictions_train_valid, predictions_test, df_scores
 
     else:
-        if save_y_preds:
+        if save_output:
             save_y_pred(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=fold_output_path, suffix='train')
@@ -208,12 +235,13 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
             predictions=OrderedDict([('train', predictions_train_train),
                                      ('valid', predictions_train_valid)]),
         )
+        set_state('scored', save_output, fold_output_path)
         return predictions_train_valid, None, df_scores
 
 
 def run_submission_on_full_train(problem, module_path, X_train, y_train,
                                  X_test, y_test, score_types,
-                                 is_pickle, save_y_preds, output_path,
+                                 is_pickle, save_output, output_path,
                                  ramp_data_dir):
     """Run submission, compute predictions, and print scores on full train.
 
@@ -235,7 +263,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         problem.score_types
     is_pickle : boolean
         True if the model should be pickled
-    save_y_preds : boolean
+    save_output : boolean
         True if predictions should be written in files
     output_path : str
         the path into which the model will be pickled
@@ -244,7 +272,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
     """
     (y_pred_train, y_pred_test), _ = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        output_path, model_name='retrained_model.pkl')
+        save_output, output_path, model_name='retrained_model.pkl')
     predictions_train = problem.Predictions(y_pred=y_pred_train)
     ground_truth_train = problem.Predictions(y_true=y_train)
     if y_test is not None:
@@ -261,7 +289,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         df_scores_rounded = round_df_scores(df_scores, score_types)
         print_df_scores(df_scores_rounded, indent='\t')
 
-        if save_y_preds:
+        if save_output:
             save_submissions(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=output_path, suffix='retrain_train')
@@ -277,7 +305,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         df_scores_rounded = round_df_scores(df_scores, score_types)
         print_df_scores(df_scores_rounded, indent='\t')
 
-        if save_y_preds:
+        if save_output:
             save_submissions(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=output_path, suffix='retrain_train')
@@ -286,7 +314,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
 def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
                     predictions_test_list, training_output_path,
                     ramp_data_dir='.', score_type_index=0,
-                    save_y_preds=False, score_table_title='Bagged scores',
+                    save_output=False, score_table_title='Bagged scores',
                     score_f_name_prefix=''):
     """CV-bag trained submission.
 
@@ -310,7 +338,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         the directory of the data
     score_type_index : int or None.
         The score type on which we bag. If None, all scores will be computed.
-    save_y_preds : boolean
+    save_output : boolean
         True if predictions should be written in files
     score_table_title : str
     score_f_name_prefix : str
@@ -346,7 +374,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         bagged_scores[step] = score_dict
         # the predictions will always be the same for all score and we store
         # only a single instance
-        if save_y_preds:
+        if save_output:
             save_submissions(
                 problem, pred.y_pred, data_path=ramp_data_dir,
                 output_path=training_output_path,
@@ -358,7 +386,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     df_scores.columns = df_scores.columns.rename('score')
     df_scores.index = df_scores.index.rename(['step', 'n_bag'])
     # bagging learning curves can be plotted on this df_scores
-    if save_y_preds:
+    if save_output:
         bagged_scores_filename = os.path.join(
             training_output_path, 'bagged_scores.csv')
         df_scores.to_csv(bagged_scores_filename)
