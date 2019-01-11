@@ -4,15 +4,16 @@ Utilities to manage the submissions
 """
 import os
 import time
+from collections import Iterable
 from collections import OrderedDict
 
-import numpy as np
+import pandas as pd
 import cloudpickle as pickle
 
 from .io import save_y_pred, set_state, print_submission_exception
 from .combine import get_score_cv_bags
 from .pretty_print import print_title, print_df_scores, print_warning
-from .scoring import score_matrix, round_df_scores, score_matrix_from_scores
+from .scoring import score_matrix, round_df_scores, reorder_df_scores
 
 
 def save_submissions(problem, y_pred, data_path='.', output_path='.',
@@ -286,7 +287,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
                                      ('test', predictions_test)]),
         )
         df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, score_types, indent='\t')
+        print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
             save_submissions(
@@ -302,7 +303,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
             predictions=OrderedDict([('train', predictions_train)]),
         )
         df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, score_types, indent='\t')
+        print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
             save_submissions(
@@ -335,8 +336,8 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         submissions/<submission>/training_output
     ramp_data_dir : str
         the directory of the data
-    score_type_index : int
-        the score type on which we bag
+    score_type_index : int or None.
+        The score type on which we bag. If None, all scores will be computed.
     save_output : boolean
         True if predictions should be written in files
     score_table_title : str
@@ -345,63 +346,58 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     print_title('----------------------------')
     print_title(score_table_title)
     print_title('----------------------------')
-    valid_is_list = [valid_is for (train_is, valid_is) in cv]
-    ground_truths_train = problem.Predictions(y_true=y_train)
-    score_type = problem.score_types[score_type_index]
-    bagged_valid_predictions, bagged_valid_scores =\
-        get_score_cv_bags(
-            score_type, predictions_valid_list,
-            ground_truths_train, test_is_list=valid_is_list)
-    if y_test is not None:
-        ground_truths_test = problem.Predictions(y_true=y_test)
-        bagged_test_predictions, bagged_test_scores = get_score_cv_bags(
-            score_type, predictions_test_list, ground_truths_test)
+    score_type_index = (slice(None) if score_type_index is None
+                        else score_type_index)
+    score_types = problem.score_types[score_type_index]
+    score_types = (
+        [score_types] if not isinstance(score_types, Iterable)
+        else score_types)
 
-        df_scores = score_matrix_from_scores(
-            [score_type], ['valid', 'test'],
-            [[bagged_valid_scores[-1]], [bagged_test_scores[-1]]])
-        df_scores_rounded = round_df_scores(df_scores, [score_type])
-        print_df_scores(df_scores_rounded, [score_type], indent='\t')
-
+    # placeholder to store the scores and predictions
+    bagged_scores = {}
+    scoring_step = ['valid', 'test'] if y_test is not None else ['valid']
+    for step in scoring_step:
+        # Get either the training or testing infomation depending of the step
+        pred_list = (predictions_valid_list if step == 'valid'
+                     else predictions_test_list)
+        y_step = y_train if step == 'valid' else y_test
+        gt_list = problem.Predictions(y_true=y_step)
+        # indices of the validation set or all sample for the testing set
+        test_idx = ([valid_is for (train_is, valid_is) in cv]
+                    if step == 'valid' else None)
+        score_dict = {}
+        for st in score_types:
+            pred, scores = get_score_cv_bags(
+                st, pred_list, gt_list, test_is_list=test_idx)
+            score_dict[st.name] = {
+                key: val for key, val in enumerate(scores)}
+        bagged_scores[step] = score_dict
+        # the predictions will always be the same for all score and we store
+        # only a single instance
         if save_output:
-            # y_pred_bagged_train.csv contains _out of sample_ (validation)
-            # predictions, but not for all points (contains nans)
             save_submissions(
-                problem, bagged_valid_predictions.y_pred,
-                data_path=ramp_data_dir, output_path=training_output_path,
-                suffix='{}_bagged_train'.format(score_f_name_prefix))
-            save_submissions(
-                problem, bagged_test_predictions.y_pred,
-                data_path=ramp_data_dir, output_path=training_output_path,
-                suffix='{}_bagged_test'.format(score_f_name_prefix))
-            # also save the partial combined scores (CV bag learning curves)
-            bagged_train_valid_scores_f_name = os.path.join(
-                training_output_path,
-                '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
-            np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
-            bagged_test_scores_f_name = os.path.join(
-                training_output_path,
-                '{}_bagged_test_scores.csv'.format(score_f_name_prefix))
-            np.savetxt(bagged_test_scores_f_name, bagged_test_scores)
-    else:
-        df_scores = score_matrix_from_scores(
-            [score_type], ['valid'],
-            [[bagged_valid_scores[-1]]])
-        df_scores_rounded = round_df_scores(df_scores, [score_type])
-        print_df_scores(df_scores_rounded, [score_type], indent='\t')
+                problem, pred.y_pred, data_path=ramp_data_dir,
+                output_path=training_output_path,
+                suffix='{}_bagged_{}'.format(score_f_name_prefix, step)
+            )
 
-        if save_output:
-            # y_pred_bagged_train.csv contains _out of sample_ (validation)
-            # predictions, but not for all points (contains nans)
-            save_submissions(
-                problem, bagged_valid_predictions.y_pred,
-                data_path=ramp_data_dir, output_path=training_output_path,
-                suffix='{}_bagged_train'.format(score_f_name_prefix))
-            # also save the partial combined scores (CV bag learning curves)
-            bagged_train_valid_scores_f_name = os.path.join(
-                training_output_path,
-                '{}_bagged_valid_scores.csv'.format(score_f_name_prefix))
-            np.savetxt(bagged_train_valid_scores_f_name, bagged_valid_scores)
+    df_scores = pd.concat({step: pd.DataFrame(scores)
+                           for step, scores in bagged_scores.items()})
+    df_scores.columns = df_scores.columns.rename('score')
+    df_scores.index = df_scores.index.rename(['step', 'n_bag'])
+    # bagging learning curves can be plotted on this df_scores
+    if save_output:
+        bagged_scores_filename = os.path.join(
+            training_output_path, 'bagged_scores.csv')
+        df_scores.to_csv(bagged_scores_filename)
+
+    # prepare the bagged scores which will be printed.
+    highest_level = df_scores.index.get_level_values('n_bag').max()
+    df_scores = df_scores.loc[(slice(None), highest_level), :]
+    df_scores.index = df_scores.index.droplevel('n_bag')
+    df_scores = reorder_df_scores(df_scores, score_types)
+    df_scores = round_df_scores(df_scores, score_types)
+    print_df_scores(df_scores, indent='\t')
 
 
 def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):

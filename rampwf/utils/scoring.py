@@ -4,10 +4,36 @@ Scoring utilities
 """
 import numpy as np
 import pandas as pd
+from .pretty_print import print_warning
+
+
+def reorder_df_scores(df_scores, score_types):
+    """Reorder scores according to the order in score_types.
+
+    Parameters
+    ----------
+    df_scores : pd.DataFrame
+        the score dataframe
+    score_types : list of score types
+
+    Returns
+    -------
+    df_scores : the dataframe with reordered scores
+    """
+    try:
+        # try to re-order columns/rows in the printed array
+        # we may not have all train, valid, test, so need to select
+        index_order = np.array(['train', 'valid', 'test'])
+        ordered_index = index_order[np.isin(index_order, df_scores.index)]
+        df_scores = df_scores.loc[
+            ordered_index, [score_type.name for score_type in score_types]]
+    except Exception:
+        print_warning("Couldn't re-order the score matrix..")
+    return df_scores
 
 
 def mean_score_matrix(df_scores_list, score_types):
-    """Construct a mean ± std score dataframe from a list of score dataframes.
+    u"""Construct a mean ± std score dataframe from a list of score dataframes.
 
     Parameters
     ----------
@@ -58,6 +84,7 @@ def score_matrix_from_scores(score_types, steps, scoress):
     df_scores = pd.DataFrame(results)
     df_scores = df_scores.set_index(['step', 'score'])['value']
     df_scores = df_scores.unstack()
+    df_scores = reorder_df_scores(df_scores, score_types)
     return df_scores
 
 

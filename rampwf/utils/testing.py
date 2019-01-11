@@ -61,20 +61,28 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      submission_dir='.', submission='starting_kit',
-                      is_pickle=False, save_output=False, retrain=False):
+                      ramp_submission_dir='submissions',
+                      submission='starting_kit', is_pickle=False,
+                      save_output=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
     ----------
-    ramp_kit_dir : str, (default='.')
-        the directory of the ramp-kit to be tested for submission
-
-    ramp_data_dir : str, (default='.')
-        the directory of the data
-
-    submission_name : str, (default='starting_kit')
-        the name of the submission to be tested
+    ramp_kit_dir : str, default='.'
+        The directory of the ramp-kit to be tested for submission.
+    ramp_data_dir : str, default='.'
+        The directory of the data.
+    ramp_submission_dir : str, default='./submissions'
+        The directory of the submissions.
+    submission : str, default='starting_kit'
+        The name of the submission to be tested.
+    is_pickle : bool, default is False
+        Whether to pickle the model or not.
+    save_y_preds : bool, default is False
+        Whether to store the predictions.
+    retrain : bool, default is False
+        Whether to train the model on the full training set and test on the
+        test set.
     """
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
@@ -82,15 +90,16 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     score_types = assert_score_types(ramp_kit_dir)
 
-    module_path = os.path.join(submission_dir, 'submissions', submission)
-    print_title('Training {} ...'.format(module_path))
+    # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
+    submission_path = os.path.join(ramp_submission_dir, submission)
+    print_title('Training {} ...'.format(submission_path))
 
     training_output_path = ''
     if is_pickle or save_output:
-        # creating submissions/<submission>/training_output dir
-        training_output_path = os.path.join(module_path, 'training_output')
+        # creating <submission_path>/<submission>/training_output dir
+        training_output_path = os.path.join(submission_path, 'training_output')
         if not os.path.exists(training_output_path):
-            os.mkdir(training_output_path)
+            os.makedirs(training_output_path)
 
     # saving predictions for CV bagging after the CV loop
     predictions_valid_list = []
@@ -100,25 +109,23 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     for fold_i, fold in enumerate(cv):
         fold_output_path = ''
         if is_pickle or save_output:
-            # creating submissions/<submission>/training_output/fold_<i> dir
+            # creating <submission_path>/<submission>/training_output/fold_<i>
             fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
             if not os.path.exists(fold_output_path):
-                os.mkdir(fold_output_path)
-            if save_output:
-                set_state('training', save_output, fold_output_path)
+                os.makedirs(fold_output_path)
         print_title('CV fold {}'.format(fold_i))
 
-        predictions_valid, predictions_test, df_scores =\
+        predictions_valid, predictions_test, df_scores = \
             run_submission_on_cv_fold(
-                problem, module_path, X_train, y_train, X_test, y_test,
+                problem, submission_path, X_train, y_train, X_test, y_test,
                 score_types, is_pickle, save_output, fold_output_path,
                 fold, ramp_data_dir)
         if save_output:
             filename = os.path.join(fold_output_path, 'scores.csv')
             df_scores.to_csv(filename)
         df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, score_types, indent='\t')
+        print_df_scores(df_scores_rounded, indent='\t')
 
         # saving predictions for CV bagging after the CV loop
         df_scores_list.append(df_scores)
@@ -129,7 +136,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     print_title('Mean CV scores')
     print_title('----------------------------')
     df_mean_scores = mean_score_matrix(df_scores_list, score_types)
-    print_df_scores(df_mean_scores, score_types, indent='\t')
+    print_df_scores(df_mean_scores, indent='\t')
 
     if retrain:
         # We retrain on the full training set
@@ -137,14 +144,14 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         print_title('Retrain scores')
         print_title('----------------------------')
         run_submission_on_full_train(
-            problem, module_path, X_train, y_train, X_test, y_test,
+            problem, submission_path, X_train, y_train, X_test, y_test,
             score_types, is_pickle, save_output, training_output_path,
             ramp_data_dir)
     bag_submissions(
         problem, cv, y_train, y_test, predictions_valid_list,
         predictions_test_list, training_output_path,
-        ramp_data_dir=ramp_data_dir, score_type_index=0,
-        save_output=save_output)
+        ramp_data_dir=ramp_data_dir, score_type_index=None,
+        save_y_preds=save_output)
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',

@@ -4,7 +4,6 @@ Utility methods to print the results in a terminal using term colors
 """
 from __future__ import print_function
 
-import numpy as np
 from pandas import option_context
 from ..externals.colored import stylize, fg, attr
 
@@ -29,27 +28,16 @@ def print_warning(str):
     print(stylize(str, fg(fg_colors['warning'])))
 
 
-def print_df_scores(df_scores, score_types, indent=''):
+def print_df_scores(df_scores, indent=''):
     """Pretty print the scores dataframe.
 
     Parameters
     ----------
     df_scores : pd.DataFrame
         the score dataframe
-    score_types : list of score types
-        a list of score types to use
     indent : str, default=''
         indentation if needed
     """
-    try:
-        # try to re-order columns/rows in the printed array
-        # we may not have all train, valid, test, so need to select
-        index_order = np.array(['train', 'valid', 'test'])
-        ordered_index = index_order[np.isin(index_order, df_scores.index)]
-        df_scores = df_scores.loc[
-            ordered_index, [score_type.name for score_type in score_types]]
-    except Exception:
-        print_warning("Couldn't re-order the score matrix..")
     with option_context("display.width", 160):
         df_repr = repr(df_scores)
     df_repr_out = []
