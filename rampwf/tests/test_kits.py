@@ -75,4 +75,5 @@ def test_blending():
         ['starting_kit', 'random_forest_10_10'],
         ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
         save_output=True)

@@ -155,7 +155,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
-                      submission_dir='.', save_output=False,
+                      ramp_submission_dir='.', save_output=False,
                       min_improvement=0.0):
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
@@ -175,8 +175,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         predictions_valid_list = []
         predictions_test_list = []
         for submission in submissions:
-            module_path = os.path.join(
-                submission_dir, 'submissions', submission)
+            module_path = os.path.join(ramp_submission_dir, submission)
             training_output_path = os.path.join(module_path, 'training_output')
             fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
