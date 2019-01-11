@@ -125,7 +125,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             filename = os.path.join(fold_output_path, 'scores.csv')
             df_scores.to_csv(filename)
         df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, score_types, indent='\t')
+        print_df_scores(df_scores_rounded, indent='\t')
 
         # saving predictions for CV bagging after the CV loop
         df_scores_list.append(df_scores)
@@ -136,7 +136,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     print_title('Mean CV scores')
     print_title('----------------------------')
     df_mean_scores = mean_score_matrix(df_scores_list, score_types)
-    print_df_scores(df_mean_scores, score_types, indent='\t')
+    print_df_scores(df_mean_scores, indent='\t')
 
     if retrain:
         # We retrain on the full training set
