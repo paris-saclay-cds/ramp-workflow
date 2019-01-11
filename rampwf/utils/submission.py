@@ -358,6 +358,10 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     df_scores.columns = df_scores.columns.rename('score')
     df_scores.index = df_scores.index.rename(['step', 'n_bag'])
     # bagging learning curves can be plotted on this df_scores
+    if save_y_preds:
+        bagged_scores_filename = os.path.join(
+            training_output_path, 'bagged_scores.csv')
+        df_scores.to_csv(bagged_scores_filename)
 
     # prepare the bagged scores which will be printed.
     highest_level = df_scores.index.get_level_values('n_bag').max()
@@ -366,11 +370,6 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     df_scores = reorder_df_scores(df_scores, score_types)
     df_scores = round_df_scores(df_scores, score_types)
     print_df_scores(df_scores, indent='\t')
-
-    if save_y_preds:
-        bagged_scores_filename = os.path.join(
-            training_output_path, 'bagged_scores.csv')
-        df_scores.to_csv(bagged_scores_filename)
 
 
 def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
