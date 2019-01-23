@@ -48,19 +48,22 @@ def main():
 
 
 @main.command()
-@click.option("--ramp-kit-dir", default='.',
+@click.option("--ramp-kit-dir", default='.', show_default=True,
               help='Root directory of the ramp-kit to retrieved the train '
               'submission.')
 @click.option("--metric", cls=PythonLiteralOption, default="[]",
+              show_default=True,
               help='A list of the metric to report')
 @click.option("--step", cls=PythonLiteralOption, default="[]",
+              show_default=True,
               help='A list of the processing to report. Choices are '
               '{"train" , "valid", "test"}')
 @click.option("--sort-by", cls=PythonLiteralOption, default="[]",
+              show_default=True,
               help='Give the metric, step, and stat to use for sorting.')
-@click.option("--ascending/--descending", default=True,
+@click.option("--ascending/--descending", default=True, show_default=True,
               help='Sort in ascending or descending order.')
-@click.option("--precision", default=2,
+@click.option("--precision", default=2, show_default=True,
               help='The precision for the different metrics reported.')
 def leaderboard(ramp_kit_dir, metric, step, sort_by, ascending, precision):
     """Display the leaderboard for all the local submissions."""

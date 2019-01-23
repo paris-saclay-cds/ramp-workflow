@@ -8,25 +8,22 @@ from ..testing import assert_submission
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
-def main():
-    """Command-line to test submission and notebook before to submit."""
-    pass
-
-
-@main.command()
-@click.option('--ramp-kit-dir', default='.',
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.option('--ramp-kit-dir', default='.', show_default=True,
               help='Root directory of the ramp-kit to test.')
-@click.option('--ramp-data-dir',  default='.',
+@click.option('--ramp-data-dir', default='.', show_default=True,
               help='Directory containing the data. This directory should '
               'contain a "data" folder.')
 @click.option('--ramp-submission-dir', default='submissions',
+              show_default=True,
               help='Directory where the submissions are stored. It should '
               'contain a "submissions" directory.')
-@click.option('--submission', default='starting_kit',
+@click.option('--submission', default='starting_kit', show_default=True,
               help='The kit to test. It should be located in the '
               '"submissions" folder of the starting kit. If "ALL", all '
               'submissions in the directory will be tested.')
+@click.option('--notebook', is_flag=True, show_default=True,
+              help='Whether or not to test the notebook.')
 @click.option('--quick-test', is_flag=True,
               help='Specify this flag to test the submission on a small '
               'subset of the data.')
@@ -39,9 +36,9 @@ def main():
 @click.option('--retrain', is_flag=True,
               help='Specify this flag to retrain the submission on the full '
               'training set after the CV loop.')
-def submission(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, submission,
-               quick_test, pickle, save_output, retrain):
-    """Test a submission before to submit on RAMP studio."""
+def main(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, submission,
+         notebook, quick_test, pickle, save_output, retrain):
+    """Test a submission and/or a notebook before to submit on RAMP studio."""
     if quick_test:
         os.environ['RAMP_TEST_MODE'] = '1'
 
@@ -64,13 +61,8 @@ def submission(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, submission,
                           save_output=save_output,
                           retrain=retrain)
 
-
-@main.command()
-@click.option('--ramp-kit-dir', default='.',
-              help='Root directory of the ramp-kit to test.')
-def notebook(ramp_kit_dir):
-    """Test a notebook  before to submit on RAMP studio."""
-    assert_notebook(ramp_kit_dir=ramp_kit_dir)
+    if notebook:
+        assert_notebook(ramp_kit_dir=ramp_kit_dir)
 
 
 def start():
