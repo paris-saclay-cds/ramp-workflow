@@ -9,6 +9,10 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
+@click.option('--submission', default='starting_kit', show_default=True,
+              help='The kit to test. It should be located in the '
+              '"submissions" folder of the starting kit. If "ALL", all '
+              'submissions in the directory will be tested.')
 @click.option('--ramp-kit-dir', default='.', show_default=True,
               help='Root directory of the ramp-kit to test.')
 @click.option('--ramp-data-dir', default='.', show_default=True,
@@ -16,12 +20,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               'contain a "data" folder.')
 @click.option('--ramp-submission-dir', default='submissions',
               show_default=True,
-              help='Directory where the submissions are stored. It should '
-              'contain a "submissions" directory.')
-@click.option('--submission', default='starting_kit', show_default=True,
-              help='The kit to test. It should be located in the '
-              '"submissions" folder of the starting kit. If "ALL", all '
-              'submissions in the directory will be tested.')
+              help='Directory where the submissions are stored. It is the '
+              'directory (typically called "submissions" in the ramp-kit) '
+              'that contains the individual submission subdirectories.')
 @click.option('--notebook', is_flag=True, show_default=True,
               help='Whether or not to test the notebook.')
 @click.option('--quick-test', is_flag=True,
@@ -36,7 +37,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--retrain', is_flag=True,
               help='Specify this flag to retrain the submission on the full '
               'training set after the CV loop.')
-def main(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, submission,
+def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
          notebook, quick_test, pickle, save_output, retrain):
     """Test a submission and/or a notebook before to submit on RAMP studio."""
     if quick_test:
