@@ -6,10 +6,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import re
 import sys
+import os
 from os import listdir
 from os.path import join, isdir
 from collections import defaultdict
-import os
 import numpy as np
 import pandas as pd
 

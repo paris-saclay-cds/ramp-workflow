@@ -65,6 +65,8 @@ if __name__ == "__main__":
         packages=find_packages(),
         entry_points={
             'console_scripts': [
+                'ramp-test = rampwf.utils.cli.testing:start',
+                'ramp-show = rampwf.utils.cli.show:start',
                 'ramp_test_submission='
                 'rampwf.utils.command_line:ramp_test_submission',
                 'ramp_test_notebook='
