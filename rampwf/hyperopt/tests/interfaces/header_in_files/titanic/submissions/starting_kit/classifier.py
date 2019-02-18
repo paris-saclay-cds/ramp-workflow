@@ -4,14 +4,16 @@ from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator
 
 # RAMP START HYPERPARAMETERS
-hyper_parameters = {'logreg_C' : 1,
-                    'imputer_strategy' : 'median'}
+hyper_parameters = {'logreg_C': 1,
+                    'imputer_strategy': 'median'}
 # RAMP END HYPERPARAMETERS
+
 
 class Classifier(BaseEstimator):
     def __init__(self):
         self.clf = Pipeline([
-            ('imputer', Imputer(strategy=hyper_parameters['imputer_strategy'])),
+            ('imputer',
+             Imputer(strategy=hyper_parameters['imputer_strategy'])),
             ('classifier', LogisticRegression(C=hyper_parameters['logreg_C']))
         ])
 
