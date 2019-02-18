@@ -1,11 +1,19 @@
+import os
+import re
 import itertools
 import random
 import tempfile
 import shutil
+from .testing import assert_read_problem
 from .submission import run_submission_on_cv_fold
+from .scoring import round_df_scores
 
-HYPERPARAMS_REPL_REGEX = re.compile("# RAMP START HYPERPARAMETERS.*# RAMP END", re.S)
-HYPERPARAMS_REPL_PATTERN = "# RAMP START HYPERPARAMETERS\nhyper_parameters = {}\n# RAMP END HYPERPARAMETERS"
+HYPERPARAMS_REPL_REGEX = re.compile('# RAMP START HYPERPARAMETERS.*# RAMP END',
+                                    re.S)
+HYPERPARAMS_REPL_PATTERN = '\n'.join('# RAMP START HYPERPARAMETERS',
+                                     'hyper_parameters = {}',
+                                     '# RAMP END HYPERPARAMETERS')
+
 
 def _make_random_parameters_space(params_distribution, seed=None):
     """Make a random set of hyper parameters sampled from `params_distribution`.
@@ -13,10 +21,10 @@ def _make_random_parameters_space(params_distribution, seed=None):
     Parameters:
     -----------
     params_distribution: dict
-       a dictionay whose keys are hyperparameters names and values are iterables
-       of possible values for each parameter.
+       a dictionay whose keys are hyperparameters names and values are
+       iterables of possible values for each parameter.
     seed:
-       random state value used for shuffling. Default: None. 
+       random state value used for shuffling. Default: None.
 
     Returns:
     --------
@@ -53,17 +61,19 @@ def _configure_submission(params, problem, submission_path, outdir):
     outdir: str
         output directory where the new submission will be saved
     """
-    filename = os.path.join(submission_path, problem.workflow.element_names[1] + ".py")
+    filename = os.path.join(submission_path,
+                            problem.workflow.element_names[1] + ".py")
     # update hyperparameters section of estimator module
     with open(filename) as fp:
         text = fp.read()
-        text = HYPERPARAMS_REPL_REGEX.sub(HYPERPARAMS_REPL_PATTERN.format(params),
-                                          text)
+        repl = HYPERPARAMS_REPL_PATTERN.format(params)
+        text = HYPERPARAMS_REPL_REGEX.sub(repl, text)
     with open(filename, "w") as fp:
         fp.write(text)
 
 
-def _eval_submission_with_params(params, problem, submission_path, X_train, y_train):
+def _eval_submission_with_params(params, problem, submission_path,
+                                 X_train, y_train):
     """Evaluate a submission with a set of hyper parameters.
 
     Parameters:
@@ -94,8 +104,8 @@ def _eval_submission_with_params(params, problem, submission_path, X_train, y_tr
 
             predictions_valid, _, df_scores = \
                 run_submission_on_cv_fold(
-                    problem, temp_submission_path, X_train, y_train, None, None,
-                    problem.score_types, False, False, None,
+                    problem, temp_submission_path, X_train, y_train, None,
+                    None, problem.score_types, False, False, None,
                     fold, None)
 
             df_scores_rounded = round_df_scores(df_scores, problem.score_types)
@@ -108,8 +118,8 @@ def _eval_submission_with_params(params, problem, submission_path, X_train, y_tr
 
 
 def tune_hyper_parameters(params_distribution, ramp_kit_dir, submission_path,
-                          n_iters=10,  n_jobs=1, seed=None):
-    """ 
+                          n_iters=10, n_jobs=1, seed=None):
+    """
     Try up to `n_iter` sets of parameters configuration for submission and
     return scores and the respective sets of parameters parameters.
 
@@ -137,13 +147,15 @@ def tune_hyper_parameters(params_distribution, ramp_kit_dir, submission_path,
     problem = assert_read_problem(ramp_kit_dir)
     submission_path = os.path.join(ramp_kit_dir, submission_path)
     X_train, y_train = problem.get_train_data(path=ramp_kit_dir)
-    params_space = _make_random_parameters_space(params_distribution, seed=seed)
+    params_space = _make_random_parameters_space(params_distribution,
+                                                 seed=seed)
     results = []
     for i in range(n_iters):
         try:
             params = next(params_space)
         except StopIteration:
             break
-        scores = _eval_submission_with_params(params, problem, submission_path, X_train, y_train)
+        scores = _eval_submission_with_params(params, problem, submission_path,
+                                              X_train, y_train)
         results.append((scores, params))
     return results
