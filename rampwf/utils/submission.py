@@ -48,8 +48,8 @@ def save_submissions(problem, y_pred, data_path='.', output_path='.',
         pass
 
 
-def train_test_submission(problem, module_path, X_train, y_train, X_test,
-                          is_pickle, save_output, output_path,
+def train_test_submission(problem, module_path, X_train, y_train, X_test=None,
+                          is_pickle=False, save_output=False, output_path='.',
                           model_name='model.pkl', train_is=None):
     """Train and test submission, on cv fold if train_is not none.
 
@@ -134,10 +134,10 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
     return (y_pred_train, y_pred_test), (train_time, valid_time, test_time)
 
 
-def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
-                              X_test, y_test, score_types,
-                              is_pickle, save_output, fold_output_path,
-                              fold, ramp_data_dir):
+def run_submission_on_cv_fold(problem, module_path, fold, X_train,
+                              y_train, X_test=None, y_test=None,
+                              is_pickle=False, save_output=False,
+                              fold_output_path='.', ramp_data_dir='.'):
     """Run submission, compute and return predictions and scores on cv.
 
     Parameters
@@ -154,8 +154,6 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
         returned by problem.get_test_data
     y_test : a list of testing ground truth or None
         returned by problem.get_test_data
-    score_types : a list of score types
-        problem.score_types
     is_pickle : boolean
         True if the model should be pickled
     save_output : boolean
@@ -175,6 +173,7 @@ def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
     df_scores : pd.DataFrame
         table of scores (rows = train/valid/test steps, columns = scores)
     """
+    score_types = problem.score_types
     train_is, valid_is = fold
     pred, timing = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,

@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
+from rampwf.hyperopt import Hyperparameter
 
 # RAMP START HYPERPARAMETERS
-complex_features = True  # opt: [True, False]
+complex_features = Hyperparameter(default=True, values=[True, False])
 # RAMP END HYPERPARAMETERS
 
 
@@ -14,7 +15,7 @@ class FeatureExtractor():
         pass
 
     def transform(self, X_df):
-        if complex_features:
+        if int(complex_features):
             X_df = X_df.assign(LogFare=lambda x: np.log(x.Fare + 10.))
             X_df = X_df.assign(Cab=lambda x: x.Cabin == x.Cabin)
 
