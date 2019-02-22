@@ -4,9 +4,11 @@ Utilities to manage the submissions
 """
 import os
 import time
+import json
 from collections import Iterable
 from collections import OrderedDict
 
+import numpy as np
 import pandas as pd
 import cloudpickle as pickle
 
@@ -15,6 +17,226 @@ from .combine import get_score_cv_bags
 from .pretty_print import print_title, print_df_scores, print_warning
 from .scoring import score_matrix, round_df_scores, reorder_df_scores
 
+from . import testing
+
+def timeit(func):
+    # TODO: move utility functions to another module
+    def run(*args, **kwargs):
+        t = time.time()
+        ret = func(*args, **kwargs)
+        t = time.time() - t
+        return t, ret
+    return run
+
+
+class _Fold(object):
+
+    def __init__(self, id, cv_fold, output_dir, save_info=False, pickle_model=False,
+                 save_func=np.savez_compressed):
+        self.id = id
+        self._cv_fold = cv_fold
+        self._info = None
+        self._save_info = save_info
+        self._pickle_model = pickle_model
+        self._save_func = save_func
+        self._state = None
+        self._model = None
+        self.predictions_train = None
+        self.predictions_valid = None
+        self.predictions_test = None
+        self._basedir = os.path.join(output_dir, '{}'.format(id))
+        if save_info:
+            os.makedirs(self._basedir, exist_ok=True)
+
+    def __iter__(self):
+        # ensure a behavior similar to cv_fold's
+        for entry in self._cv_fold:
+            yield entry
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, new_state):
+        self._state = new_state
+        if self._save_info:
+            with open(os.path.join(self._basedir, 'state.txt'), 'w') as fp:
+                fp.write(new_state)
+
+    @property
+    def info(self):
+        return self._info
+
+    @info.setter
+    def info(self, info):
+        self._info = info
+        if self._save_info:
+            with open(os.path.join(self._basedir, "info.json"), "w") as fp:
+                json.dump(info, fp)
+
+    @property
+    def model(self):
+        return self._model
+
+    @model.setter
+    def model(self, model):
+        self._model = model
+        if self._pickle_model:
+            self._model = pickle_model(self._basedir, model, 'model.pkl')
+
+    @property
+    def predictions(self):
+        return self.predictions_train, self.predictions_valid, self.predictions_test
+
+    @predictions.setter
+    def predictions(self, predictions):
+        self.predictions_train, self.predictions_valid, self.predictions_test = predictions
+        if self._save_info:
+            for suffix, pred in zip(("train", 'valid', 'test'), self.predictions):
+                if pred is None:
+                    continue
+                fname = os.path.join(self._basedir, 'y_pred_{}'.format(suffix))
+                self._save_func(fname, y_pred=pred.y_pred)
+
+    @property
+    def scores(self):
+        return self._scores
+
+    @scores.setter
+    def scores(self, scores):
+        self._scores = scores
+        if self._save_info:
+            fname = os.path.join(self._basedir, "scores.csv")
+            scores.to_csv(fname)
+
+    def show_scores(self, score_types):
+        scores_rounded = round_df_scores(self.scores, score_types)
+        print_df_scores(scores_rounded, indent='\t')
+
+    def __str__(self):
+        return('{}'.format(self.id))
+
+
+class Submission(object):
+
+    def __init__(self, ramp_kit_dir='.', data_dir='.',
+                 submission='starting_kit'):
+        """
+        """
+        self._problem = testing.Problem(ramp_kit_dir, name='problem', data_dir=data_dir)
+        self._basedir = os.path.join(ramp_kit_dir, "submissions", submission)
+
+
+    def show_title(self):
+        print('----------------------------------')
+        print(self._problem.title)
+        print('----------------------------------')
+
+    def _show_scores(self, df_scores_list):
+        print_title('----------------------------')
+        print_title('Mean CV scores')
+        print_title('----------------------------')
+        df_mean_scores = testing.mean_score_matrix(df_scores_list, self._problem.score_types)
+        print_df_scores(df_mean_scores, indent='\t')
+
+    def _make_train_valid_data(self, cv_fold):
+        train_indices, valid_indices = cv_fold
+        X, y = self._problem.train_data
+        X_train, y_train = X.iloc[train_indices], y[train_indices]
+        X_valid, y_valid = X.iloc[valid_indices], y[valid_indices]
+        return X_train, y_train, X_valid, y_valid
+
+    @timeit
+    def _train(self, X_train, y_train):
+        model = self._problem.workflow.train_submission(self._basedir,
+                                                        X_train,
+                                                        y_train)
+        return model
+
+    @timeit
+    def _predict(self, model, x):
+        y_pred = self._problem.workflow.test_submission(model, x)
+        return self._problem.Predictions(y_pred=y_pred)
+
+    def _run_submission_on_cv_fold(self, fold):
+        """Run submission, compute and return predictions and scores on for fold.
+
+        Parameters
+        ----------
+
+        """
+        X_train, y_train, X_valid, y_valid = self._make_train_valid_data(fold)
+        X_test, y_test = self._problem.test_data
+        train_time, model = self._train(X_train, y_train)
+        fold.state = 'trained'
+        fold.model = model
+
+        pred_train_time, predictions_train = self._predict(model, X_train)
+        pred_valid_time, predictions_valid = self._predict(model, X_valid)
+        y_true_train = self._problem.Predictions(y_true=y_train)
+        y_true_valid = self._problem.Predictions(y_true=y_valid)
+        fold.state = 'validated'
+
+        ground_truth = OrderedDict([('train', y_true_train),
+                                    ('valid', y_true_valid)])
+        predictions = OrderedDict([('train', predictions_train),
+                                   ('valid', predictions_valid)])
+
+        if y_test is not None:
+            y_true_test = self._problem.Predictions(y_true=y_test)
+            pred_test_time, predictions_test = self._predict(model, X_test)
+            ground_truth['test'] = y_true_test
+            predictions['test'] = predictions_test
+            fold.state = 'tested'
+        else:
+            pred_test_time, predictions_test = None, None
+        info = {'train_time' : train_time,
+                'pred_train_time' : pred_train_time,
+                'pred_valid_time' : pred_valid_time,
+                'pred_test_time' : pred_test_time,
+            }
+        fold.info = info
+        fold.predictions = (predictions_train, predictions_valid,
+                            predictions_test)
+        df_scores = score_matrix(self._problem.score_types,
+                                 ground_truth=ground_truth,
+                                 predictions=predictions)
+        fold.scores = df_scores
+        fold.state = 'scored'
+        return predictions['valid'], predictions.get('test'), df_scores, model
+
+
+    def run_cross_validation(self, save_info=False, pickle_model=False):
+
+        self.show_title()
+        cv = self._problem.cv
+        df_scores_list = []
+        predictions_valid = []
+        predictions_test = []
+
+        output_dir = os.path.join( self._basedir, 'training_output')
+        for i, cv_fold in enumerate(cv):
+            fold_i = 'fold_{}'.format(i)
+            fold = _Fold(fold_i, cv_fold, output_dir, save_info, pickle_model)
+            print(fold)
+            pred_valid, pred_test, df_scores, model = self._run_submission_on_cv_fold(fold)
+            df_scores_list.append(df_scores)
+            predictions_valid.append(pred_valid)
+            predictions_test.append(pred_test)
+            fold.show_scores(self._problem.score_types)
+
+        self._show_scores(df_scores_list)
+
+
+    def train_full_data(self):
+        """train model on full data and return model"""
+        X_train, y_train = self._problem.train_data
+        # TODO compute and save scores
+        return self._train(X_train, y_train)
+
+    def bag_submissions(self):
+        pass
 
 def save_submissions(problem, y_pred, data_path='.', output_path='.',
                      suffix='test'):
@@ -46,359 +268,6 @@ def save_submissions(problem, y_pred, data_path='.', output_path='.',
         problem.save_submission(y_pred, data_path, output_path, suffix)
     except AttributeError:
         pass
-
-
-def train_test_submission(problem, module_path, X_train, y_train, X_test,
-                          is_pickle, save_output, output_path,
-                          model_name='model.pkl', train_is=None):
-    """Train and test submission, on cv fold if train_is not none.
-
-    Parameters
-    ----------
-    problem : problem object
-        imp.loaded from problem.py
-    module_path : str
-        the path of the submission, typically submissions/<submission_name>
-    X_train : a list of training instances
-        returned by problem.get_train_data
-    y_train : a list of training ground truth
-        returned by problem.get_train_data
-    X_test : a list of testing instances or None
-        returned by problem.get_test_data
-    is_pickle : boolean
-        True if the model should be pickled
-    output_path : str
-        the path into which the model will be pickled
-    save_output : boolean
-        True if predictions should be written in files
-    model_name : str (default='model.pkl')
-        the file name of the pickled workflow
-    train_is : a list of integers (default=None)
-        training indices from the cross-validation fold, if None, train
-        on full set
-    Returns
-    -------
-    a tuple of the form ((y_pred_train, y_pred_test),
-                         (train_time, valid_time, test_time))
-
-    y_pred_train : a list of predictions
-        on the training (train_train and train_valid) set
-    y_pred_test : a list of predictions
-        on the test set
-    train_time : duration in seconds for training
-    valid_time : duration in seconds for validation
-    test_time : duration in seconds for testing
-    """
-    # Train
-    t0 = time.time()
-    try:
-        trained_workflow = problem.workflow.train_submission(
-            module_path, X_train, y_train, train_is=train_is)
-    except Exception:
-        print_submission_exception(save_output, output_path)
-        set_state('training_error', save_output, output_path)
-        exit(1)
-    train_time = time.time() - t0
-    set_state('trained', save_output, output_path)
-    if is_pickle:
-        trained_workflow = pickle_model(
-            output_path, trained_workflow, model_name)
-
-    # Validate
-    t0 = time.time()
-    try:
-        y_pred_train = problem.workflow.test_submission(
-            trained_workflow, X_train)
-    except Exception:
-        print_submission_exception(save_output, output_path)
-        set_state('validating_error', save_output, output_path)
-        exit(1)
-    valid_time = time.time() - t0
-    set_state('validated', save_output, output_path)
-
-    # Test
-    t0 = time.time()
-    try:
-        if X_test is None:
-            y_pred_test = None
-        else:
-            y_pred_test = problem.workflow.test_submission(
-                trained_workflow, X_test)
-    except Exception:
-        print_submission_exception(save_output, output_path)
-        set_state('testing_error', save_output, output_path)
-        exit(1)
-    test_time = time.time() - t0
-    set_state('tested', save_output, output_path)
-
-    return (y_pred_train, y_pred_test), (train_time, valid_time, test_time)
-
-
-def run_submission_on_cv_fold(problem, module_path, X_train, y_train,
-                              X_test, y_test, score_types,
-                              is_pickle, save_output, fold_output_path,
-                              fold, ramp_data_dir):
-    """Run submission, compute and return predictions and scores on cv.
-
-    Parameters
-    ----------
-    problem : problem object
-        imp.loaded from problem.py
-    module_path : str
-        the path of the submission, typically submissions/<submission_name>
-    X_train : a list of training instances
-        returned by problem.get_train_data
-    y_train : a list of training ground truth
-        returned by problem.get_train_data
-    X_train : a list of testing instances
-        returned by problem.get_test_data
-    y_test : a list of testing ground truth or None
-        returned by problem.get_test_data
-    score_types : a list of score types
-        problem.score_types
-    is_pickle : boolean
-        True if the model should be pickled
-    save_output : boolean
-        True if predictions should be written in files
-    fold_output_path : str
-        the path into which the model will be pickled
-    fold : pair of lists of integers
-        (train_is, valid_is) generated by problem.get_cv
-    ramp_data_dir : str
-        the directory of the data
-    Returns
-    -------
-    predictions_train_valid : instance of Predictions
-        on the validation set
-    predictions_test : instance of Predictions
-        on the test set
-    df_scores : pd.DataFrame
-        table of scores (rows = train/valid/test steps, columns = scores)
-    """
-    train_is, valid_is = fold
-    pred, timing = train_test_submission(
-        problem, module_path, X_train, y_train, X_test, is_pickle,
-        save_output, fold_output_path, train_is=train_is)
-    y_pred_train, y_pred_test = pred
-    train_time, valid_time, test_time = timing
-
-    predictions_train_train = problem.Predictions(
-        y_pred=y_pred_train[train_is])
-    ground_truth_train_train = problem.Predictions(
-        y_true=y_train[train_is])
-    predictions_train_valid = problem.Predictions(
-        y_pred=y_pred_train[valid_is])
-    ground_truth_train_valid = problem.Predictions(
-        y_true=y_train[valid_is])
-    if y_test is not None:
-        predictions_test = problem.Predictions(y_pred=y_pred_test)
-        ground_truth_test = problem.Predictions(y_true=y_test)
-        if save_output:
-            save_y_pred(
-                problem, y_pred_train, data_path=ramp_data_dir,
-                output_path=fold_output_path, suffix='train')
-            if y_test is not None:
-                save_y_pred(
-                    problem, y_pred_test, data_path=ramp_data_dir,
-                    output_path=fold_output_path, suffix='test')
-            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
-                fd.write(str(train_time))
-            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
-                fd.write(str(valid_time))
-            with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
-                fd.write(str(test_time))
-        df_scores = score_matrix(
-            score_types,
-            ground_truth=OrderedDict([('train', ground_truth_train_train),
-                                      ('valid', ground_truth_train_valid),
-                                      ('test', ground_truth_test)]),
-            predictions=OrderedDict([('train', predictions_train_train),
-                                     ('valid', predictions_train_valid),
-                                     ('test', predictions_test)]),
-        )
-        set_state('scored', save_output, fold_output_path)
-        return predictions_train_valid, predictions_test, df_scores
-
-    else:
-        if save_output:
-            save_y_pred(
-                problem, y_pred_train, data_path=ramp_data_dir,
-                output_path=fold_output_path, suffix='train')
-            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
-                fd.write(str(train_time))
-            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
-                fd.write(str(valid_time))
-        df_scores = score_matrix(
-            score_types,
-            ground_truth=OrderedDict([('train', ground_truth_train_train),
-                                      ('valid', ground_truth_train_valid)]),
-            predictions=OrderedDict([('train', predictions_train_train),
-                                     ('valid', predictions_train_valid)]),
-        )
-        set_state('scored', save_output, fold_output_path)
-        return predictions_train_valid, None, df_scores
-
-
-def run_submission_on_full_train(problem, module_path, X_train, y_train,
-                                 X_test, y_test, score_types,
-                                 is_pickle, save_output, output_path,
-                                 ramp_data_dir):
-    """Run submission, compute predictions, and print scores on full train.
-
-    Parameters
-    ----------
-    problem : problem object
-        imp.loaded from problem.py
-    module_path : str
-        the path of the submission, typically submissions/<submission_name>
-    X_train : a list of training instances
-        returned by problem.get_train_data
-    y_train : a list of training ground truth
-        returned by problem.get_train_data
-    X_test : a list of testing instances or None
-        returned by problem.get_test_data
-    y_test : a list of testing ground truth or None
-        returned by problem.get_test_data
-    score_types : a list of score types
-        problem.score_types
-    is_pickle : boolean
-        True if the model should be pickled
-    save_output : boolean
-        True if predictions should be written in files
-    output_path : str
-        the path into which the model will be pickled
-    ramp_data_dir : str
-        the directory of the data
-    """
-    (y_pred_train, y_pred_test), _ = train_test_submission(
-        problem, module_path, X_train, y_train, X_test, is_pickle,
-        save_output, output_path, model_name='retrained_model.pkl')
-    predictions_train = problem.Predictions(y_pred=y_pred_train)
-    ground_truth_train = problem.Predictions(y_true=y_train)
-    if y_test is not None:
-        predictions_test = problem.Predictions(y_pred=y_pred_test)
-        ground_truth_test = problem.Predictions(y_true=y_test)
-
-        df_scores = score_matrix(
-            score_types,
-            ground_truth=OrderedDict([('train', ground_truth_train),
-                                      ('test', ground_truth_test)]),
-            predictions=OrderedDict([('train', predictions_train),
-                                     ('test', predictions_test)]),
-        )
-        df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, indent='\t')
-
-        if save_output:
-            save_submissions(
-                problem, y_pred_train, data_path=ramp_data_dir,
-                output_path=output_path, suffix='retrain_train')
-            save_submissions(
-                problem, y_pred_test, data_path=ramp_data_dir,
-                output_path=output_path, suffix='retrain_test')
-    else:
-        df_scores = score_matrix(
-            score_types,
-            ground_truth=OrderedDict([('train', ground_truth_train)]),
-            predictions=OrderedDict([('train', predictions_train)]),
-        )
-        df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, indent='\t')
-
-        if save_output:
-            save_submissions(
-                problem, y_pred_train, data_path=ramp_data_dir,
-                output_path=output_path, suffix='retrain_train')
-
-
-def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
-                    predictions_test_list, training_output_path,
-                    ramp_data_dir='.', score_type_index=0,
-                    save_output=False, score_table_title='Bagged scores',
-                    score_f_name_prefix=''):
-    """CV-bag trained submission.
-
-    Parameters
-    ----------
-    problem : problem object
-        imp.loaded from problem.py
-    cv : cross validation object
-        coming from get_cv of problem.py
-    y_train : a list of training ground truth
-        returned by problem.get_train_data
-    y_test : a list of testing ground truth or None
-        returned by problem.get_test_data
-    predictions_valid_list : list of Prediction objects
-        returned by run_submission_on_cv_fold
-    predictions_test_list : list of Prediction objects or None
-        returned by run_submission_on_cv_fold
-    training_output_path : str
-        submissions/<submission>/training_output
-    ramp_data_dir : str
-        the directory of the data
-    score_type_index : int or None.
-        The score type on which we bag. If None, all scores will be computed.
-    save_output : boolean
-        True if predictions should be written in files
-    score_table_title : str
-    score_f_name_prefix : str
-    """
-    print_title('----------------------------')
-    print_title(score_table_title)
-    print_title('----------------------------')
-    score_type_index = (slice(None) if score_type_index is None
-                        else score_type_index)
-    score_types = problem.score_types[score_type_index]
-    score_types = (
-        [score_types] if not isinstance(score_types, Iterable)
-        else score_types)
-
-    # placeholder to store the scores and predictions
-    bagged_scores = {}
-    scoring_step = ['valid', 'test'] if y_test is not None else ['valid']
-    for step in scoring_step:
-        # Get either the training or testing infomation depending of the step
-        pred_list = (predictions_valid_list if step == 'valid'
-                     else predictions_test_list)
-        y_step = y_train if step == 'valid' else y_test
-        gt_list = problem.Predictions(y_true=y_step)
-        # indices of the validation set or all sample for the testing set
-        test_idx = ([valid_is for (train_is, valid_is) in cv]
-                    if step == 'valid' else None)
-        score_dict = {}
-        for st in score_types:
-            pred, scores = get_score_cv_bags(
-                st, pred_list, gt_list, test_is_list=test_idx)
-            score_dict[st.name] = {
-                key: val for key, val in enumerate(scores)}
-        bagged_scores[step] = score_dict
-        # the predictions will always be the same for all score and we store
-        # only a single instance
-        if save_output:
-            save_submissions(
-                problem, pred.y_pred, data_path=ramp_data_dir,
-                output_path=training_output_path,
-                suffix='{}_bagged_{}'.format(score_f_name_prefix, step)
-            )
-
-    df_scores = pd.concat({step: pd.DataFrame(scores)
-                           for step, scores in bagged_scores.items()})
-    df_scores.columns = df_scores.columns.rename('score')
-    df_scores.index = df_scores.index.rename(['step', 'n_bag'])
-    # bagging learning curves can be plotted on this df_scores
-    if save_output:
-        bagged_scores_filename = os.path.join(
-            training_output_path, 'bagged_scores.csv')
-        df_scores.to_csv(bagged_scores_filename)
-
-    # prepare the bagged scores which will be printed.
-    highest_level = df_scores.index.get_level_values('n_bag').max()
-    df_scores = df_scores.loc[(slice(None), highest_level), :]
-    df_scores.index = df_scores.index.droplevel('n_bag')
-    df_scores = reorder_df_scores(df_scores, score_types)
-    df_scores = round_df_scores(df_scores, score_types)
-    print_df_scores(df_scores, indent='\t')
-
 
 def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
     """Pickle and reload trained workflow.

@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import imp
+from importlib.machinery import SourceFileLoader
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,87 @@ from .notebook import execute_notebook, convert_notebook
 from .scoring import round_df_scores, mean_score_matrix
 from .submission import (bag_submissions, run_submission_on_cv_fold,
                          run_submission_on_full_train)
+
+
+def load_module(name, path):
+    """Load module from path. If path is directory then  it will be appended
+    `name` + '.py' (if `name` doesn't end ith '.py').
+
+    Parameters:
+    -----------
+    name: str
+        name to give the loaded module. If path is directory, theb this
+        parameter will also be used as the name of the python source file
+        under `path` to load source from (appended with `.py` if necessary)
+    path: str
+        path to a file/folder to load module from
+
+    Returns:
+    loaded_module: module
+        module loaded from source.
+    """
+    if os.path.isdir(path):
+        source_file = name if name.endswith(".py") else name + ".py"
+        path = os.path.join(path, source_file)
+    loader = SourceFileLoader(name, path)
+    return loader.load_module()
+
+class Problem(object):
+
+    def __init__(self, ramp_kit_dir, name='problem', data_dir=''):
+        """
+
+        Parameters:
+        -----------0
+        name: str
+            name of the module file, default: 'problem'
+        ramp_kit_dir: str
+            name of ramp kit dir, default: 'starting_kit'
+        data_dir: str
+            path to a directory that contain train and test data. It should contain
+            a subdirectory called 'data'. Default: '', means that 'data' is located
+            under the `ramp_kit_dir`.
+        """
+        self._problem_module = load_module(name, ramp_kit_dir)
+        self._ramp_data_dir =  data_dir
+
+    @property
+    def title(self):
+        return self._problem_module.problem_title
+
+    @property
+    def train_data(self):
+        X_train, y_train = self._problem_module.get_train_data(self._ramp_data_dir)
+        return X_train, y_train
+
+    @property
+    def test_data(self):
+        X_test, y_test = self._problem_module.get_test_data(self._ramp_data_dir)
+        return X_test, y_test
+
+    @property
+    def data(self):
+        X_train, y_train = self.train_data
+        X_test, y_test = self.test_data
+        return X_train, y_train, X_test, y_test
+
+    @property
+    def cv(self):
+        X_train, y_train = self.train_data
+        cv = list(self._problem_module.get_cv(X_train, y_train))
+        return cv
+
+    @property
+    def score_types(self):
+        return self._problem_module.score_types
+
+    @property
+    def workflow(self):
+        return self._problem_module.workflow
+
+    @property
+    def Predictions(self):
+        return self._problem_module.Predictions
 
 
 def assert_notebook(ramp_kit_dir='.'):
