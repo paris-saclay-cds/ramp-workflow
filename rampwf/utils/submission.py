@@ -120,28 +120,69 @@ class _Fold(object):
 
 class Submission(object):
 
-    def __init__(self, ramp_kit_dir='.', data_dir='.',
-                 submission='starting_kit'):
+    def __init__(self, ramp_kit_dir, submission='starting_kit',
+                 data_dir=''):
         """
+        Class to run a train and test a submission.
+        This creates a submission for code locted under:
+        `ramp_kit_dir`/sbmissions/`submission`
+
+        Parameters:
+        -----------
+        ramp_kit_dir: str
+            path to a directory containing a ramp kit. This directory is
+            expected to have a sub-directory called 'submissions' that
+            contains user submissions as well as a python module called
+            'problem.py'.
+
+        submission: str
+            submission name. Should be the name of a sub-directory within
+            '$ramp_kit_dir/submissions'.
+
+        data_dir: str
+            path to a directory containing data, Default: '', means that
+            data is located within the ramp_kit_dir (under a directory called
+            'data').
         """
         self._problem = testing.Problem(ramp_kit_dir, name='problem', data_dir=data_dir)
         self._basedir = os.path.join(ramp_kit_dir, "submissions", submission)
 
-
     def show_title(self):
+        """Show ramp kit title
+        """
         print('----------------------------------')
         print(self._problem.title)
         print('----------------------------------')
 
     def _show_scores(self, df_scores_list):
+        """Show cross-validation scores.
+
+        Parameters:
+        -----------
+        df_scores_list: list
+            list of DataFrames representing cross-validation scores.
+        """
         print_title('----------------------------')
         print_title('Mean CV scores')
         print_title('----------------------------')
         df_mean_scores = testing.mean_score_matrix(df_scores_list, self._problem.score_types)
         print_df_scores(df_mean_scores, indent='\t')
 
-    def _make_train_valid_data(self, cv_fold):
-        train_indices, valid_indices = cv_fold
+    def _make_train_valid_data(self, fold):
+        """Make tain and validation data and targets using `fold`.
+
+        Parameters:
+        -----------
+        fold: iterable
+            an 2-element iterable containig lists for train and validation
+            indices respectively.
+
+        Returns:
+        --------
+        X_train, y_train, X_valid, y_valid:
+            train/validation data and targets.
+        """
+        train_indices, valid_indices = fold
         X, y = self._problem.train_data
         X_train, y_train = X.iloc[train_indices], y[train_indices]
         X_valid, y_valid = X.iloc[valid_indices], y[valid_indices]
@@ -149,6 +190,20 @@ class Submission(object):
 
     @timeit
     def _train(self, X_train, y_train):
+        """Train workflow on the provided data
+
+        Parameters:
+        -----------
+        X_train: iterable
+            train data samples
+        y_train: iterable
+            train data targers
+
+        Rturns:
+        -------
+        model:
+            trained workflow
+        """
         model = self._problem.workflow.train_submission(self._basedir,
                                                         X_train,
                                                         y_train)
@@ -156,15 +211,37 @@ class Submission(object):
 
     @timeit
     def _predict(self, model, x):
+        """Run workflow prediction on data.
+
+        Parameters:
+        -----------
+        model:
+            trained workflow
+        x: iterable
+            data used for prediction
+
+        Rturns:
+        -------
+        predictions: Predictions
+            output predictions
+        """
         y_pred = self._problem.workflow.test_submission(model, x)
         return self._problem.Predictions(y_pred=y_pred)
 
     def _run_submission_on_cv_fold(self, fold):
-        """Run submission, compute and return predictions and scores on for fold.
+        """Run submission of fold, compute and return predictions and scores.
 
         Parameters
         ----------
+        fold: iterable
+            an 2-element iterable containig lists for train and validation
+            indices respectively.
 
+        Returns:
+        --------
+        valid_pred, test_pred, scores, models: tuple
+            validation predictions, test predictions (if test data is
+            available) and scores.
         """
         X_train, y_train, X_valid, y_valid = self._make_train_valid_data(fold)
         X_test, y_test = self._problem.test_data
@@ -204,11 +281,30 @@ class Submission(object):
                                  predictions=predictions)
         fold.scores = df_scores
         fold.state = 'scored'
-        return predictions['valid'], predictions.get('test'), df_scores, model
+        return predictions['valid'], predictions.get('test'), df_scores
 
 
-    def run_cross_validation(self, save_info=False, pickle_model=False):
+    def run_cross_validation(self, save_info=False, pickle_models=False):
+        """Run cross-validation for submission.
 
+        Parameters:
+        -----------
+        save_info: bool, default: False
+            if True, save fold-related information (training and evaluation
+            times, prediction arrays, scores, etc.). For each fold $i, this
+            iformation is saved at:
+            $ramp_kit/submissions/$submission_name/training_output/fold_$i
+
+        pickle_models: bool, default: False
+            If true save trained model for each fold. Pickle location is the
+            same as for `save_info`.
+
+        Returns:
+        --------
+        scores_list: list
+            list of DataFrames containing scores for each cross validation
+            fold.
+        """
         self.show_title()
         cv = self._problem.cv
         df_scores_list = []
@@ -218,15 +314,15 @@ class Submission(object):
         output_dir = os.path.join( self._basedir, 'training_output')
         for i, cv_fold in enumerate(cv):
             fold_i = 'fold_{}'.format(i)
-            fold = _Fold(fold_i, cv_fold, output_dir, save_info, pickle_model)
+            fold = _Fold(fold_i, cv_fold, output_dir, save_info, pickle_models)
             print(fold)
-            pred_valid, pred_test, df_scores, model = self._run_submission_on_cv_fold(fold)
+            pred_valid, pred_test, df_scores = self._run_submission_on_cv_fold(fold)
             df_scores_list.append(df_scores)
             predictions_valid.append(pred_valid)
             predictions_test.append(pred_test)
             fold.show_scores(self._problem.score_types)
-
         self._show_scores(df_scores_list)
+        return df_scores_list
 
 
     def train_full_data(self):
