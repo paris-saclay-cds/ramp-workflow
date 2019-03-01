@@ -3,12 +3,8 @@ import numpy as np
 from rampwf.hyperopt import Hyperparameter
 
 # RAMP START HYPERPARAMETERS
-<<<<<<< 301bbb6eafb692f67de85fba1dc57a9f579f4510
 complex_features = Hyperparameter(
     dtype='bool', default=True, values=[True, False])
-=======
-complex_features = Hyperparameter(default=True, values=[True, False])
->>>>>>> random engine, file interface working, no stats yet
 # RAMP END HYPERPARAMETERS
 
 

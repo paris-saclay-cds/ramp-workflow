@@ -1,6 +1,10 @@
 import click
 
+<<<<<<< e00c41d8ea37287a820c7389dd84c3c1259aaa1d
 from ..hyperopt import run_hyperopt
+=======
+from ..hyperparameter import run_hyperopt
+>>>>>>> random engine hooked up, experiment outputs a summary table and the submission with the best hypers
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -21,12 +25,18 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               'that contains the individual submission subdirectories.')
 @click.option('--engine', default='random', show_default=True,
               help='The name of the hyperopt engine, e.g., "random".')
+<<<<<<< e00c41d8ea37287a820c7389dd84c3c1259aaa1d
 @click.option('--n-iter', default=10, show_default=True,
               help='The number of hyperopt iterations, inputted to the '
               'engine. The granularity is per cv fold, so if you want to '
               'fully test 7 hyperparameter combinations for example with the '
               'random engine and you have 8 CV folds, you should enter '
               '--n-iter 56')
+=======
+@click.option('--n_iter', default=10, show_default=True,
+              help='The number of hyperopt iterations, inputted to the '
+              'engine.')
+>>>>>>> random engine hooked up, experiment outputs a summary table and the submission with the best hypers
 @click.option('--save-best', is_flag=True, default=True,
               show_default=True,
               help='Specify this flag to create a <submission>_hyperopt '
