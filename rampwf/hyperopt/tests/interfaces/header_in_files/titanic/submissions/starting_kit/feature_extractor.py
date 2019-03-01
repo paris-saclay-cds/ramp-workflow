@@ -3,7 +3,8 @@ import numpy as np
 from rampwf.hyperopt import Hyperparameter
 
 # RAMP START HYPERPARAMETERS
-complex_features = Hyperparameter(default=True, values=[True, False])
+complex_features = Hyperparameter(
+    dtype='boolean', default=True, values=[True, False])
 # RAMP END HYPERPARAMETERS
 
 

@@ -1,7 +1,6 @@
 import os
 import pytest
-import shutil
-from rampwf.hyperopt import Hyperparameter, init_hyperopt
+from rampwf.hyperopt import Hyperparameter, run_hyperopt
 
 PATH = os.path.dirname(__file__)
 
@@ -40,6 +39,4 @@ def test_hyperopt():
     ramp_kit_dir = os.path.join(
         PATH, 'interfaces', 'header_in_files', 'titanic')
     submission = 'starting_kit'
-    hyperparameter_experiment = init_hyperopt(ramp_kit_dir, submission)
-    hyperparameter_experiment.run(10)
-    shutil.rmtree(hyperparameter_experiment.submission_dir)
+    run_hyperopt(ramp_kit_dir, submission, 'random', 10, is_cleanup=True)
