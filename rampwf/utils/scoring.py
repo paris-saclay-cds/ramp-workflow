@@ -50,12 +50,14 @@ def mean_score_matrix(df_scores_list, score_types):
     scores = np.array([df_scores.values for df_scores in df_scores_list])
     meanss = scores.mean(axis=0)
     stdss = scores.std(axis=0)
+    precisions = [st.precision for st in score_types]
+    precisions.append(1)  # for time
     # we use unicode no break space so split in print_df_scores works
     strs = np.array([[
         u'{val}\u00A0±\u00A0{std}'.format(
-            val=round(mean, score_type.precision),
-            std=round(std, score_type.precision + 1))
-        for mean, std, score_type in zip(means, stds, score_types)]
+            val=round(mean, prec),
+            std=round(std, prec + 1))
+        for mean, std, prec in zip(means, stds, precisions)]
         for means, stds in zip(meanss, stdss)])
     df_scores = pd.DataFrame(
         strs, columns=df_scores_list[0].columns, index=df_scores_list[0].index)

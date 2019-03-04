@@ -215,7 +215,7 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
                                      ('valid', predictions_train_valid),
                                      ('test', predictions_test)]),
         )
-        df_scores['time'] = [str(train_time), str(valid_time), str(test_time)]
+        df_scores['time'] = [train_time, valid_time, test_time]
         set_state('scored', save_output, fold_output_path)
         return predictions_train_valid, predictions_test, df_scores
 
@@ -235,7 +235,7 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
             predictions=OrderedDict([('train', predictions_train_train),
                                      ('valid', predictions_train_valid)]),
         )
-        df_scores['time'] = [str(train_time), str(valid_time)]
+        df_scores['time'] = [train_time, valid_time]
         set_state('scored', save_output, fold_output_path)
         return predictions_train_valid, None, df_scores
 

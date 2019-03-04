@@ -4,7 +4,7 @@ from rampwf.hyperopt import Hyperparameter
 
 # RAMP START HYPERPARAMETERS
 complex_features = Hyperparameter(
-    dtype='boolean', default=True, values=[True, False])
+    dtype='bool', default=True, values=[True, False])
 # RAMP END HYPERPARAMETERS
 
 
