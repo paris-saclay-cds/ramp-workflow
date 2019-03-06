@@ -1,4 +1,4 @@
-from .hyperparameter import Hyperparameter, init_hyperopt, run_hyperopt
+from .hyperopt import Hyperparameter, init_hyperopt, run_hyperopt
 
 __all__ = [
     'Hyperparameter',

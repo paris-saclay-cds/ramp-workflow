@@ -1,6 +1,6 @@
 import click
 
-from ..hyperparameter import run_hyperopt
+from ..hyperopt import run_hyperopt
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
