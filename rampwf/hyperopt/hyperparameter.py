@@ -360,6 +360,8 @@ class RandomEngine(object):
                 # of full grid search
                 frequencies = max(frequencies) - frequencies
                 prior *= frequencies
+                if prior.sum() <= 0:
+                    prior = np.ones(len(prior))
                 prior /= prior.sum()
                 selected_index = np.random.choice(
                     range(len(h.values)), p=prior)
