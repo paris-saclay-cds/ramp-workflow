@@ -37,8 +37,12 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--retrain', is_flag=True,
               help='Specify this flag to retrain the submission on the full '
               'training set after the CV loop.')
+@click.option('--worker', default='',
+              help='Path to the configuration file specifying a worker that '
+              'will run the train/test of the submission. If not specified, '
+              'run it in the current python environment (the default).')
 def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
-         notebook, quick_test, pickle, save_output, retrain):
+         notebook, quick_test, pickle, save_output, retrain, worker):
     """Test a submission and/or a notebook before to submit on RAMP studio."""
     if quick_test:
         os.environ['RAMP_TEST_MODE'] = '1'
@@ -54,13 +58,33 @@ def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
         submission = [submission]
 
     for sub in submission:
-        assert_submission(ramp_kit_dir=ramp_kit_dir,
-                          ramp_data_dir=ramp_data_dir,
-                          ramp_submission_dir=ramp_submission_dir,
-                          submission=sub,
-                          is_pickle=pickle,
-                          save_output=save_output,
-                          retrain=retrain)
+        if worker:
+            try:
+                from ramp_utils import read_config
+                from ramp_utils import generate_worker_config
+                from ramp_engine import available_workers
+            except ImportError:
+                raise ImportError("To use the --worker option, you need to "
+                                  "install the 'ramp-engine' package.")
+            import logging
+            logging.basicConfig(
+                format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+                level=logging.INFO, datefmt='%Y:%m:%d %H:%M:%S'
+            )
+            config = read_config(worker)
+            worker_params = generate_worker_config(config)
+            worker_type = available_workers[worker_params['worker_type']]
+            worker = worker_type(worker_params, sub)
+            worker.launch()
+        else:
+            assert_submission(
+                ramp_kit_dir=ramp_kit_dir,
+                ramp_data_dir=ramp_data_dir,
+                ramp_submission_dir=ramp_submission_dir,
+                submission=sub,
+                is_pickle=pickle,
+                save_output=save_output,
+                retrain=retrain)
 
     if notebook:
         assert_notebook(ramp_kit_dir=ramp_kit_dir)
