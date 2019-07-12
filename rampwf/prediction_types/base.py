@@ -39,6 +39,8 @@ class BasePrediction(object):
             return ~np.isnan(self.y_pred)
         elif len(self.y_pred.shape) == 2:
             return ~np.isnan(self.y_pred[:, 0])
+        elif len(self.y_pred.shape) == 3:
+            return ~np.isnan(self.y_pred[:, 0, 0])
         else:
             raise ValueError('y_pred.shape > 2 is not implemented')
 
