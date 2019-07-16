@@ -18,6 +18,8 @@ class NegativeLogLikelihood(BaseScoreType):
         return score
 
 
+EPSILON=10e-6
+
 class logLKGenerative(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
@@ -41,14 +43,18 @@ class logLKGenerative(BaseScoreType):
         for i, dim_bin in enumerate(bins):
             for j, dim in enumerate(dim_bin):
                 truth = y_true[i, j]
-                for k in range(len(dim)):
-                    if dim[k] > truth:
-                        classes_matrix[i, j] = int(k - 1)
-                        break
-                    elif k == len(dim) - 1:
-                        classes_matrix[i, j] = int(k - 1)
+                if dim[0] > truth:
+                    classes_matrix[i, j] = -1
+                else:
+                    for k in range(1,len(dim)):
+                        if dim[k] > truth:
+                            classes_matrix[i, j] = int(k -1)
+                            break
+                        elif k == len(dim) - 1:
+                            classes_matrix[i, j] = -1
         classes_matrix = classes_matrix.astype('int')
-        prob += 10e-6  # to avoid instability with log
+
+        prob=np.add(prob, EPSILON, casting="unsafe")
 
         bins_sliding = np.full(prob.shape, np.nan)
         for i, dim_n in enumerate(bins):
@@ -62,6 +68,10 @@ class logLKGenerative(BaseScoreType):
         for classes, prob_dim, bin_dim in zip(classes_matrix, prob, bins_sliding):
             preds = prob_dim[range(len(classes)), classes]
             bins = bin_dim[range(len(classes)), classes]
+
+            preds[classes==-1]=EPSILON
+            bins[classes==-1]= np.max(bin_dim)
+
             preds_matrix.append(preds)
             selected_bins.append(bins)
 
