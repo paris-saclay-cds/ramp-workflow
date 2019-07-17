@@ -4,9 +4,6 @@ import numpy as np
 from rampwf.utils.importing import import_file
 import rampwf as rw
 from sklearn.model_selection import ShuffleSplit
-from rampwf.prediction_types.base import BasePrediction
-from rampwf.score_types.base import BaseScoreType
-
 
 # End of new score type
 
@@ -54,7 +51,6 @@ class GenerativeRegressor(object):
             train_is = slice(None, None, None)
         gen_regressor = import_file(module_path, self.element_names[0])
         reg = gen_regressor.GenerativeRegressor(NB_BINS)
-
 
         shape = y_array.shape
         if len(shape) == 1:

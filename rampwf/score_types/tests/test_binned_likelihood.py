@@ -42,7 +42,7 @@ def test_binned_likelihood():
     y_custom = np.array([[[0, 1, 2, 1 - val, val]]])
     assert score_1(y_truth_1, y_custom) == pytest.approx(0.1, 10e-5)
 
-    # We have a confidence of .1 on the truth inteval in both cases, but is it smaller in the first example
+    # We have a confidence of .1 on the truth interval in both cases, but is it smaller in the first example
     assert score_1(y_truth_2, y_result_3) < score_1(y_truth_2, y_result_4)
 
     assert score_1(y_truth_2, y_result_5) == score_1(y_truth_2, y_result_6)

@@ -20,6 +20,8 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
 
 
 def make_generative_regression(n_bins, label_names=[]):
+    """This additionally takes the number of bins as input"""
+
     Predictions = type(
         'GenerativeRegression',
         (BasePrediction,),
