@@ -11,7 +11,7 @@ def test_init_empty():
     Predictions = make_generative_regression(NBINS)
     predictions = Predictions(n_samples=2)
     assert_array_equal(predictions.y_pred, np.array([[[np.nan, np.nan, np.nan]], [[np.nan, np.nan, np.nan]]]))
-    # multi-target regression
+
     Predictions = make_generative_regression(NBINS, label_names=[1, 2])
     predictions = Predictions(n_samples=2)
     assert_array_equal(predictions.y_pred, np.array([[[np.nan, np.nan, np.nan],
