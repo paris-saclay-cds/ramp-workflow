@@ -26,10 +26,10 @@ class NegativeLogLikelihoodReg(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, nb_bins, name='logLK', precision=2):
+    def __init__(self, n_bins, name='logLK', precision=2):
         self.name = name
         self.precision = precision
-        self.nb_bins = nb_bins
+        self.n_bins = n_bins
 
     def __call__(self, y_true, y_pred):
 
@@ -38,8 +38,8 @@ class NegativeLogLikelihoodReg(BaseScoreType):
         else:
             y_true = y_true.swapaxes(0, 1)
 
-        bins = y_pred[:, :, :self.nb_bins + 1].swapaxes(1, 0)
-        prob = y_pred[:, :, self.nb_bins + 1:].swapaxes(1, 0)
+        bins = y_pred[:, :, :self.n_bins + 1].swapaxes(1, 0)
+        prob = y_pred[:, :, self.n_bins + 1:].swapaxes(1, 0)
 
         summed_prob = np.sum(prob, axis=2, keepdims=True)
         if not np.all(summed_prob == 1):

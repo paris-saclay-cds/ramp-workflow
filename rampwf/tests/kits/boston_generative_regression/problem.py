@@ -11,12 +11,12 @@ problem_title = 'Boston housing price regression'
 _target_column_name = 'medv'
 # A type (class) which will be used to create wrapper objects for y_pred
 
-NB_BINS = 10
+N_BINS = 10
 
-Predictions = rw.prediction_types.make_generative_regression(NB_BINS, label_names=['1'])
+Predictions = rw.prediction_types.make_generative_regression(N_BINS, label_names=['1'])
 
 score_types = [
-    rw.score_types.NegativeLogLikelihoodReg(NB_BINS),
+    rw.score_types.NegativeLogLikelihoodReg(N_BINS),
 ]
 
 
@@ -50,7 +50,7 @@ class GenerativeRegressor(object):
         if train_is is None:
             train_is = slice(None, None, None)
         gen_regressor = import_file(module_path, self.element_names[0])
-        reg = gen_regressor.GenerativeRegressor(NB_BINS)
+        reg = gen_regressor.GenerativeRegressor(N_BINS)
 
         shape = y_array.shape
         if len(shape) == 1:
