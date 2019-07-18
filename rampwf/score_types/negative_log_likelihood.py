@@ -41,9 +41,14 @@ class NegativeLogLikelihoodReg(BaseScoreType):
         bins = y_pred[:, :, :self.nb_bins + 1].swapaxes(1, 0)
         prob = y_pred[:, :, self.nb_bins + 1:].swapaxes(1, 0)
 
-        summed_prob = np.sum(prob, axis=2)
+        summed_prob = np.sum(prob, axis=2, keepdims=True)
         if not np.all(summed_prob == 1):
-            mask = np.ones(prob.shape)
+            prob = (prob / summed_prob)
+
+        # If one of the bins is not ordered
+        if any([time_step[i]>=time_step[i+1] for dim_bin in bins for time_step in dim_bin for i in range(len(time_step)-1)]):
+            raise ValueError("Bins must be ordered and non empty")
+
 
         classes_matrix = np.full(y_true.shape, np.nan)
         for i, dim_bin in enumerate(bins):
