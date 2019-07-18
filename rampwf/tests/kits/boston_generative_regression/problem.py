@@ -16,7 +16,7 @@ NB_BINS = 10
 Predictions = rw.prediction_types.make_generative_regression(NB_BINS, label_names=['1'])
 
 score_types = [
-    rw.score_types.logLKGenerative(NB_BINS),
+    rw.score_types.NegativeLogLikelihoodReg(NB_BINS),
 ]
 
 

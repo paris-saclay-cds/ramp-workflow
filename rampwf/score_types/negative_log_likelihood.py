@@ -21,7 +21,7 @@ class NegativeLogLikelihood(BaseScoreType):
 EPSILON = 10e-6
 
 
-class logLKGenerative(BaseScoreType):
+class NegativeLogLikelihoodReg(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
@@ -40,6 +40,11 @@ class logLKGenerative(BaseScoreType):
 
         bins = y_pred[:, :, :self.nb_bins + 1].swapaxes(1, 0)
         prob = y_pred[:, :, self.nb_bins + 1:].swapaxes(1, 0)
+
+        summed_prob = np.sum(prob, axis=2)
+        if not np.all(summed_prob == 1):
+            mask = np.ones(prob.shape)
+
         classes_matrix = np.full(y_true.shape, np.nan)
         for i, dim_bin in enumerate(bins):
             for j, dim in enumerate(dim_bin):
@@ -70,6 +75,8 @@ class logLKGenerative(BaseScoreType):
             preds = prob_dim[range(len(classes)), classes]
             bins = bin_dim[range(len(classes)), classes]
 
+            # If the value is outside of the probability distribution we discretized, it's probability is epsilon small,
+            # and the scaling uses the size of the largest bin
             preds[classes == -1] = EPSILON
             bins[classes == -1] = np.max(bin_dim)
 
