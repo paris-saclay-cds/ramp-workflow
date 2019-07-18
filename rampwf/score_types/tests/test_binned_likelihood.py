@@ -37,7 +37,7 @@ y_truth_wrong = np.array([0.5])
 
 
 def test_binned_likelihood():
-    score = NegativeLogLikelihoodReg(nb_bins=NBINS)
+    score = NegativeLogLikelihoodReg(n_bins=NBINS)
     assert score(y_truth_1, y_result_1) > score(y_truth_1, y_result_2)
 
     val = np.exp(-1) - 10e-6
@@ -55,7 +55,7 @@ def test_binned_likelihood():
 
 
 def test_binned_likelihood_outside():
-    score = NegativeLogLikelihoodReg(nb_bins=NBINS)
+    score = NegativeLogLikelihoodReg(n_bins=NBINS)
     # outside
     assert score(y_truth_out_1, y_result_out) == score(y_truth_out_2, y_result_out)
 
@@ -66,7 +66,7 @@ def test_binned_likelihood_outside():
 
 
 def test_wrong_proba_wrong_bins():
-    score = NegativeLogLikelihoodReg(nb_bins=NBINS)
+    score = NegativeLogLikelihoodReg(n_bins=NBINS)
     with pytest.raises(Exception):
         assert score(y_truth_wrong, y_result_wrong_bins)
     with pytest.raises(Exception):
