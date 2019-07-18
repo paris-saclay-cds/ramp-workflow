@@ -13,7 +13,7 @@ from .f1_above import F1Above
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
-from .negative_log_likelihood import NegativeLogLikelihood, logLKGenerative
+from .negative_log_likelihood import NegativeLogLikelihood, NegativeLogLikelihoodReg
 from .normalized_gini import NormalizedGini
 from .normalized_rmse import NormalizedRMSE
 from .relative_rmse import RelativeRMSE
@@ -50,5 +50,5 @@ __all__ = [
     'ROCAUC',
     'SCP',
     'SoftAccuracy',
-    'logLKGenerative'
+    'NegativeLogLikelihoodReg'
 ]
