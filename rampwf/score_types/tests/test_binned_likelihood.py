@@ -2,7 +2,7 @@ from __future__ import division
 
 import numpy as np
 
-from rampwf.score_types.negative_log_likelihood import logLKGenerative
+from rampwf.score_types.negative_log_likelihood import NegativeLogLikelihoodReg
 import pytest
 
 NBINS = 2
@@ -31,7 +31,7 @@ y_truth_fake = np.array([0.5])
 
 
 def test_binned_likelihood():
-    score_1 = logLKGenerative(nb_bins=NBINS)
+    score_1 = NegativeLogLikelihoodReg(nb_bins=NBINS)
     assert score_1(y_truth_1, y_result_1) > score_1(y_truth_1, y_result_2)
 
     val = np.exp(-1) - 10e-6
@@ -49,7 +49,7 @@ def test_binned_likelihood():
 
 
 def test_binned_likelihood_outside():
-    score_2 = logLKGenerative(nb_bins=NBINS)
+    score_2 = NegativeLogLikelihoodReg(nb_bins=NBINS)
     # outside
     assert score_2(y_truth_out_1, y_result_out) == score_2(y_truth_out_2, y_result_out)
 
