@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from .combine import blend_on_fold
-from .io import load_y_pred, set_state
+from .io import load_y_pred
 from .pretty_print import print_title, print_df_scores
 from .notebook import execute_notebook, convert_notebook
 from .scoring import round_df_scores, mean_score_matrix
@@ -118,9 +118,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
         predictions_valid, predictions_test, df_scores = \
             run_submission_on_cv_fold(
-                problem, submission_path, X_train, y_train, X_test, y_test,
-                score_types, is_pickle, save_output, fold_output_path,
-                fold, ramp_data_dir)
+                problem, submission_path, fold, X_train, y_train,
+                X_test, y_test, is_pickle, save_output, fold_output_path,
+                ramp_data_dir)
         if save_output:
             filename = os.path.join(fold_output_path, 'scores.csv')
             df_scores.to_csv(filename)
