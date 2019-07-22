@@ -453,7 +453,10 @@ class HyperparameterOptimization(object):
     def _save_best_model(self):
         official_scores = self.df_summary_[
             'valid_' + self.problem.score_types[0].name + '_m']
-        best_defaults = official_scores.idxmax()
+        if self.problem.score_types[0].is_lower_the_better:
+            best_defaults = official_scores.idxmin()
+        else:
+            best_defaults = official_scores.idxmax()
         print('Best hyperparameters: ', best_defaults)
         for bd, h in zip(best_defaults, self.hyperparameters):
             h.set_default(bd)
