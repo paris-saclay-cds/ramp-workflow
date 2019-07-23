@@ -3,8 +3,12 @@
 """Provide utils to test ramp-kits."""
 from __future__ import print_function
 
+import sys
 import os
 import imp
+from time import gmtime, strftime
+import glob
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -27,6 +31,8 @@ def assert_notebook(ramp_kit_dir='.'):
 def assert_read_problem(ramp_kit_dir='.'):
     # giving a random name to the module so it passes looped tests
     module_name = str(int(1000000000 * np.random.rand()))
+    # Allows local imports for problem.py
+    sys.path.insert(-1, ramp_kit_dir)
     problem = imp.load_source(module_name,
                               os.path.join(ramp_kit_dir, 'problem.py'))
     return problem
@@ -92,12 +98,15 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
     submission_path = os.path.join(ramp_submission_dir, submission)
+    # Allows local imports for the submission
+    sys.path.insert(-1, submission_path)
     print_title('Training {} ...'.format(submission_path))
 
     training_output_path = ''
+    ouptut_filename = 'training_output/' + strftime("%Y%m%d_%H%M%S", gmtime())
     if is_pickle or save_output:
         # creating <submission_path>/<submission>/training_output dir
-        training_output_path = os.path.join(submission_path, 'training_output')
+        training_output_path = os.path.join(submission_path, ouptut_filename)
         if not os.path.exists(training_output_path):
             os.makedirs(training_output_path)
 
@@ -110,8 +119,11 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         fold_output_path = ''
         if is_pickle or save_output:
             # creating <submission_path>/<submission>/training_output/fold_<i>
-            fold_output_path = os.path.join(
-                training_output_path, 'fold_{}'.format(fold_i))
+            if len(cv) == 1:
+                fold_output_path = training_output_path
+            else:
+                fold_output_path = os.path.join(
+                    training_output_path, 'fold_{}'.format(fold_i))
             if not os.path.exists(fold_output_path):
                 os.makedirs(fold_output_path)
         print_title('CV fold {}'.format(fold_i))
@@ -124,6 +136,12 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         if save_output:
             filename = os.path.join(fold_output_path, 'scores.csv')
             df_scores.to_csv(filename)
+            code_output_path = os.path.join(
+                training_output_path, 'code')
+            if not os.path.exists(code_output_path):
+                os.makedirs(code_output_path)
+            for file in glob.glob(os.path.join(submission_path, '*.py')):
+                shutil.copy(file, code_output_path)
         df_scores_rounded = round_df_scores(df_scores, score_types)
         print_df_scores(df_scores_rounded, indent='\t')
 

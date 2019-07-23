@@ -12,6 +12,7 @@ from .detection import (
 from .f1_above import F1Above
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
+from .mae import MAE
 from .mare import MARE
 from .negative_log_likelihood import NegativeLogLikelihood
 from .normalized_gini import NormalizedGini
@@ -40,6 +41,7 @@ __all__ = [
     'MakeCombined',
     'MADCenter',
     'MADRadius',
+    'MAE',
     'MARE',
     'NegativeLogLikelihood',
     'NormalizedGini',
