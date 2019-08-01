@@ -23,7 +23,7 @@ EPSILON = 10e-6
 
 class NegativeLogLikelihoodReg(BaseScoreType):
     is_lower_the_better = True
-    minimum = 0.0
+    minimum = -float('inf')  # This is due to the fact that bins are possibly infinitesimally small
     maximum = float('inf')
 
     def __init__(self, n_bins, name='logLK', precision=2):
@@ -46,9 +46,9 @@ class NegativeLogLikelihoodReg(BaseScoreType):
             prob = (prob / summed_prob)
 
         # If one of the bins is not ordered
-        if any([time_step[i]>=time_step[i+1] for dim_bin in bins for time_step in dim_bin for i in range(len(time_step)-1)]):
+        if any([time_step[i] >= time_step[i + 1] for dim_bin in bins for time_step in dim_bin for i in
+                range(len(time_step) - 1)]):
             raise ValueError("Bins must be ordered and non empty")
-
 
         classes_matrix = np.full(y_true.shape, np.nan)
         for i, dim_bin in enumerate(bins):
