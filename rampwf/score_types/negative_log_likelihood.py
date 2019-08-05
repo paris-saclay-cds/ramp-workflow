@@ -39,7 +39,7 @@ class NegativeLogLikelihoodReg(BaseScoreType):
             y_true = y_true.swapaxes(0, 1)
 
         bins = y_pred[:, :, :self.n_bins + 1].swapaxes(1, 0)
-        prob = y_pred[:, :, self.n_bins + 1:].swapaxes(1, 0)
+        prob = y_pred[:, :, self.n_bins + 1: 2*self.n_bins + 1].swapaxes(1, 0)
 
         summed_prob = np.sum(prob, axis=2, keepdims=True)
         if not np.all(summed_prob == 1):
