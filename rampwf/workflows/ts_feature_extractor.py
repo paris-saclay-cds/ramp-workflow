@@ -76,7 +76,7 @@ class TimeSeriesFeatureExtractor(object):
             X_train_ds = X_ds.isel(time=extended_train_is)
             y_array_train = y_array[train_is]
             ts_fe.fit(X_train_ds, y_array_train)
-        except AttributeError:
+        except (AttributeError, IndexError) as FitError:
             pass
         return ts_fe
 
