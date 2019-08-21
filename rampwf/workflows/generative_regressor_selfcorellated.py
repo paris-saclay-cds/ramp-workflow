@@ -5,10 +5,11 @@ import pandas as pd
 
 class GenerativeRegressorSelf(object):
     def __init__(self, target_column_name, nb_bins,
-                 workflow_element_names=['gen_regressor'], ):
+                 workflow_element_names=['gen_regressor'],  **kwargs):
         self.element_names = workflow_element_names
         self.target_column_name = target_column_name
         self.nb_bins = nb_bins
+        self.kwargs = kwargs
 
     def train_submission(self, module_path, X_array, y_array, train_is=None):
         if train_is is None:
@@ -26,7 +27,7 @@ class GenerativeRegressorSelf(object):
 
         regressors = []
         for i in range(len(self.target_column_name)):
-            reg = gen_regressor.GenerativeRegressor(self.nb_bins)
+            reg = gen_regressor.GenerativeRegressor(self.nb_bins, **self.kwargs)
 
             if i == 0 and y_array.shape[1] == 1:
                 y = y_array[train_is]
