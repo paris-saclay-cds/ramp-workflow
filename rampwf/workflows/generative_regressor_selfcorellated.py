@@ -4,7 +4,8 @@ import pandas as pd
 
 
 class GenerativeRegressorSelf(object):
-    def __init__(self, target_column_name, nb_bins, workflow_element_names=['gen_regressor'], ):
+    def __init__(self, target_column_name, nb_bins,
+                 workflow_element_names=['gen_regressor'], ):
         self.element_names = workflow_element_names
         self.target_column_name = target_column_name
         self.nb_bins = nb_bins
@@ -14,7 +15,11 @@ class GenerativeRegressorSelf(object):
             train_is = slice(None, None, None)
         gen_regressor = import_file(module_path, self.element_names[0])
 
+        truths = ["y_" + t for t in self.target_column_name]
+
+        X_array = X_array.copy()
         if type(X_array).__module__ != np.__name__:
+            X_array.drop(columns=truths, inplace=True)
             X_array = X_array.values
 
         X_array = X_array[train_is,]
@@ -37,6 +42,7 @@ class GenerativeRegressorSelf(object):
                 raise ValueError("More than two dims for y not supported")
 
             reg.fit(X_array, y)
+
             X_array = np.hstack([X_array, y])
             regressors.append(reg)
         return regressors
@@ -49,13 +55,19 @@ class GenerativeRegressorSelf(object):
         in the same order, is a numpy object is provided. """
         regressors = trained_model
         dims = []
+        n_columns = X_array.shape[1]
+        X_array = X_array.copy()
+        n_regressors = len(regressors)
+
+        truths = ["y_" + t for t in self.target_column_name]
+
+        if type(X_array).__module__ != np.__name__:
+            y = X_array[truths]
+            X_array.drop(columns=truths, inplace=True)
+            X_array = np.hstack([X_array.values, y.values])
+
         for i, reg in enumerate(regressors):
-            if type(X_array).__module__ == np.__name__:
-                X = X_array[:i]
-            else:
-                to_drop = ["y_" + y for y in self.target_column_name[i:]]
-                X = X_array.drop(columns=to_drop)
-                X = X.values
+            X = X_array[:, :n_columns - n_regressors + i]
             y_pred, bin_edges = reg.predict(X)
             dims.append(np.concatenate((bin_edges, y_pred), axis=2))
 
@@ -68,12 +80,6 @@ class GenerativeRegressorSelf(object):
         given in training"""
         regressors = trained_model
         y_sampled = []
-
-        # #   If we get a numpy array instead of a xarray
-        #     X_array = pd.DataFrame([X_array, ])
-        #     extra_actions = [act + "_extra" for act in action_names]
-        #     X_array.columns = self.target_column_name + extra_actions + \
-        #                       action_names
 
         for i, reg in enumerate(regressors):
             X = X_array.copy()
@@ -88,8 +94,8 @@ class GenerativeRegressorSelf(object):
                 sampled_array = np.array(y_sampled).T
                 if sampled_array.ndim == 1:
                     sampled_array = [sampled_array, ]
-                if i>0:
-                    X = np.concatenate((X, sampled_array), axis =1)
+                if i > 0:
+                    X = np.concatenate((X, sampled_array), axis=1)
 
             y_pred, bin_edges = reg.predict(X)
             y_dim = []
@@ -97,7 +103,8 @@ class GenerativeRegressorSelf(object):
                 prob = prob.ravel()
                 bins = bins.ravel()
                 selected = np.random.choice(list(range(len(prob))), p=prob)
-                y_dim.append(np.random.uniform(low=bins[selected], high=bins[selected + 1]))
+                y_dim.append(np.random.uniform(low=bins[selected],
+                                               high=bins[selected + 1]))
             y_sampled.append(y_dim)
 
         return np.array(y_sampled).swapaxes(0, 1)
