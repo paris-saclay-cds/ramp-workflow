@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.metrics import log_loss
-
+from scipy.stats import norm
 from .base import BaseScoreType
 
 
@@ -39,7 +39,7 @@ class NegativeLogLikelihoodReg(BaseScoreType):
             y_true = y_true.swapaxes(0, 1)
 
         bins = y_pred[:, :, :self.n_bins + 1].swapaxes(1, 0)
-        prob = y_pred[:, :, self.n_bins + 1: 2*self.n_bins + 1].swapaxes(1, 0)
+        prob = y_pred[:, :, self.n_bins + 1: 2 * self.n_bins + 1].swapaxes(1, 0)
 
         summed_prob = np.sum(prob, axis=2, keepdims=True)
         if not np.all(summed_prob == 1):
@@ -93,3 +93,32 @@ class NegativeLogLikelihoodReg(BaseScoreType):
 
         lk = np.log(preds_matrix / selected_bins)
         return np.sum(-lk) / lk.size
+
+
+class LikelihoodRatio(BaseScoreType):
+    is_lower_the_better = False
+    minimum = 0.0
+    maximum = float('inf')
+
+    def __init__(self, n_bins, name='ll_ratio', precision=2):
+        self.name = name
+        self.precision = precision
+        self.n_bins = n_bins
+
+    def __call__(self, y_true, y_pred):
+        nll_reg_score = NegativeLogLikelihoodReg(self.n_bins)
+        nll_reg = nll_reg_score(y_true, y_pred)
+
+        if len(y_true.shape) == 1:
+            y_true = np.array([y_true])
+        else:
+            y_true = y_true.swapaxes(0, 1)
+
+        means = np.mean(y_true, axis=1)
+        stds = np.std(y_true, axis=1)
+        baseline_lls = np.array([
+            norm.logpdf(y, loc=mean, scale=std)
+            for y, mean, std in zip(y_true, means, stds)])
+
+        return np.exp(-nll_reg - np.sum(
+            baseline_lls) / baseline_lls.size)
