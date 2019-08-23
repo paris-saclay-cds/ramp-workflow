@@ -25,7 +25,7 @@ class GenerativeRegressorSelf(object):
             except KeyError:
                 # We remove the truth from X, if present
                 pass
-
+            X_array = X_array.values
         X_array = X_array[train_is,]
 
         regressors = []
