@@ -41,6 +41,11 @@ class NegativeLogLikelihoodReg(BaseScoreType):
         bins = y_pred[:, :, :self.n_bins + 1].swapaxes(1, 0)
         prob = y_pred[:, :, self.n_bins + 1: 2 * self.n_bins + 1].swapaxes(1, 0)
 
+        if np.isnan(bins).any() or np.isnan(prob).any():
+            raise ValueError(
+                """The output of the regressor contains nans, or isof the wrong shape. 
+                It should be (time_step, dim_step, bins+probas)""")
+
         summed_prob = np.sum(prob, axis=2, keepdims=True)
         if not np.all(summed_prob == 1):
             prob = (prob / summed_prob)

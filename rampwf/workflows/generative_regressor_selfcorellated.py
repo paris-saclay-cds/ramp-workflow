@@ -20,8 +20,11 @@ class GenerativeRegressorSelf(object):
 
         X_array = X_array.copy()
         if type(X_array).__module__ != np.__name__:
-            X_array.drop(columns=truths, inplace=True)
-            X_array = X_array.values
+            try:
+                X_array.drop(columns=truths, inplace=True)
+            except KeyError:
+                # We remove the truth from X, if present
+                pass
 
         X_array = X_array[train_is,]
 
@@ -102,6 +105,7 @@ class GenerativeRegressorSelf(object):
             y_dim = []
             for prob, bins in zip(y_pred, bin_edges):
                 prob = prob.ravel()
+                prob = prob / sum(prob)
                 bins = bins.ravel()
                 selected = np.random.choice(list(range(len(prob))), p=prob)
                 y_dim.append(np.random.uniform(low=bins[selected],
