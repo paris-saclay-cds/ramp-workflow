@@ -338,7 +338,8 @@ class RandomEngine(object):
             next_value_indices = [
                 h.get_index(v) for h, v
                 in zip(self.hyperparameters, next_values)]
-            fold_i = incomplete_folds.iloc[0]['fold_i'] % n_folds
+            # for some reason iloc converts int to float
+            fold_i = int(incomplete_folds.iloc[0]['fold_i']) % n_folds
         # Otherwise select hyperparameter values from those that haven't
         # been selected yet, using also prior
         else:
