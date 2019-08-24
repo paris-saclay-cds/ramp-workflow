@@ -459,8 +459,11 @@ class HyperparameterOptimization(object):
         else:
             best_defaults = official_scores.idxmax()
         print('Best hyperparameters: ', best_defaults)
-        for bd, h in zip(best_defaults, self.hyperparameters):
-            h.set_default(bd)
+        if isinstance(best_defaults, list):
+            for bd, h in zip(best_defaults, self.hyperparameters):
+                h.set_default(bd)
+        else:
+            self.hyperparameters[0].set_default(best_defaults)
         # Overwrite the submission with the best hyperparameter values
         write_hyperparameters(
             self.submission_dir, self.submission_dir,
