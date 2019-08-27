@@ -16,6 +16,7 @@ from .mare import MARE
 from .negative_log_likelihood import NegativeLogLikelihood
 from .normalized_gini import NormalizedGini
 from .normalized_rmse import NormalizedRMSE
+from .recall import Recall
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
@@ -45,6 +46,7 @@ __all__ = [
     'NormalizedGini',
     'NormalizedRMSE',
     'OSPA',
+    'Recall',
     'RelativeRMSE',
     'RMSE',
     'ROCAUC',
