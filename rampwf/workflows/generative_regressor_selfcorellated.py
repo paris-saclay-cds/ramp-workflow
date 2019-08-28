@@ -77,13 +77,14 @@ class GenerativeRegressorSelf(object):
 
         return np.concatenate(dims, axis=1)
 
-    def step(self, trained_model, X_array):
+    def step(self, trained_model, X_array, seed=None):
         """Careful, for now, for every x in the time dimension, we will sample
         a y. To sample only one y, provide only one X.
         If X is not a panda array, the assumed order is the same as
         given in training"""
         regressors = trained_model
         y_sampled = []
+        np.random.seed(seed)
 
         for i, reg in enumerate(regressors):
             X = X_array.copy()
