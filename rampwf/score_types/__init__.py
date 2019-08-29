@@ -4,6 +4,7 @@ from .base import BaseScoreType
 from .brier_score import (
     BrierScore, BrierSkillScore, BrierScoreReliability, BrierScoreResolution)
 from .clustering_efficiency import ClusteringEfficiency
+from .classifier_base import ClassifierBaseScoreType
 from .classification_error import ClassificationError
 from .combined import Combined
 from .detection import (
@@ -31,6 +32,7 @@ __all__ = [
     'BrierScoreResolution',
     'BrierSkillScore',
     'ClassificationError',
+    'ClassifierBaseScoreType',
     'ClusteringEfficiency',
     'Combined',
     'DetectionPrecision',
