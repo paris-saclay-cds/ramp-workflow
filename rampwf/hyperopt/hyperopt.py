@@ -460,7 +460,7 @@ class HyperparameterOptimization(object):
             best_defaults = official_scores.idxmax()
         print('Best hyperparameters: ', best_defaults)
         try:
-            for bd, h in zip(np.asarray(best_defaults), self.hyperparameters):
+            for bd, h in zip(best_defaults, self.hyperparameters):
                 h.set_default(bd)
         except(TypeError):
             # single hyperparameter
