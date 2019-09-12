@@ -39,11 +39,16 @@ from ..utils.importing import import_module_from_source
 
 
 class TimeSeriesFeatureExtractor(object):
+    """
+    restart_name should be None, or a one item list containing 1 on the timestep
+    where time continuity is broken (e.g. a system restart)
+    """
     def __init__(self, check_sizes, check_indexs, workflow_element_names=[
-            'ts_feature_extractor']):
+            'ts_feature_extractor'], restart_name=None ):
         self.element_names = workflow_element_names
         self.check_sizes = check_sizes
         self.check_indexs = check_indexs
+        self.restart_name = restart_name
 
     def train_submission(self, module_path, X_ds, y_array, train_is=None):
         """
@@ -65,7 +70,7 @@ class TimeSeriesFeatureExtractor(object):
             self.element_names[0],
             sanitize=True
         )
-        ts_fe = ts_feature_extractor.FeatureExtractor()
+        ts_fe = ts_feature_extractor.FeatureExtractor(self.restart_name)
         # Fit is not required in the submissions but we add it here in case
         # of, e.g., a recurrent neural net which is impossible to train once
         # the features are digested into a classical tabular format (one row
@@ -108,7 +113,11 @@ class TimeSeriesFeatureExtractor(object):
             # Assigning Dataset slices is not yet supported so we need to
             # iterate over the arrays. To generalize we should maybe check
             # the types.
-            data_var_names = X_check_ds.data_vars.keys()
+            data_var_names = list(X_check_ds.data_vars.keys())
+
+            if self.restart_name is not None:
+                data_var_names.remove(self.restart_name[0])
+
             for data_var_name in data_var_names:
                 X_check_ds[data_var_name][dict(time=slice(
                     n_burn_in + check_index, None))] += np.random.normal()
