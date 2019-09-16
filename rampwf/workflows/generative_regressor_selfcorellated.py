@@ -5,10 +5,12 @@ import pandas as pd
 
 class GenerativeRegressorSelf(object):
     def __init__(self, target_column_name, nb_bins,
-                 workflow_element_names=['gen_regressor'],  **kwargs):
+                 workflow_element_names=['gen_regressor'], restart_name=None,
+                 **kwargs):
         self.element_names = workflow_element_names
         self.target_column_name = target_column_name
         self.nb_bins = nb_bins
+        self.restart_name = restart_name
         self.kwargs = kwargs
 
     def train_submission(self, module_path, X_array, y_array, train_is=None):
@@ -17,8 +19,16 @@ class GenerativeRegressorSelf(object):
         gen_regressor = import_file(module_path, self.element_names[0])
 
         truths = ["y_" + t for t in self.target_column_name]
-
         X_array = X_array.copy()
+        restart = None
+
+        if self.restart_name is not None:
+            restart = X_array[self.restart_name].values
+            X_array = X_array.drop(columns=self.restart_name)
+        else:
+            restart = np.zeros(len(X_array))
+        restart = restart[train_is,]
+
         if type(X_array).__module__ != np.__name__:
             try:
                 X_array.drop(columns=truths, inplace=True)
@@ -45,7 +55,10 @@ class GenerativeRegressorSelf(object):
             else:
                 raise ValueError("More than two dims for y not supported")
 
-            reg.fit(X_array, y)
+            if restart is not None:
+                reg.fit(X_array, y, restart)
+            else:
+                reg.fit(X_array, y)
 
             X_array = np.hstack([X_array, y])
             regressors.append(reg)
@@ -63,6 +76,13 @@ class GenerativeRegressorSelf(object):
         X_array = X_array.copy()
         n_regressors = len(regressors)
 
+        restart = None
+
+        if self.restart_name is not None:
+            restart = X_array[self.restart_name].values
+            X_array = X_array.drop(columns=self.restart_name)
+            n_columns -= len(self.restart_name)
+
         truths = ["y_" + t for t in self.target_column_name]
 
         if type(X_array).__module__ != np.__name__:
@@ -72,7 +92,10 @@ class GenerativeRegressorSelf(object):
 
         for i, reg in enumerate(regressors):
             X = X_array[:, :n_columns - n_regressors + i]
-            y_pred, bin_edges = reg.predict(X)
+            if restart is not None:
+                y_pred, bin_edges = reg.predict(X, restart)
+            else:
+                y_pred, bin_edges = reg.predict(X)
             dims.append(np.concatenate((bin_edges, y_pred), axis=2))
 
         return np.concatenate(dims, axis=1)
