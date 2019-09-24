@@ -118,7 +118,7 @@ class GenerativeRegressorSelf(object):
         np.random.seed(seed)
 
         for i, reg in enumerate(regressors):
-            X = X_array.copy()
+            X = X_array
             if type(X_array).__module__ != np.__name__:
                 for j, predicted_dim in enumerate(np.array(y_sampled)):
                     X["y_" + self.target_column_name[j]] = predicted_dim
