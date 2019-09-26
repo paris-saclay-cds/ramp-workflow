@@ -18,7 +18,7 @@ class NegativeLogLikelihood(BaseScoreType):
         return score
 
 
-EPSILON = 10e-6
+WORST_LK = -50
 
 
 class NegativeLogLikelihoodReg(BaseScoreType):
@@ -70,8 +70,6 @@ class NegativeLogLikelihoodReg(BaseScoreType):
                             classes_matrix[i, j] = -1
         classes_matrix = classes_matrix.astype('int')
 
-        prob = np.add(prob, EPSILON, casting="unsafe")
-
         bins_sliding = np.full(prob.shape, np.nan)
         for i, dim_n in enumerate(bins):
             for j, dim_t in enumerate(dim_n):
@@ -81,14 +79,14 @@ class NegativeLogLikelihoodReg(BaseScoreType):
         # Multi target regression
         preds_matrix = []
         selected_bins = []
-        for classes, prob_dim, bin_dim in zip(classes_matrix, prob, bins_sliding):
+        for classes, prob_dim, bin_dim, tail in zip(classes_matrix, prob, bins_sliding, tails):
             preds = prob_dim[range(len(classes)), classes]
             bins = bin_dim[range(len(classes)), classes]
 
-            # If the value is outside of the probability distribution we discretized, it's probability is epsilon small,
+            # If the value is outside of the probability distribution we discretized, it is 0,
             # and the scaling uses the size of the largest bin
-            preds[classes == -1] = EPSILON
-            bins[classes == -1] = np.max(bin_dim)
+            preds[classes == -1] = 0
+            bins[classes == -1] = -1
 
             preds_matrix.append(preds)
             selected_bins.append(bins)
@@ -97,6 +95,9 @@ class NegativeLogLikelihoodReg(BaseScoreType):
         selected_bins = np.array(selected_bins)
 
         lk = np.log(preds_matrix / selected_bins)
+        lk = np.clip(lk, WORST_LK, None, out=lk)
+        # To avoid infinitely bad loss for a single y outside of the bins,
+        # we bound the likelihood by example, to be no smaller than WORST_LK
         return np.sum(-lk) / lk.size
 
 
