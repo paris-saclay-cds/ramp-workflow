@@ -79,7 +79,7 @@ class NegativeLogLikelihoodReg(BaseScoreType):
         # Multi target regression
         preds_matrix = []
         selected_bins = []
-        for classes, prob_dim, bin_dim, tail in zip(classes_matrix, prob, bins_sliding, tails):
+        for classes, prob_dim, bin_dim in zip(classes_matrix, prob, bins_sliding):
             preds = prob_dim[range(len(classes)), classes]
             bins = bin_dim[range(len(classes)), classes]
 
