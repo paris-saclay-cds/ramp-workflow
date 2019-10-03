@@ -128,3 +128,88 @@ class LikelihoodRatio(BaseScoreType):
 
         return np.exp(-nll_reg - np.sum(
             baseline_lls) / baseline_lls.size)
+
+
+def normpdf(x, mean, sd):
+    var = sd ** 2
+    denom = (2 * np.pi * var) ** .5
+    diff = x - mean
+    num = np.exp(-diff ** 2 / (2 * var))
+    probs = num / denom
+    return probs
+
+
+class NegativeLogLikelihoodRegGaussian(BaseScoreType):
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = float('inf')
+
+    def __init__(self, max_gauss, name='logLKGauss', precision=2):
+        self.name = name
+        self.precision = precision
+        self.max_gauss = max_gauss
+
+    def __call__(self, y_true, y_pred):
+
+        if len(y_true.shape) == 1:
+            y_true = np.array([y_true])
+        else:
+            y_true = y_true.swapaxes(0, 1)
+
+        dim_preds = y_pred.swapaxes(0, 1)
+        logLK = 0
+
+        for dim_pred, y_true_dim in zip(dim_preds, y_true):
+            for nb_gaussians, item in enumerate(dim_pred[0]):
+                # All the predictions must have the same number
+                # of gaussians for a given dimension
+                if np.isnan(item):
+                    nb_gaussians -= 1
+                    break
+            nb_gaussians = int((nb_gaussians + 1) / 3)
+
+            mus = dim_pred[:, 0:nb_gaussians]
+            sigmas = dim_pred[:, nb_gaussians:nb_gaussians * 2]
+            weights = dim_pred[:, nb_gaussians * 2:nb_gaussians * 3]
+
+            assert np.all(sigmas >= 0)
+            assert np.all(weights.sum(axis=1) == 1)
+
+            weighted_probs = np.zeros(len(y_true_dim))
+            for i in range(nb_gaussians):
+                norm = normpdf(y_true_dim, mus[:, i], sigmas[:, i])
+                weighted_probs += weights[:, i] * norm
+            partial_lk = np.log(weighted_probs)
+            partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
+            logLK += np.sum(-partial_lk)
+
+        return logLK / y_true.size
+
+
+class LikelihoodRatioGaussian(BaseScoreType):
+    is_lower_the_better = False
+    minimum = 0.0
+    maximum = float('inf')
+
+    def __init__(self, max_gauss, name='ll_ratio', precision=2):
+        self.name = name
+        self.precision = precision
+        self.max_gauss = max_gauss
+
+    def __call__(self, y_true, y_pred):
+        nll_reg_score = NegativeLogLikelihoodRegGaussian(self.max_gauss)
+        nll_reg = nll_reg_score(y_true, y_pred)
+
+        if len(y_true.shape) == 1:
+            y_true = np.array([y_true])
+        else:
+            y_true = y_true.swapaxes(0, 1)
+
+        means = np.mean(y_true, axis=1)
+        stds = np.std(y_true, axis=1)
+        baseline_lls = np.array([
+            norm.logpdf(y, loc=mean, scale=std)
+            for y, mean, std in zip(y_true, means, stds)])
+
+        return np.exp(-nll_reg - np.sum(
+            baseline_lls) / baseline_lls.size)
