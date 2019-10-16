@@ -156,31 +156,32 @@ class NegativeLogLikelihoodRegGaussian(BaseScoreType):
         else:
             y_true = y_true.swapaxes(0, 1)
 
-        dim_preds = y_pred.swapaxes(0, 1)
         logLK = 0
 
-        for dim_pred, y_true_dim in zip(dim_preds, y_true):
-            for nb_gaussians, item in enumerate(dim_pred[0]):
-                # All the predictions must have the same number
-                # of gaussians for a given dimension
-                if np.isnan(item):
-                    nb_gaussians -= 1
-                    break
-            nb_gaussians = int((nb_gaussians + 1) / 3)
+        currIdx = 0
 
-            mus = dim_pred[:, 0:nb_gaussians]
-            sigmas = dim_pred[:, nb_gaussians:nb_gaussians * 2]
-            weights = dim_pred[:, nb_gaussians * 2:nb_gaussians * 3]
+        for y_true_dim in y_true:
+
+            nb_gaussians = int(y_pred[0, currIdx])
+
+            assert nb_gaussians <= self.max_gauss
+
+            currIdx += 1
+            mus = y_pred[:, currIdx:currIdx+nb_gaussians]
+            sigmas = y_pred[:, currIdx+nb_gaussians:currIdx + nb_gaussians * 2]
+            weights = y_pred[:, currIdx+ nb_gaussians * 2: currIdx +nb_gaussians * 3]
+
+            currIdx+= 3*nb_gaussians
 
             assert np.all(sigmas >= 0)
-            assert np.all(weights.sum(axis=1) == 1)
+            assert np.allclose(weights.sum(axis=1), 1.0)
 
             weighted_probs = np.zeros(len(y_true_dim))
             for i in range(nb_gaussians):
                 norm = normpdf(y_true_dim, mus[:, i], sigmas[:, i])
                 weighted_probs += weights[:, i] * norm
             partial_lk = np.log(weighted_probs)
-            partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
+            #partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
             logLK += np.sum(-partial_lk)
 
         return logLK / y_true.size
