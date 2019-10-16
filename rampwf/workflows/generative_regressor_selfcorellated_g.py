@@ -104,7 +104,18 @@ class GenerativeRegressorSelfGaussian(object):
                 gaussians = reg.predict(X, restart)
             else:
                 gaussians = reg.predict(X)
-            dims.append(gaussians)
+
+            mus, sigmas, weigths = gaussians
+
+            nb_gauss_curr = mus.shape[1]
+            assert nb_gauss_curr <= self.max_gauss
+
+            sizes = np.full((len(mus),1), nb_gauss_curr)
+            result = np.concatenate((sizes, mus, sigmas, weigths), axis=1)
+
+            dims.append(result)
+
+
 
         return np.concatenate(dims, axis=1)
 
@@ -134,28 +145,16 @@ class GenerativeRegressorSelfGaussian(object):
                     X = np.concatenate((X, sampled_array), axis=1)
 
             gaussians = reg.predict(X)
-            gaussians = gaussians.swapaxes(0, 1)
+            mus, sigmas, weights = gaussians
 
-            for gaussian in gaussians:
-                for nb_gaussians, item in enumerate(gaussian[0]):
-                    # All the predictions must have the same number
-                    # of gaussians for a given dimension
-                    if np.isnan(item):
-                        nb_gaussians -= 1
-                        break
-                nb_gaussians = int((nb_gaussians + 1) / 3)
-                mus = gaussian[:, 0:nb_gaussians]
-                sigmas = gaussian[:, nb_gaussians:nb_gaussians * 2]
-                weights = gaussian[:, nb_gaussians * 2:nb_gaussians * 3]
-
-                y_dim = []
-                for i in range(len(mus)):
-                    w = weights[i].ravel()
-                    w = w / sum(w)
-                    selected = np.random.choice(list(range(nb_gaussians)), p=w)
-                    y_dim.append(np.random.normal(loc=mus[i, selected],
-                                                  scale=sigmas[i, selected]))
-
-                y_sampled.append(y_dim)
+            nb_gaussians =  mus.shape[1]
+            y_dim = []
+            for i in range(len(mus)):
+                w = weights[i].ravel()
+                w = w / sum(w)
+                selected = np.random.choice(list(range(nb_gaussians)), p=w)
+                y_dim.append(np.random.normal(loc=mus[i, selected],
+                                              scale=sigmas[i, selected]))
+            y_sampled.append(y_dim)
 
         return np.array(y_sampled).swapaxes(0, 1)
