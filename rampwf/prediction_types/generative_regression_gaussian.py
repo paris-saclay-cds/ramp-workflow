@@ -21,10 +21,7 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
     elif y_true is not None:
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
-        if self.n_columns == 0:
-            shape = (n_samples, 1, 3 * self.max_gauss)
-        else:
-            shape = (n_samples, self.n_columns, 3 * self.max_gaussian)
+        shape = (n_samples, self.n_columns * (3 * self.max_gaussian + 1))
         self.y_pred = np.empty(shape, dtype=float)
         self.y_pred.fill(np.nan)
     else:
