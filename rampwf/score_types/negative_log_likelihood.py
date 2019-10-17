@@ -181,7 +181,7 @@ class NegativeLogLikelihoodRegGaussian(BaseScoreType):
                 norm = normpdf(y_true_dim, mus[:, i], sigmas[:, i])
                 weighted_probs += weights[:, i] * norm
             partial_lk = np.log(weighted_probs)
-            #partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
+            partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
             logLK += np.sum(-partial_lk)
 
         return logLK / y_true.size
