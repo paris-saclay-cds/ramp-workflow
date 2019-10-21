@@ -14,7 +14,7 @@ from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
 from .sklearn_pipeline import SKLearnPipeline, Estimator, EstimatorExternalData
 from .generative_regressor_selfcorellated import GenerativeRegressorSelf
-from .generative_regressor_selfcorellated_g import GenerativeRegressorSelfGaussian
+from .generative_regressor_selfcorellated_d import GenerativeRegressorSelfDist
 
 __all__ = [
     'AirPassengers',
@@ -35,5 +35,5 @@ __all__ = [
     'Estimator',
     'EstimatorExternalData',
     'GenerativeRegressorSelf',
-    'GenerativeRegressorSelfGaussian'
+    'GenerativeRegressorSelfDist'
 ]

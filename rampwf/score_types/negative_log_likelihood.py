@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.metrics import log_loss
 from scipy.stats import norm
 from .base import BaseScoreType
+from ..utils import get_pdf_from_dist
 
 
 class NegativeLogLikelihood(BaseScoreType):
@@ -130,24 +131,15 @@ class LikelihoodRatio(BaseScoreType):
             baseline_lls) / baseline_lls.size)
 
 
-def normpdf(x, mean, sd):
-    var = sd ** 2
-    denom = (2 * np.pi * var) ** .5
-    diff = x - mean
-    num = np.exp(-diff ** 2 / (2 * var))
-    probs = num / denom
-    return probs
-
-
-class NegativeLogLikelihoodRegGaussian(BaseScoreType):
+class NegativeLogLikelihoodRegDists(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, max_gauss, name='logLKGauss', precision=2):
+    def __init__(self, max_dists, name='logLKGauss', precision=2):
         self.name = name
         self.precision = precision
-        self.max_gauss = max_gauss
+        self.max_dists = max_dists
 
     def __call__(self, y_true, y_pred):
 
@@ -162,43 +154,43 @@ class NegativeLogLikelihoodRegGaussian(BaseScoreType):
 
         for y_true_dim in y_true:
 
-            nb_gaussians = int(y_pred[0, currIdx])
+            nb_dists = int(y_pred[0, currIdx])
 
-            assert nb_gaussians <= self.max_gauss
+            assert nb_dists <= self.max_dists
 
             currIdx += 1
-            mus = y_pred[:, currIdx:currIdx+nb_gaussians]
-            sigmas = y_pred[:, currIdx+nb_gaussians:currIdx + nb_gaussians * 2]
-            weights = y_pred[:, currIdx+ nb_gaussians * 2: currIdx +nb_gaussians * 3]
+            weights = y_pred[:, currIdx:currIdx+nb_dists]
+            types = y_pred[:, currIdx+nb_dists:currIdx + nb_dists * 2]
+            params = y_pred[:, currIdx+ nb_dists * 2: currIdx +nb_dists * 4]
 
-            currIdx+= 3*nb_gaussians
-
-            assert np.all(sigmas >= 0)
+            currIdx+= 4*nb_dists
             assert np.allclose(weights.sum(axis=1), 1.0)
+            # TODO meaningfull error
 
             weighted_probs = np.zeros(len(y_true_dim))
-            for i in range(nb_gaussians):
-                norm = normpdf(y_true_dim, mus[:, i], sigmas[:, i])
+            for i in range(nb_dists):
+                norm = get_pdf_from_dist(y_true_dim, types[:, i],
+                                         params[:, i*2:(i+1)*2])
                 weighted_probs += weights[:, i] * norm
             partial_lk = np.log(weighted_probs)
-            partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
+            #partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
             logLK += np.sum(-partial_lk)
 
         return logLK / y_true.size
 
 
-class LikelihoodRatioGaussian(BaseScoreType):
+class LikelihoodRatioDists(BaseScoreType):
     is_lower_the_better = False
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, max_gauss, name='ll_ratio', precision=2):
+    def __init__(self, max_dists, name='ll_ratio', precision=2):
         self.name = name
         self.precision = precision
-        self.max_gauss = max_gauss
+        self.max_dists = max_dists
 
     def __call__(self, y_true, y_pred):
-        nll_reg_score = NegativeLogLikelihoodRegGaussian(self.max_gauss)
+        nll_reg_score = NegativeLogLikelihoodRegDists(self.max_dists)
         nll_reg = nll_reg_score(y_true, y_pred)
 
         if len(y_true.shape) == 1:
