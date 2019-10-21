@@ -3,13 +3,13 @@ import numpy as np
 import pandas as pd
 
 
-class GenerativeRegressorSelfGaussian(object):
-    def __init__(self, target_column_name, max_gauss,
-                 workflow_element_names=['gen_regressor_gauss'], restart_name=None,
+class GenerativeRegressorSelfDist(object):
+    def __init__(self, target_column_name, max_dists,
+                 workflow_element_names=['gen_regressor_dists'], restart_name=None,
                  **kwargs):
         self.element_names = workflow_element_names
         self.target_column_name = target_column_name
-        self.max_gauss = max_gauss
+        self.max_dists = max_dists
         self.restart_name = restart_name
         self.kwargs = kwargs
 
@@ -43,7 +43,7 @@ class GenerativeRegressorSelfGaussian(object):
 
         regressors = []
         for i in range(len(self.target_column_name)):
-            reg = gen_regressor.GenerativeRegressorGaussian(self.max_gauss, **self.kwargs)
+            reg = gen_regressor.GenerativeRegressorDists(self.max_dists, **self.kwargs)
 
             if i == 0 and y_array.shape[1] == 1:
                 y = y_array[train_is]
@@ -101,17 +101,17 @@ class GenerativeRegressorSelfGaussian(object):
         for i, reg in enumerate(regressors):
             X = X_array[:, :n_columns - n_regressors + i]
             if restart is not None:
-                gaussians = reg.predict(X, restart)
+                dists = reg.predict(X, restart)
             else:
-                gaussians = reg.predict(X)
+                dists = reg.predict(X)
 
-            mus, sigmas, weigths = gaussians
+            weights, types, params = dists
 
-            nb_gauss_curr = mus.shape[1]
-            assert nb_gauss_curr <= self.max_gauss
+            nb_dists_curr = types.shape[1]
+            assert nb_dists_curr <= self.max_dists
 
-            sizes = np.full((len(mus),1), nb_gauss_curr)
-            result = np.concatenate((sizes, mus, sigmas, weigths), axis=1)
+            sizes = np.full((len(types),1), nb_dists_curr)
+            result = np.concatenate((sizes, weights, types, params), axis=1)
 
             dims.append(result)
 
@@ -144,8 +144,10 @@ class GenerativeRegressorSelfGaussian(object):
                 if i > 0:
                     X = np.concatenate((X, sampled_array), axis=1)
 
-            gaussians = reg.predict(X)
-            mus, sigmas, weights = gaussians
+            dists = reg.predict(X)
+            
+            # TODO: rewrite sampling
+            weights, types, params = dists
 
             nb_gaussians =  mus.shape[1]
             y_dim = []
