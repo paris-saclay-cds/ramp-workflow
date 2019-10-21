@@ -21,7 +21,10 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
     elif y_true is not None:
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
-        shape = (n_samples, self.n_columns * (3 * self.max_gaussian + 1))
+        # for each dim, 1 for the nb of dists (which is max self.max_dists),
+        # then nb_dists for weights, nb of dists for types
+        # and lastly nb of dists*2 for dist parameters
+        shape = (n_samples, self.n_columns * (1 + 4 * self.max_dists))
         self.y_pred = np.empty(shape, dtype=float)
         self.y_pred.fill(np.nan)
     else:
@@ -34,17 +37,17 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
 def _combine(cls, predictions_list, index_list=None):
     raise NotImplementedError("combine not implemented yet")
 
-
-def make_generative_regression_gaussian(max_gauss, label_names=[]):
+def make_generative_regression_dists(max_dists, label_names=[]):
     Predictions = type(
         'GenerativeRegressionGaussian',
         (BasePrediction,),
         {'label_names'   : label_names,
-         'max_gaussian'  : max_gauss,
+         'max_dists'     : max_dists,
          'n_columns'     : len(label_names),
          'n_columns_true': len(label_names),
          '__init__'      : _regression_init,
          'combine'       : _combine,
          'valid_indexes' : _valid_indexes,
+         'set_valid_in_train' : _combine
          })
     return Predictions

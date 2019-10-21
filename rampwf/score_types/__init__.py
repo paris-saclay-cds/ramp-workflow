@@ -15,7 +15,7 @@ from .make_combined import MakeCombined
 from .mare import MARE
 from .negative_log_likelihood import NegativeLogLikelihood, \
     NegativeLogLikelihoodReg, LikelihoodRatio, \
-    NegativeLogLikelihoodRegGaussian, LikelihoodRatioGaussian
+    NegativeLogLikelihoodRegDists, LikelihoodRatioDists
 from .normalized_gini import NormalizedGini
 from .normalized_rmse import NormalizedRMSE
 from .relative_rmse import RelativeRMSE
@@ -54,6 +54,6 @@ __all__ = [
     'SoftAccuracy',
     'NegativeLogLikelihoodReg',
     'LikelihoodRatio',
-    'NegativeLogLikelihoodRegGaussian',
-    'LikelihoodRatioGaussian'
+    'NegativeLogLikelihoodRegDists',
+    'LikelihoodRatioDists'
 ]
