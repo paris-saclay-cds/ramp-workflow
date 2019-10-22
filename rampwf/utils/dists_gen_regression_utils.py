@@ -19,7 +19,7 @@ def assert_normal(sd):
 def uniform_pdf(x, a, b):
     assert_uniform(a, b)
     probs = np.zeros(x.shape)
-    probs[np.logical_and(x >= a, x <= b)] = 1. / (b - a)
+    probs= np.where(np.logical_and(x >= a, x <= b), 1. / (b - a) , probs)
     return probs
 
 
