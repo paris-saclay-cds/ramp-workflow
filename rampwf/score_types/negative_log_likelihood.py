@@ -131,6 +131,10 @@ class LikelihoodRatio(BaseScoreType):
             baseline_lls) / baseline_lls.size)
 
 
+# The maximum numbers of parameters a distribution would need
+MAX_PARAMS = 2
+
+
 class NegativeLogLikelihoodRegDists(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
@@ -157,25 +161,27 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
             nb_dists = int(y_pred[0, currIdx])
 
             assert nb_dists <= self.max_dists, "The maximum number" \
-            "of distributions allowed is {0} but you use {1}".format(
-                self.max_dists, nb_dists)
+                "of distributions allowed is {0} but you use {1}"\
+                .format(self.max_dists, nb_dists)
 
             currIdx += 1
-            weights = y_pred[:, currIdx:currIdx+nb_dists]
-            types = y_pred[:, currIdx+nb_dists:currIdx + nb_dists * 2]
-            params = y_pred[:, currIdx+ nb_dists * 2: currIdx +nb_dists * 4]
+            params_start = currIdx+nb_dists*2
+            weights = y_pred[:, currIdx:currIdx + nb_dists]
+            types = y_pred[:, currIdx+nb_dists:params_start]
+            params = y_pred[:, params_start:params_start + nb_dists*MAX_PARAMS]
 
-            currIdx+= 4*nb_dists
+            currIdx += (2+MAX_PARAMS) * nb_dists
+
             assert np.allclose(weights.sum(axis=1), 1.0), \
                 "The weight should sum up to 1"
 
             weighted_probs = np.zeros(len(y_true_dim))
             for i in range(nb_dists):
                 norm = get_pdf_from_dist(y_true_dim, types[:, i],
-                                         params[:, i*2:(i+1)*2])
+                                         params[:, i*MAX_PARAMS:(i+1)*MAX_PARAMS])
                 weighted_probs += weights[:, i] * norm
             partial_lk = np.log(weighted_probs)
-            #partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
+            # partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
             logLK += np.sum(-partial_lk)
 
         return logLK / y_true.size
