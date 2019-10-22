@@ -110,12 +110,10 @@ class GenerativeRegressorSelfDist(object):
             nb_dists_curr = types.shape[1]
             assert nb_dists_curr <= self.max_dists
 
-            sizes = np.full((len(types),1), nb_dists_curr)
+            sizes = np.full((len(types), 1), nb_dists_curr)
             result = np.concatenate((sizes, weights, types, params), axis=1)
 
             dims.append(result)
-
-
 
         return np.concatenate(dims, axis=1)
 
@@ -124,6 +122,9 @@ class GenerativeRegressorSelfDist(object):
         a y. To sample only one y, provide only one X.
         If X is not a panda array, the assumed order is the same as
         given in training"""
+
+        raise NotImplementedError()
+
         regressors = trained_model
         y_sampled = []
         np.random.seed(seed)
@@ -145,11 +146,11 @@ class GenerativeRegressorSelfDist(object):
                     X = np.concatenate((X, sampled_array), axis=1)
 
             dists = reg.predict(X)
-            
+
             # TODO: rewrite sampling
             weights, types, params = dists
 
-            nb_gaussians =  mus.shape[1]
+            nb_gaussians = mus.shape[1]
             y_dim = []
             for i in range(len(mus)):
                 w = weights[i].ravel()
