@@ -7,6 +7,21 @@ class GenerativeRegressorSelfDist(object):
     def __init__(self, target_column_name, max_dists,
                  workflow_element_names=['gen_regressor_dists'], restart_name=None,
                  **kwargs):
+        """
+        The regressors are expected to return :
+            weights: The importance of each of the distributions.
+                    They should sum up to one a each timestep
+            types: The type of distributions, ordered in the same fashion
+                    as params.
+                        0 is Gaussian
+                        1 is Uniform
+             params: The parameters that describe the distributions.
+                    If gaussian, the order expected is mu, sigma
+                    If uniform, it is a and b
+
+        max_dists: the maximum number of distributions a generative
+                    regressor can output
+        """
         self.element_names = workflow_element_names
         self.target_column_name = target_column_name
         self.max_dists = max_dists
