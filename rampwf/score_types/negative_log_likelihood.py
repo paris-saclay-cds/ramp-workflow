@@ -156,7 +156,9 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
 
             nb_dists = int(y_pred[0, currIdx])
 
-            assert nb_dists <= self.max_dists
+            assert nb_dists <= self.max_dists, "The maximum number" \
+            "of distributions allowed is {0} but you use {1}".format(
+                self.max_dists, nb_dists)
 
             currIdx += 1
             weights = y_pred[:, currIdx:currIdx+nb_dists]
@@ -164,8 +166,8 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
             params = y_pred[:, currIdx+ nb_dists * 2: currIdx +nb_dists * 4]
 
             currIdx+= 4*nb_dists
-            assert np.allclose(weights.sum(axis=1), 1.0)
-            # TODO meaningfull error
+            assert np.allclose(weights.sum(axis=1), 1.0), \
+                "The weight should sum up to 1"
 
             weighted_probs = np.zeros(len(y_true_dim))
             for i in range(nb_dists):
