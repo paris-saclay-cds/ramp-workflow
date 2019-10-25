@@ -1,3 +1,5 @@
+.. _build-challenge:
+
 Build your own RAMP challenge
 #############################
 
@@ -25,8 +27,8 @@ files are required:
   be named and how each file should be structured.
 * data files - the data files of the challenge can be stored with your starting
   kit in a folder named ``data/``. Alternatively, your data may also be
-  downloaded from elsewhere. More information about preparing your data can
-  be found at :ref:`data`.
+  downloaded from elsewhere (:ref:`download-data`). More information about
+  preparing your data can be found at :ref:`data`.
 
 Once you have the above files, it is quite easy to prepare the additional files
 required for a full RAMP 'starting kit'. These files are not required for
@@ -46,14 +48,15 @@ required to launch a RAMP event.
   
 The base diretory of a full ramp-kit should thus look like::
 
-    <ramp_kit_name>/
+    <ramp_kit_name>/    # root ramp-kit directory
     ├── README.md
     ├── download_data.py (optional)
     ├── problem.py
     ├── requirements.txt
     ├── <ramp_kit_name>_starting_kit.ipynb
     ├── data
-    └── submissions
+    └── submissions/
+        └── <starting_kit>/    
 
 
 

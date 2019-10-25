@@ -43,7 +43,7 @@ would like to focus on in your course, or by the `data domain
 <http://www.ramp.studio/data_domains>`_ you would like to apply data science to.
 
 If you have your own data set and would like to build a new starting kit and
-challenge for your course, go to :ref:``.
+challenge for your course, go to :ref:`build-challenge`.
 
 I am a machine learning researcher
 **********************************

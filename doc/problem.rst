@@ -194,6 +194,8 @@ worth taking a look at the `whole file
 
     workflow = rw.workflows.FeatureExtractorClassifier()
 
+.. _score-types:
+
 5. Select score types
    Score types are metrics used to assess each submission. A large
    number of different `score metrics are available
