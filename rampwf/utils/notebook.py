@@ -30,7 +30,7 @@ def execute_notebook(ramp_kit_dir='.'):
     kernel_name = 'python{}'.format(sys.version_info.major)
 
     with open(notebook_filename) as f:
-        nb = nbformat.read(f), as_version=4)
+        nb = nbformat.read(f, as_version=4)
         ep = ExecutePreprocessor(timeout=600, kernel_name=kernel_name)
         ep.preprocess(nb, {'metadata':
                            {'path': os.path.abspath(ramp_kit_dir)}})
