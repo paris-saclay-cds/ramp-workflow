@@ -1,7 +1,7 @@
 # The RAMP ecosystem
 
 [![Build Status](https://travis-ci.org/paris-saclay-cds/ramp-workflow.svg?branch=master)](https://travis-ci.org/paris-saclay-cds/ramp-workflow)
-[![Build status](https://ci.appveyor.com/api/projects/status/la19c94ceb9q3cjk/branch/master?svg=true)](https://ci.appveyor.com/project/maikia/ramp-workflow/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/b4n4iui8p795q0o0/branch/master?svg=true)](https://ci.appveyor.com/project/maikia/ramp-workflow/branch/master)
 [![Coverage](https://codecov.io/gh/paris-saclay-cds/ramp-workflow/branch/master/graphs/badge.svg?)](https://codecov.io/gh/paris-saclay-cds/ramp-workflow/)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Docs](https://img.shields.io/badge/docs-wiki-yellow.svg)](https://github.com/paris-saclay-cds/ramp-workflow/wiki)
