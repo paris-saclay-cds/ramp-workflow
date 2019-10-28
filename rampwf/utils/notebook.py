@@ -31,11 +31,9 @@ def execute_notebook(ramp_kit_dir='.'):
 
     with open(notebook_filename) as f:
         nb = nbformat.read(f, as_version=4)
-        ep = ExecutePreprocessor(timeout=60, kernel_name=kernel_name) # timeout = 600
-        print('preprocess')
+        ep = ExecutePreprocessor(timeout=600, kernel_name=kernel_name)
         ep.preprocess(nb, {'metadata':
                            {'path': os.path.abspath(ramp_kit_dir)}})
-        print('done executing')
 
 
 def convert_notebook(ramp_kit_dir='.'):
