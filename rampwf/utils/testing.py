@@ -20,8 +20,8 @@ from .submission import (bag_submissions, run_submission_on_cv_fold,
 
 def assert_notebook(ramp_kit_dir='.'):
     print('----------------------------')
-    #convert_notebook(ramp_kit_dir)
-    execute_notebook(ramp_kit_dir)
+    convert_notebook(ramp_kit_dir)
+    #execute_notebook(ramp_kit_dir)
 
 
 def assert_read_problem(ramp_kit_dir='.'):
