@@ -7,7 +7,8 @@ from .testing import (
 from .submission import run_submission_on_cv_fold
 from .combine import get_score_cv_bags
 from .importing import import_file
-from .dists_gen_regression_utils import get_pdf_from_dist
+from .dists_gen_regression_utils import get_pdf_from_dist, sample_from_dist, \
+                                        MAX_PARAMS
 
 __all__ = ['assert_cv',
            'assert_data',
@@ -24,5 +25,7 @@ __all__ = ['assert_cv',
            'ramp_test_submission',
            'run_submission_on_cv_fold',
            'import_file',
-           'get_pdf_from_dist'
+           'get_pdf_from_dist',
+           'sample_from_dist',
+           'MAX_PARAMS'
            ]

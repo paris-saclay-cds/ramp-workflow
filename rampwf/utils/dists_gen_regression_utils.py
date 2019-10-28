@@ -1,5 +1,7 @@
 import numpy as np
 
+# The maximum numbers of parameters a distribution would need
+MAX_PARAMS = 2
 
 def norm_pdf(x, mean, sd):
     assert_normal(sd)
@@ -37,4 +39,11 @@ def get_pdf_from_dist(y, type, params):
         return norm_pdf(y, params[:, 0], params[:, 1])
     if type_cure_dists == 1:
         return uniform_pdf(y, params[:, 0], params[:, 1])
+    return probs
+
+def sample_from_dist(type, params):
+    if type == 0:
+        return np.random.normal(params[0], params[1])
+    if type == 1:
+        return np.random.uniform(params[0], params[1])
     return probs
