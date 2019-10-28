@@ -58,5 +58,7 @@ The base diretory of a full ramp-kit should thus look like::
     └── submissions/
         └── <starting_kit>/    
 
+Once you have 
+
 
 

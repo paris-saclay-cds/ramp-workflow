@@ -46,7 +46,7 @@ To install the latest version of the ramp-workflow library, run:
    :maxdepth: 2
    :caption: Using RAMP kits
 
-   ramp_kits
+   using_kits
 
 
 Indices and tables

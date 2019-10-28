@@ -228,9 +228,9 @@ worth taking a look at the `whole file
             weights=[2. / 3, 1. / 3], precision=3),
     ]    
 
-    Note that the actual implementation was more complex as this challenge
-    consisted of both a classification and regression task. For the purposes of
-    this example, the extra complexity was ignored.
+  Note that the actual implementation was more complex as this challenge
+  consisted of both a classification and regression task. For the purposes of
+  this example, the extra complexity was ignored.
 
 .. _cross-validation:
 
@@ -240,7 +240,7 @@ worth taking a look at the `whole file
    the feature and target data as parameters and returns indicies that can
    be used to split the data. If you are using a function with a random
    element, e.g., ``StratifiedShuffleSplit()`` `from scikit-learn
-   <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedShuffleSplit.html#sklearn.model_selection.StratifiedShuffleSplit.split>`_
+   <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedShuffleSplit.html#sklearn.model_selection.StratifiedShuffleSplit.split>`_,
    it is important to set the random seed. This ensures that the train and
    valuidation data will be the same for all participants.
 
@@ -254,7 +254,8 @@ worth taking a look at the `whole file
 
 7. Provide the I/O methods
    The ``problem.py`` file needs to define a ``get_train_data()`` and a
-   ``get_test_data()`` function that reads in the training and test data. For
+   ``get_test_data()`` function that reads in the training and test data. These
+   functions will be used to 'get data' both locally and on the RAMP sever. For
    example, this was implemented in the Titanic challenge using::
 
         _target_column_name = 'Survived'
@@ -276,4 +277,5 @@ worth taking a look at the `whole file
             f_name = 'test.csv'
             return _read_data(path, f_name)
 
-   ``_read_data()`` is not strictly required and is acting as a helper function.
+   The ``_read_data()`` is not strictly required and is acting as a helper
+   function in the code above.

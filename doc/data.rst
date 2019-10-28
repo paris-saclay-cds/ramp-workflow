@@ -8,22 +8,22 @@ The data for your RAMP challenge should consist of:
 * Private test data - this data is stored on the RAMP server and is used to
   compute scores for each submission for the private leaderboard. It is
   essential that this data remains private from participants.
-* Private training data - this data will be used by the server to train each
-  submission. It is good practice that this is completely independent of the
-  public data. However, if you have a small data size, it is also fine for this
-  data to be the same as the public data.
+* Private training data - this data is also stored on the RAMP server and will
+  be used by the server to train each submission. It is good practice that this
+  is completely independent of the public data. However, if you have a small
+  data size, it is also fine for this data to be the same as the public data.
 * Public data - this data is made available to the participants. It needs to be
   split into 'public training data' and 'public testing' subsets. This is
   because the same script is used to test submissions when you run RAMP locally
   and on the RAMP server, when you make a submission to a RAMP event. Therefore,
-  ``get_train_data()`` and ``get_test_data()`` (see :ref:`in-out`) need to work
-  locally and on the RAMP server. This is generally achieved by naming the
+  ``get_train_data()`` and ``get_test_data()`` (see :ref:`in-out`) needs to work
+  both locally and on the RAMP server. This is generally achieved by naming the
   public test and train dataset the same as the private test and train dataset.
   See :ref:`ramp-data` for an example.
 
 .. _ramp-data:
 
-RAMP data
+RAMP-data
 =========
 
 By convention all the data files for a RAMP event are kept in a repository in
@@ -34,8 +34,8 @@ here if size permits.
 A ``prepare_data.py`` script should also be stored here. This script should
 perform any data cleaning steps on the original data and split the data into
 the appropriate subsets as detailed above. It is a good way to document all
-the data cleaning steps. As an example, the ``prepare_data.py`` file for
-the Titanic challenge is shown below::
+the data cleaning steps. As an example, the Titanic challenge, which has
+a very basic ``prepare_data.py`` file, is shown below::
 
     # In this case we have a predefined train/test cut so we are not splitting
     # the data here
@@ -45,7 +45,8 @@ the Titanic challenge is shown below::
     # In this case the private training data was also used as the public data
     df_public = df_train
     df_public_train, df_public_test = train_test_split(
-        df_public, test_size=0.2, random_state=57)
+        df_public, test_size=0.2, random_state=57) 
+        # specify the random_state to ensure reproducibility
     df_public_train.to_csv(os.path.join('data', 'public_train.csv'), index=False)
     df_public_test.to_csv(os.path.join('data', 'public_test.csv'), index=False)
 
@@ -59,20 +60,25 @@ stage we have 4 files:
 * ``public_test.csv`` - in this case, this was a subset of the private training
   data ``train.csv``.
 
-We now need to copy the public data into the 'ramp-kits' directory. Note that
-the script assumes the file directory structure::
+We now need to copy the public data files ``public_train.csv`` and
+``public_test.csv`` into the 'ramp-kits' directory. Note that the script
+assumes the file directory structure::
 
         <base_dir>
         ├── <ramp_kits_dir>/
         |   └── <ramp_name>/ # the starting kit would be in here
-        ├── <ramp_data_dir>/
-            └── <ramp_name>/ # ramp data files and prepare_data.py file here
+        |       └── data/
+        └── <ramp_data_dir>/
+            └── <ramp_name>/ # ramp data files and prepare_data.py file are here
+                └── data/
 
-The public files are being copied from the ``ramp_data_dir`` into the
-``ramp_kits_dir``. They are also being renamed to ``train.csv`` and
-``test.csv``, the same filenames as the private data in ``ramp_data_dir``. This
-is because, as mentioned above, the same script is used to test submissions
-locally and on the RAMP server.
+The public files are being copied from the ``ramp_data_dir/data`` directory
+into the ``ramp_kits_dir/data`` directory. They are also being renamed to
+``train.csv`` and ``test.csv``, the same filenames as the private data in
+``ramp_data_dir/data``. This is because, as mentioned above, the same script is
+used to test submissions locally and on the RAMP server.
+
+.. code-block:: python 
 
     # copy starting kit files to <ramp_kits_dir>/<ramp_name>/data
     copyfile(

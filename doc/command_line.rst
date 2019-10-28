@@ -4,9 +4,10 @@ RAMP workflow commands
 ######################
 
 ``ramp_test_submission``
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Tests your RAMP submission. Has no required arguments and will by default test
-the submission: ./submissions/starting_kit/.
+the submission: ``./submissions/starting_kit/``.
 
 Options:
 
@@ -27,6 +28,13 @@ Options:
   training set after the CV loops.
 
 ``ramp_blend_submissions``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Takes a list of submissions and finds the best 'blend' of submissions that
+result in the best combined score. See :ref:`scoring` for more details on how
+predictions are combined to calculate the combined score. The relative
+weighting of each submission, the overall combined score and best combined
+score for each fold is output.
 
 Options:
 
@@ -45,6 +53,8 @@ Options:
 
 
 ``ramp_leaderboard``
+^^^^^^^^^^^^^^^^^^^^
+
 Pretty prints scores from previous locally tested submissions (using
 ``ramp_test_submission``). Previous submissions need to be saved using
 ``ramp_test_submission --submission <name> --save-output``.
@@ -73,22 +83,30 @@ Help:
 
 Examples:
 
-``ramp_leaderboard --metric=acc``
+* ``ramp_leaderboard --metric=acc`` 
+* ``ramp_leaderboard --cols=train_acc,valid_acc,test_acc``
+* ``ramp_leaderboard --cols=train_nll --sort-by=train_nll,train_acc --asc``
 
-``ramp_leaderboard --cols=train_acc,valid_acc,test_acc``
-
-``ramp_leaderboard --cols=train_nll --sort-by=train_nll,train_acc --asc``
-
-Commands when uploading to server
-#################################
+Commands for use on server
+==========================
 
 ``ramp_test_notebook``
-Tests your starting kit notebook.
+^^^^^^^^^^^^^^^^^^^^^^
+
+Converts the starting kit notebook into HTML using ``nbconvert`` and tests
+if the notebook can be executed.
 
 Options:
 
 * ``[--ramp_kit_dir]`` Directory containing the notebook. Default: ``.``.
 
 ``ramp_convert_notebook``
-Converts the starting kit notebook into HTML using ``nbconvert``.
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Converts the starting kit notebook into HTML using ``nbconvert``. This is
+used on the problem page on RAMP studio.
+
+Options:
+
+* ``[--ramp_kit_dir]`` Directory containing the notebook. Default: ``.``.
  
