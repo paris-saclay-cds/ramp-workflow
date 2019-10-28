@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.metrics import log_loss
 from scipy.stats import norm
 from .base import BaseScoreType
-from ..utils import get_pdf_from_dist
+from ..utils import get_pdf_from_dist, MAX_PARAMS
 
 
 class NegativeLogLikelihood(BaseScoreType):
@@ -129,10 +129,6 @@ class LikelihoodRatio(BaseScoreType):
 
         return np.exp(-nll_reg - np.sum(
             baseline_lls) / baseline_lls.size)
-
-
-# The maximum numbers of parameters a distribution would need
-MAX_PARAMS = 2
 
 
 class NegativeLogLikelihoodRegDists(BaseScoreType):
