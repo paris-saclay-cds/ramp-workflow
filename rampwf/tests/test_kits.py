@@ -35,8 +35,13 @@ def _generate_grid_path_kits():
 )
 def test_notebook_testing(path_kit):
     # check if there is a notebook to be tested
+    print('pytttttt')
+    print(path_kit)
+    print(os.path.join(path_kit, '*.ipynb'))
+    print(len(glob.glob(os.path.join(path_kit, '*.ipynb'))))
+    
     if len(glob.glob(os.path.join(path_kit, '*.ipynb'))):
-        print(path_kit)
+        print('PATH IS: ',path_kit)
         assert_notebook(ramp_kit_dir=path_kit)
 
 

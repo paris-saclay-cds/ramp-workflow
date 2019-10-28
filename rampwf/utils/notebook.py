@@ -37,14 +37,10 @@ def execute_notebook(ramp_kit_dir='.'):
 
 
 def convert_notebook(ramp_kit_dir='.'):
-    print('convert1')
     import nbformat
-    print('convert1')
     import nbconvert
-    print('convert1')
     from nbconvert.exporters import HTMLExporter
 
-    print('2:',ramp_kit_dir)
     problem_name = os.path.basename(os.path.abspath(ramp_kit_dir))
     print('Testing if the notebook can be converted to html')
     notebook_filename = os.path.join(
