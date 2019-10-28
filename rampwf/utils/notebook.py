@@ -29,9 +29,14 @@ def execute_notebook(ramp_kit_dir='.'):
         '{}_starting_kit.ipynb'.format(problem_name))
     kernel_name = 'python{}'.format(sys.version_info.major)
 
+    print('about to open the notebook file')
     with open(notebook_filename) as f:
+        print('in')
         nb = nbformat.read(f, as_version=4)
+        print('about to execute preprocessor')
+        print(kernel_name)
         ep = ExecutePreprocessor(timeout=600, kernel_name=kernel_name)
+        print('preprocess')
         ep.preprocess(nb, {'metadata':
                            {'path': os.path.abspath(ramp_kit_dir)}})
 
