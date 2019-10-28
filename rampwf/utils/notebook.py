@@ -51,7 +51,7 @@ def convert_notebook(ramp_kit_dir='.'):
         '{}_starting_kit.html'.format(problem_name))
 
     with open(notebook_filename) as f:
-        nb = nbformat.read(f) #, as_version=4)
+        nb = nbformat.read(f, as_version=4)
         nb_html, _ = nbconvert.export(HTMLExporter, nb)
 
     with open(os.path.join(os.path.abspath(ramp_kit_dir),
