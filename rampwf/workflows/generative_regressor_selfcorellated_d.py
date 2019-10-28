@@ -1,6 +1,7 @@
 from rampwf.utils.importing import import_file
 import numpy as np
 import pandas as pd
+from ..utils import sample_from_dist, MAX_PARAMS
 
 
 class GenerativeRegressorSelfDist(object):
@@ -137,9 +138,6 @@ class GenerativeRegressorSelfDist(object):
         a y. To sample only one y, provide only one X.
         If X is not a panda array, the assumed order is the same as
         given in training"""
-
-        raise NotImplementedError()
-
         regressors = trained_model
         y_sampled = []
         np.random.seed(seed)
@@ -164,15 +162,18 @@ class GenerativeRegressorSelfDist(object):
 
             # TODO: rewrite sampling
             weights, types, params = dists
-
-            nb_gaussians = mus.shape[1]
+            nb_dists = types.shape[1]
             y_dim = []
-            for i in range(len(mus)):
+            for i in range(len(types)):
                 w = weights[i].ravel()
                 w = w / sum(w)
-                selected = np.random.choice(list(range(nb_gaussians)), p=w)
-                y_dim.append(np.random.normal(loc=mus[i, selected],
-                                              scale=sigmas[i, selected]))
+                selected = np.random.choice(list(range(nb_dists)), p=w)
+                y_dim.append(
+                    sample_from_dist(types[i, selected],
+                                     params[i, selected*MAX_PARAMS:
+                                               (selected+1)*MAX_PARAMS]
+                                     )
+                )
             y_sampled.append(y_dim)
 
         return np.array(y_sampled).swapaxes(0, 1)
