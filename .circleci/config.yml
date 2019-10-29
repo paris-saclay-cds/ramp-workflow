@@ -14,3 +14,9 @@ jobs:
             pip install sphinx
             cd doc
             make html
+
+workflows:
+  version: 2
+  push:
+    jobs:
+      - build
