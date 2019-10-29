@@ -4,4 +4,3 @@ pandas>=0.19.2
 scikit-learn>=0.18
 cloudpickle
 click
-sphinx
