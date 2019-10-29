@@ -59,7 +59,7 @@ class GenerativeRegressorSelfDist(object):
 
         regressors = []
         for i in range(len(self.target_column_name)):
-            reg = gen_regressor.GenerativeRegressorDists(self.max_dists, **self.kwargs)
+            reg = gen_regressor.GenerativeRegressorDists(self.max_dists, i, **self.kwargs)
 
             if i == 0 and y_array.shape[1] == 1:
                 y = y_array[train_is]
