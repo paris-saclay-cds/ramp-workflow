@@ -3,6 +3,9 @@ jobs:
   build:
     docker:
       - image: circleci/python:3.6-stretch
+    branches:
+      only:
+        - DOC
     steps:
       - checkout
       - run: 
