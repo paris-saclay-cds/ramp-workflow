@@ -12,9 +12,11 @@ jobs:
             . test-env/bin/activate
             pip install -r requirements.txt --progress-bar off
             pip install sphinx sphinx_rtd_theme --progress-bar off
+            pip install .
             cd doc
             make html
-
+      - store_artifacts:
+          path: doc/_build/html
 workflows:
   version: 2
   push:
