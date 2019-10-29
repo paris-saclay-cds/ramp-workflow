@@ -3,11 +3,12 @@
 The problem.py file
 ###################
 
-The ``problem.py`` file uses building blocks from the `RAMP-workflow
-<https://github.com/paris-saclay-cds/ramp-workflow>`_ library. The,
-``problem.py`` of the Titanic survival classification challenge will be used as
-an example when discussing each aspect of the ``problem.py`` file. It is also
-worth taking a look at the `whole file
+The ``problem.py`` file uses building blocks from the `RAMP-workflow`_
+library. These building blocks allow the ``problem.py`` file to be relatively
+simple because the complexity is hidden by the implementation of the building
+blocks in RAMP-workflow. Titanic survival classification challenge
+will be used as an example when discussing each aspect of the ``problem.py``
+file. It is worth taking a look at the `whole file
 <https://github.com/ramp-kits/titanic/blob/master/problem.py>`_ for reference.
 
 1. The ``problem.py`` file begins by importing any libraries required. For
@@ -58,7 +59,13 @@ worth taking a look at the `whole file
     for more information.
 
   Select the appropriate prediction class for your challenge and state this
-  in the ``problem.py`` file. For example, the Titanic survival classification
+  in the ``problem.py`` file. If the appropriate prediction class does not
+  exist in `RAMP-workflow`_, you can define your own prediction class within
+  the ``problem.py`` file. If it is not too specific, we would also encourage
+  you to add your class to `RAMP-workflow`_ so others can use it in future.
+  See :ref:`contributing`.
+  
+  For example, the Titanic survival classification
   challenge aimed to predict whether or not each passenger survived. Survival
   is indicated by 0 (did not survive) or 1 (survived). Since this is a
   classification task the prediction function ``make_multiclass()`` is used.
@@ -189,6 +196,11 @@ worth taking a look at the `whole file
     requires 4 files named; ``feature_extractor_clf.py``,
     ``classifier.py``, ``feature_extractor_reg.py`` and ``regressor.py``.
 
+   If the appropriate workflow class does not exist in `RAMP-workflow`_, you
+   can define your own workflow class within the ``problem.py`` file. If it is
+   not too specific,We would also encourage you to add your class to
+   `RAMP-workflow`_ so others can use it in future. See :ref:`contributing`.
+
    The Titanic challenge employed the ``feature_extractor_classifier()``
    workflow. This can be specified simply with::
 
@@ -231,6 +243,12 @@ worth taking a look at the `whole file
   Note that the actual implementation was more complex as this challenge
   consisted of both a classification and regression task. For the purposes of
   this example, the extra complexity was ignored.
+
+  Again if the appropriate score metric class does not exist in
+  `RAMP-workflow`_, you can define your own score metric class within the
+  ``problem.py`` file. If it is not too specific, we would also encourage you
+  to add your class to `RAMP-workflow`_ so others can use it in future. See
+  :ref:`contributing`.
 
 .. _cross-validation:
 
@@ -279,3 +297,5 @@ worth taking a look at the `whole file
 
    The ``_read_data()`` is not strictly required and is acting as a helper
    function in the code above.
+
+   .. _RAMP-workflow: https://github.com/paris-saclay-cds/ramp-workflow
