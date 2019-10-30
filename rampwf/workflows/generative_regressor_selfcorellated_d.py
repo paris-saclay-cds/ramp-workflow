@@ -145,9 +145,12 @@ class GenerativeRegressorSelfDist(object):
         for i, reg in enumerate(regressors):
             X = X_array
             if type(X_array).__module__ != np.__name__:
-                for j, predicted_dim in enumerate(np.array(y_sampled)):
-                    X["y_" + self.target_column_name[j]] = predicted_dim
-                X = X.values
+                if len(y_sampled)==1:
+                    X["y_" + self.target_column_name[0]] = y_sampled[0][0]
+                else:
+                    for j, predicted_dim in enumerate(np.array(y_sampled)):
+                        X["y_" + self.target_column_name[j]] = predicted_dim
+                    X = X.values
             if X.ndim == 1:
                 X = [X, ]
 
