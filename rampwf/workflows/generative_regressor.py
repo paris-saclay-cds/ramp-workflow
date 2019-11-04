@@ -4,9 +4,10 @@ import pandas as pd
 from ..utils import sample_from_dist, MAX_PARAMS
 
 
-class GenerativeRegressorSelfDist(object):
+class GenerativeRegressor(object):
     def __init__(self, target_column_name, max_dists,
-                 workflow_element_names=['gen_regressor_dists'], restart_name=None,
+                 workflow_element_names=['generative_regressor'],
+                 restart_name=None,
                  **kwargs):
         """
         The regressors are expected to return :
@@ -59,7 +60,8 @@ class GenerativeRegressorSelfDist(object):
 
         regressors = []
         for i in range(len(self.target_column_name)):
-            reg = gen_regressor.GenerativeRegressorDists(self.max_dists, i, **self.kwargs)
+            reg = gen_regressor.GenerativeRegressor(
+                self.max_dists, i, **self.kwargs)
 
             if i == 0 and y_array.shape[1] == 1:
                 y = y_array[train_is]
