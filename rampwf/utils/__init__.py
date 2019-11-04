@@ -4,8 +4,8 @@ from .testing import (
 from .submission import run_submission_on_cv_fold
 from .combine import get_score_cv_bags
 from .importing import import_module_from_source
-from .dists_gen_regression_utils import get_pdf_from_dist, sample_from_dist, \
-                                        MAX_PARAMS
+from .generative_regression import (
+  get_pdf_from_dist, sample_from_dist, MAX_PARAMS)
 
 __all__ = ['assert_cv',
            'assert_data',
