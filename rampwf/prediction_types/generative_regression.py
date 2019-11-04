@@ -3,16 +3,28 @@ from .base import BasePrediction
 import itertools
 
 
+def _valid_indexes(self):
+    """Return valid indices (e.g., a cross-validation slice)."""
+    if len(self.y_pred.shape) == 1:
+        return ~np.isnan(self.y_pred)
+    elif len(self.y_pred.shape) == 2:
+        return ~np.isnan(self.y_pred[:, 0])
+    elif len(self.y_pred.shape) == 3:
+        return ~np.isnan(self.y_pred[:, 0, 0])
+    else:
+        raise ValueError('y_pred.shape > 3 is not implemented')
+
+
 def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
     if y_pred is not None:
         self.y_pred = y_pred
     elif y_true is not None:
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
-        if self.n_columns == 0:
-            shape = (n_samples, 1, 2 * self.max_bins + 1)
-        else:
-            shape = (n_samples, self.n_columns, 2 * self.max_bins + 1)
+        # for each dim, 1 for the nb of dists (which is max self.max_dists),
+        # then nb_dists for weights, nb of dists for types
+        # and lastly nb of dists*2 for dist parameters
+        shape = (n_samples, self.n_columns * (1 + 4 * self.max_dists))
         self.y_pred = np.empty(shape, dtype=float)
         self.y_pred.fill(np.nan)
     else:
@@ -20,65 +32,22 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
             'Missing init argument: y_pred, y_true, or n_samples')
 
 
-def make_generative_regression(n_bins, label_names=[], max_bins=None):
-    """This additionally takes the number of bins as input"""
-    if max_bins is None:
-        max_bins = n_bins
+# TODO rewrite the combine
+@classmethod
+def _combine(cls, predictions_list, index_list=None):
+    raise NotImplementedError("combine not implemented yet")
 
+def make_generative_regression(max_dists, label_names=[]):
     Predictions = type(
-        'GenerativeRegression',
+        'GenerativeRegressionGaussian',
         (BasePrediction,),
         {'label_names'   : label_names,
-         'max_bins'    : max_bins,
-         # The minimum number of bins, in case of a workflow with multiple generative regressions, to fix makecombie
-         'n_bins'        : n_bins,
+         'max_dists'     : max_dists,
          'n_columns'     : len(label_names),
          'n_columns_true': len(label_names),
          '__init__'      : _regression_init,
-         # 'combine'       : combineComplex,   TODO: finish it and use it here to have a different ensembling method
+         'combine'       : _combine,
+         'valid_indexes' : _valid_indexes,
+         'set_valid_in_train' : _combine
          })
     return Predictions
-
-
-
-
-
-@classmethod
-def combineComplex(cls, preds_list):
-    label_names = preds_list[0].label_names
-
-    if len(preds_list) == 1:
-        return cls(preds_list[0].y_pred)
-
-    t_steps = len(preds_list[0].y_pred)
-    reg_dims = len(preds_list[0].y_pred[0])
-
-    new_preds = []
-
-    nbins = 0
-    for reg in preds_list:
-        nbins += reg.n_bins + 1
-
-    for i in range(t_steps):
-        # for every timestep
-        new_preds_t_step = []
-        for j in range(reg_dims):
-            # We need to aggregate the prediction of time_dim to keep only one regressor per tick
-            new_preds_dim_step = []
-
-            new_bins = []
-            selected = []
-            for k, reg in enumerate(preds_list):
-                bins_curr_reg = reg.y_pred[i, j, :reg.n_bins]
-                new_bins.append(bins_curr_reg)
-                selected.append([(k, l) for l in range(reg.n_bins)])
-                probs_curr_reg = reg.y_pred[i, j, reg.n_bins:]
-
-            new_bins = np.array(list(itertools.chain.from_iterable(new_bins)))
-            selected = np.array(list(itertools.chain.from_iterable(selected)))
-            idx_sorted = np.argsort(new_bins)
-            new_bins = new_bins[idx_sorted]
-            selected_sorted = selected[idx_sorted]
-
-            new_preds_t_step.append(new_preds_dim_step)
-        new_preds.append(new_preds_t_step)

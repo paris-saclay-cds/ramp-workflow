@@ -7,14 +7,13 @@ from .feature_extractor import FeatureExtractor
 from .feature_extractor_classifier import FeatureExtractorClassifier
 from .feature_extractor_regressor import FeatureExtractorRegressor
 from .image_classifier import ImageClassifier
+from .generative_regressor import GenerativeRegressor
 from .simplified_image_classifier import SimplifiedImageClassifier
 from .object_detector import ObjectDetector
 from .regressor import Regressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
 from .sklearn_pipeline import SKLearnPipeline, Estimator, EstimatorExternalData
-from .generative_regressor_selfcorellated import GenerativeRegressorSelf
-from .generative_regressor_selfcorellated_d import GenerativeRegressorSelfDist
 
 __all__ = [
     'AirPassengers',
@@ -25,6 +24,8 @@ __all__ = [
     'FeatureExtractor',
     'FeatureExtractorClassifier',
     'FeatureExtractorRegressor',
+    'GenerativeRegressor',
+    'GridFeatureExtractorClassifier',
     'ImageClassifier',
     'SimplifiedImageClassifier',
     'ObjectDetector',
@@ -34,6 +35,4 @@ __all__ = [
     'SKLearnPipeline',
     'Estimator',
     'EstimatorExternalData',
-    'GenerativeRegressorSelf',
-    'GenerativeRegressorSelfDist'
 ]
