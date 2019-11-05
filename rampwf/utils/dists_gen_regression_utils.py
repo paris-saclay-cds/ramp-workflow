@@ -2,6 +2,7 @@ import numpy as np
 
 # The maximum numbers of parameters a distribution would need
 MAX_PARAMS = 2
+# PLOT_NORMAL = False
 
 def norm_pdf(x, mean, sd):
     assert_normal(sd)
@@ -35,6 +36,8 @@ def get_pdf_from_dist(y, type, params):
     # The value need to be repeated to still be present when doing CV
     type_cure_dists = type[0]
 
+    if type_cure_dists == -1:
+        return np.zeros(params.shape[0])
     if type_cure_dists == 0:
         return norm_pdf(y, params[:, 0], params[:, 1])
     if type_cure_dists == 1:
