@@ -16,7 +16,6 @@ def _valid_indexes(self):
     else:
         raise ValueError('y_pred.shape > 3 is not implemented')
 
-
 def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
     if y_pred is not None:
         self.y_pred = y_pred
@@ -105,13 +104,13 @@ def make_generative_regression(max_dists, label_names=[]):
     Predictions = type(
         'GenerativeRegressionGaussian',
         (BasePrediction,),
-        {'label_names'   : label_names,
-         'max_dists'     : max_dists,
-         'n_columns'     : len(label_names),
-         'n_columns_true': len(label_names),
-         '__init__'      : _regression_init,
-         'combine'       : _combine,
-         'valid_indexes' : _valid_indexes,
-         'set_valid_in_train' : set_valid_in_train
+        {'label_names'       : label_names,
+         'max_dists'         : max_dists,
+         'n_columns'         : len(label_names),
+         'n_columns_true'    : len(label_names),
+         '__init__'          : _regression_init,
+         'combine'           : _combine,
+         'valid_indexes'     : _valid_indexes,
+         'set_valid_in_train': set_valid_in_train
          })
     return Predictions
