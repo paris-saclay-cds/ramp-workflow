@@ -27,7 +27,7 @@ To install the latest version of the ramp-workflow library, run:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Who are you?
+   :caption: What can RAMP offer you?
 
    who_are_you
    
@@ -49,9 +49,3 @@ To install the latest version of the ramp-workflow library, run:
    using_kits
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

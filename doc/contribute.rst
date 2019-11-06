@@ -3,7 +3,7 @@
 Contributing
 ############
 
-If you would like to contribute to `ramp-workflow`_, particularly if there
+You are welcome to contribute to `ramp-workflow`_, particularly if there
 are `Prediction types 
 <https://github.com/paris-saclay-cds/ramp-workflow/tree/master/rampwf/prediction_types>`_,
 `workflows
