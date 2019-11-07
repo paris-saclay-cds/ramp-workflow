@@ -1,11 +1,11 @@
-from rampwf.utils.importing import import_file
 import numpy as np
-import pandas as pd
-from ..utils import distributions_dispatcher, MAX_PARAMS
+
+from rampwf.utils.importing import import_file
+from ..utils import distributions_dispatcher
 
 
 class GenerativeRegressor(object):
-    def __init__(self, target_column_name, max_dists,
+    def __init__(self, target_column_name, max_dists, check_sizes, check_indexs,
                  workflow_element_names=['generative_regressor'],
                  restart_name=None,
                  **kwargs):
@@ -24,6 +24,8 @@ class GenerativeRegressor(object):
         max_dists: the maximum number of distributions a generative
                     regressor can output
         """
+        self.check_indexs = check_indexs
+        self.check_sizes = check_sizes
         self.element_names = workflow_element_names
         self.target_column_name = target_column_name
         self.max_dists = max_dists
@@ -85,7 +87,7 @@ class GenerativeRegressor(object):
             regressors.append(reg)
         return regressors
 
-    def test_submission(self, trained_model, X_array):
+    def predict_submission(self, trained_model, X_array):
         """Test submission, here we assume that the last i columns of
         X_array corespond to the ground truth, labeled with the target
         name self.target_column_name  and a y before (to avoid duplicate names
@@ -133,7 +135,9 @@ class GenerativeRegressor(object):
 
             dims.append(result)
 
-        return np.concatenate(dims, axis=1)
+        preds_concat = np.concatenate(dims, axis=1)
+
+        return preds_concat
 
     def step(self, trained_model, X_array, seed=None):
         """Careful, for now, for every x in the time dimension, we will sample
@@ -190,3 +194,34 @@ class GenerativeRegressor(object):
             y_sampled.append(y_dim)
 
         return np.array(y_sampled).swapaxes(0, 1)
+
+    def test_submission(self, trained_model, X_array):
+        original_predict = self.predict_submission(trained_model, X_array)
+
+        self.check_cheat(trained_model, X_array)
+        return original_predict
+
+    def check_cheat(self, trained_model, X_array):
+        for check_size, check_index in zip(
+                self.check_sizes, self.check_indexs):
+            X_check = X_array.iloc[:check_size].copy()
+            # Adding random noise to future.
+            original_predict = self.predict_submission(trained_model, X_check)
+            X_check.iloc[check_index] += np.random.normal()
+            # Calling transform on changed future.
+            X_check_array = self.predict_submission(trained_model, X_check)
+            X_neq = np.not_equal(
+                original_predict[:check_size], X_check_array[:check_size])
+            x_neq = np.any(X_neq, axis=1)
+            x_neq_nonzero = x_neq.nonzero()
+            if len(x_neq_nonzero[0]) == 0:  # no change anywhere
+                first_modified_index = check_index
+            else:
+                first_modified_index = np.min(x_neq_nonzero)
+            # Normally, the features should not have changed before check_index
+            if first_modified_index < check_index:
+                message = 'The feature extractor looks into the future by' +\
+                    ' at least {} time steps'.format(
+                        check_index - first_modified_index)
+                raise AssertionError(message)
+        pass
