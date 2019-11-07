@@ -220,7 +220,7 @@ class GenerativeRegressor(object):
                 first_modified_index = np.min(x_neq_nonzero)
             # Normally, the features should not have changed before check_index
             if first_modified_index < check_index:
-                message = 'The feature extractor looks into the future by' +\
+                message = 'The generative_regressor looks into the future by' +\
                     ' at least {} time steps'.format(
                         check_index - first_modified_index)
                 raise AssertionError(message)

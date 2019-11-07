@@ -7,7 +7,8 @@ from .testing import (
 from .submission import run_submission_on_cv_fold
 from .combine import get_score_cv_bags
 from .importing import import_file
-from .generative_regression import (MAX_PARAMS, distributions_dispatcher)
+from .generative_regression import (MAX_PARAMS, distributions_dispatcher,
+                                    distributions_dict)
 
 __all__ = ['assert_cv',
            'assert_data',
@@ -25,5 +26,6 @@ __all__ = ['assert_cv',
            'run_submission_on_cv_fold',
            'import_file',
            'distributions_dispatcher',
-           'MAX_PARAMS'
+           'MAX_PARAMS',
+           'distributions_dict'
            ]

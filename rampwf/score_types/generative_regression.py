@@ -138,7 +138,7 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
 
             nb_dists = int(y_pred[0, curr_idx])
 
-            assert nb_dists <= self.max_dists, "The maximum number" \
+            assert nb_dists <= self.max_dists, "The maximum number " \
                                                "of distributions allowed is {0} but you use {1}" \
                 .format(self.max_dists, nb_dists)
 
