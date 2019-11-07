@@ -3,10 +3,12 @@ from abc import ABC, abstractmethod
 from scipy.special import gamma
 
 # The maximum numbers of parameters a distribution would need
-MAX_PARAMS = 2
+MAX_PARAMS = 5
 
 
 class AbstractDists(ABC):
+    nb_params = np.nan
+    id = np.nan
 
     @staticmethod
     @abstractmethod
@@ -23,8 +25,20 @@ class AbstractDists(ABC):
     def sample(params):
         pass
 
+    @staticmethod
+    @abstractmethod
+    def mu(params):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def var(params):
+        pass
+
 
 class Normal(AbstractDists):
+    nb_params = 2
+    id = 0
 
     @staticmethod
     def pdf(x, params):
@@ -48,8 +62,18 @@ class Normal(AbstractDists):
     def sample(params):
         return np.random.normal(params[0], params[1])
 
+    @staticmethod
+    def mu(params):
+        return params[:, 0]
+
+    @staticmethod
+    def var(params):
+        return params[:, 1] ** 2
+
 
 class Uniform(AbstractDists):
+    nb_params = 2
+    id = 1
 
     @staticmethod
     def pdf(x, params):
@@ -66,12 +90,27 @@ class Uniform(AbstractDists):
         b = params[:, 1]
         assert np.all(a < b), "Make sure all \"a\" (first parameter)" \
                               " are bigger than \"b\" (second parameter)"
+
     @staticmethod
     def sample(params):
         return np.random.normal(params[0], params[1])
 
+    @staticmethod
+    def mu(params):
+        a = params[:, 0]
+        b = params[:, 1]
+        return 0.5 * (a + b)
+
+    @staticmethod
+    def var(params):
+        a = params[:, 0]
+        b = params[:, 1]
+        return (b - a) ** 2 / 12
+
 
 class Beta(AbstractDists):
+    nb_params = 4
+    id = 2
 
     @staticmethod
     def pdf(x, params):
@@ -81,7 +120,7 @@ class Beta(AbstractDists):
         scale = params[:, 3]
         y = (x - loc) / scale
         Beta.assert_params(x, params)
-        probs = gamma(a+b)/(gamma(a)*gamma(b)) * y**(a-1) * (1-y)**(b-1)
+        probs = (gamma(a + b) * y ** (a - 1) * (1 - y) ** (b - 1)) / (gamma(a) * gamma(b))
         return probs
 
     @staticmethod
@@ -103,8 +142,27 @@ class Beta(AbstractDists):
         x = y * scale + loc
         return x
 
+    @staticmethod
+    def mu(params):
+        a = params[:, 0]
+        b = params[:, 1]
+        loc = params[:, 2]
+        scale = params[:, 3]
+        mu = a / (a + b)
+        return mu * loc + scale
+
+    @staticmethod
+    def var(params):
+        a = params[:, 0]
+        b = params[:, 1]
+        scale = params[:, 3]
+        var = a * b / ((a + b) ** 2 * (a + b + 1))
+        return var * scale ** 2
+
 
 class EmptyDist(AbstractDists):
+    nb_params = np.nan
+    id = -1
 
     @staticmethod
     def pdf(x, params):
@@ -118,26 +176,25 @@ class EmptyDist(AbstractDists):
     def sample(params):
         raise RuntimeError("You should not sample from an empty distribution")
 
+    @staticmethod
+    def mu(params):
+        raise RuntimeError("You should not get mu from an empty distribution")
 
-def distributions_dispatcher(d_type):
-    distributions_dict = {
-        -1: EmptyDist,
-        0: Normal,
-        1: Uniform,
-        2: Beta
+    @staticmethod
+    def var(params):
+        raise RuntimeError("You should not get sigma from an empty distribution")
+
+
+_distributions_dict = {
+        cls.id: cls for cls in AbstractDists.__subclasses__()
     }
-    dist = distributions_dict.get(d_type)
+
+
+def distributions_dispatcher(d_type=-1):
+    dist = _distributions_dict.get(d_type)
     if dist is None:
         raise KeyError("%s not a valid distribution type." % d_type)
     return dist
-
-
-def get_pdf_from_dist(y, types, params):
-    # All the distributions for a given dimension and a given y are the same.
-    # The value need to be repeated to still be present when doing CV
-    d_type = types[0]
-    dist = distributions_dispatcher(d_type)
-    return dist.pdf(y, params)
 
 
 def sample_from_dist(d_type, params):
