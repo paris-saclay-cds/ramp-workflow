@@ -120,7 +120,8 @@ class Beta(AbstractDists):
         scale = params[:, 3]
         y = (x - loc) / scale
         Beta.assert_params(x, params)
-        probs = (gamma(a + b) * y ** (a - 1) * (1 - y) ** (b - 1)) / (gamma(a) * gamma(b))
+        probs = (gamma(a + b) * y ** (a - 1) * (1 - y) ** (b - 1)) / \
+                    (gamma(a) * gamma(b) * scale)
         return probs
 
     @staticmethod

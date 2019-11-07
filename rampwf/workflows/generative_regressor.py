@@ -208,7 +208,7 @@ class GenerativeRegressor(object):
             # Adding random noise to future.
             original_predict = self.predict_submission(trained_model, X_check)
             X_check.iloc[check_index] += np.random.normal()
-            # Calling transform on changed future.
+            # Calling predict on changed future.
             X_check_array = self.predict_submission(trained_model, X_check)
             X_neq = np.not_equal(
                 original_predict[:check_size], X_check_array[:check_size])
