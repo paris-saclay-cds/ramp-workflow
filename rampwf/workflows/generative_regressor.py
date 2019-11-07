@@ -1,7 +1,7 @@
 from rampwf.utils.importing import import_file
 import numpy as np
 import pandas as pd
-from ..utils import sample_from_dist, MAX_PARAMS
+from ..utils import distributions_dispatcher, MAX_PARAMS
 
 
 class GenerativeRegressor(object):
@@ -169,15 +169,23 @@ class GenerativeRegressor(object):
             weights, types, params = dists
             nb_dists = types.shape[1]
             y_dim = []
-            for i in range(len(types)):
+            for i in range(len(types)): # Number of timesteps
                 w = weights[i].ravel()
                 w = w / sum(w)
-                selected = np.random.choice(list(range(nb_dists)), p=w)
+                empty_dist = distributions_dispatcher()
+                selected_type = empty_dist
+                while selected_type == empty_dist:
+                    selected = np.random.choice(list(range(nb_dists)), p=w)
+                    dist = distributions_dispatcher(int(types[i, selected]))
+                    selected_type = int(types[i, selected])
+                sel_id = 0
+                for k in range(selected):
+                    firs_valid = np.where(
+                                ~np.array(types[:, k] == empty_dist)
+                                )[0][0]
+                    sel_id += distributions_dispatcher(firs_valid).nb_params
                 y_dim.append(
-                    sample_from_dist(types[i, selected],
-                                     params[i, selected*MAX_PARAMS:
-                                               (selected+1)*MAX_PARAMS]
-                                     )
+                    dist.sample(params[i, sel_id:sel_id+dist.nb_params])
                 )
             y_sampled.append(y_dim)
 
