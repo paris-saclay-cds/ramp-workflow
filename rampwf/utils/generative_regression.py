@@ -9,6 +9,7 @@ MAX_PARAMS = 5
 class AbstractDists(ABC):
     nb_params = np.nan
     id = np.nan
+    params = None
 
     @staticmethod
     @abstractmethod
@@ -39,6 +40,7 @@ class AbstractDists(ABC):
 class Normal(AbstractDists):
     nb_params = 2
     id = 0
+    params = ['mean', 'sd']
 
     @staticmethod
     def pdf(x, params):
@@ -74,6 +76,7 @@ class Normal(AbstractDists):
 class Uniform(AbstractDists):
     nb_params = 2
     id = 1
+    params = ['a', 'b']
 
     @staticmethod
     def pdf(x, params):
@@ -111,6 +114,7 @@ class Uniform(AbstractDists):
 class Beta(AbstractDists):
     nb_params = 4
     id = 2
+    params = ['a', 'b', 'loc', 'scale']
 
     @staticmethod
     def pdf(x, params):
@@ -164,6 +168,7 @@ class Beta(AbstractDists):
 class EmptyDist(AbstractDists):
     nb_params = np.nan
     id = -1
+    params = None
 
     @staticmethod
     def pdf(x, params):
@@ -186,13 +191,13 @@ class EmptyDist(AbstractDists):
         raise RuntimeError("You should not get sigma from an empty distribution")
 
 
-_distributions_dict = {
+distributions_dict = {
         cls.id: cls for cls in AbstractDists.__subclasses__()
     }
 
 
 def distributions_dispatcher(d_type=-1):
-    dist = _distributions_dict.get(d_type)
+    dist = distributions_dict.get(d_type)
     if dist is None:
         raise KeyError("%s not a valid distribution type." % d_type)
     return dist
