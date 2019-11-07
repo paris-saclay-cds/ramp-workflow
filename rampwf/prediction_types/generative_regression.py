@@ -1,22 +1,16 @@
 import numpy as np
 from .base import BasePrediction
-from ..utils import MAX_PARAMS
+from ..utils import MAX_PARAMS, distributions_dispatcher
 import warnings
 import itertools
 
 @property
 def _valid_indexes(self):
     """Return valid indices (e.g., a cross-validation slice)."""
-    if len(self.y_pred.shape) == 1:
-        return ~np.isnan(self.y_pred)
-    elif len(self.y_pred.shape) == 2:
-        return ~np.isnan(self.y_pred[:, 0])
-    elif len(self.y_pred.shape) == 3:
-        return ~np.isnan(self.y_pred[:, 0, 0])
-    else:
-        raise ValueError('y_pred.shape > 3 is not implemented')
+    return self.__valid_indexes
 
 def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
+    self.__valid_indexes = None
     if y_pred is not None:
         self.y_pred = y_pred
     elif y_true is not None:
@@ -36,12 +30,13 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
 # TODO rewrite the combine
 @classmethod
 def _combine(cls, predictions_list, index_list=None):
+
     if index_list is None:
         index_list = range(len(predictions_list))
     curr_indicies = np.zeros(len(predictions_list)).astype(int)
     dims = []
-
-    for idx_curr_dim in range(cls.n_columns):
+    idx_curr_dim = 0
+    while idx_curr_dim<cls.n_columns:
         combined_size=0
         curr_weights = []
         curr_types = []
@@ -50,9 +45,9 @@ def _combine(cls, predictions_list, index_list=None):
             curr_pred= predictions_list[i].y_pred
             dim_sizes = curr_pred[:,curr_indicies[i]]
             selected = np.isfinite(dim_sizes)
-            curr_size = dim_sizes[selected]
-            if curr_size.size != 0:
-                curr_size= int(curr_size[0])
+            curr_sizes = dim_sizes[selected]
+            if curr_sizes.size != 0:
+                curr_size= int(curr_sizes[0])
             else:
                 raise ValueError("One or more dimensions missing")
 
@@ -71,15 +66,25 @@ def _combine(cls, predictions_list, index_list=None):
 
             temp_types[~selected] = -1
 
+            active_types = temp_types[selected][0]
+
             curr_types.append(
                 temp_types)
 
+            curr_indicies[i] += 1 + curr_size * 2
+
+            end_single_genreg = curr_indicies[i]
+            # Recover the right number of params for each distribution
+            for k in range(curr_size):
+                active_type = int(active_types[k])
+                dist = distributions_dispatcher(active_type)
+                end_single_genreg += dist.nb_params
+
             curr_params.append(
-                curr_pred[:, curr_indicies[i]+1+2*curr_size:
-                             curr_indicies[i]+1+(2+MAX_PARAMS)*curr_size])
+                curr_pred[:, curr_indicies[i]:end_single_genreg])
 
+            curr_indicies[i] = end_single_genreg
 
-            curr_indicies[i] += 1 + curr_size * (2 + MAX_PARAMS)
         weights = np.concatenate(curr_weights, axis = 1)
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=RuntimeWarning)
@@ -87,12 +92,20 @@ def _combine(cls, predictions_list, index_list=None):
         types = np.concatenate(curr_types, axis = 1)
         params = np.concatenate(curr_params, axis = 1)
         sizes = np.full((params.shape[0], 1), combined_size).astype(float)
-        sizes[np.isnan(params[:,0])] = np.nan
 
         curr_dim = np.concatenate((sizes, weights, types, params), axis=1)
         dims.append(curr_dim)
+        idx_curr_dim+=1
 
     combined_predictions = cls(y_pred= np.concatenate(dims, axis=1))
+
+    set_valid_indicies = []
+    for i in range(len(predictions_list)):
+        set_valid_indicies.append(~np.isnan(predictions_list[i].y_pred[:, 0]))
+
+    combined_predictions.__valid_indexes=\
+        np.logical_or.reduce(set_valid_indicies)
+
     return combined_predictions
 
 
