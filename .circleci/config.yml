@@ -18,6 +18,8 @@ jobs:
       - persist_to_workspace: # save contents of doc/_build to intermediate location accesible to later jobs
           root: doc/_build 
           paths: html
+      - store_artifacts: # store so built docs can be viewed post build
+          path: doc/_build/html
   doc-deploy:
     docker:
       - image: node:8.10.0  # use node base image to use `npm` package
