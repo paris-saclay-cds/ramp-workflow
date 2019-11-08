@@ -157,7 +157,6 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
                 curr_idx = end_params
                 weighted_probs[mask] += weights[:, i][mask] * probs
             partial_lk = np.log(weighted_probs)
-            # partial_lk = np.clip(partial_lk, WORST_LK, None, out=partial_lk)
             logLK += np.sum(-partial_lk)
 
         return logLK / y_true.size
