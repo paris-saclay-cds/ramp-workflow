@@ -13,6 +13,7 @@ from .simplified_image_classifier import SimplifiedImageClassifier
 from .object_detector import ObjectDetector
 from .regressor import Regressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
+from .ts_fe_gen_reg import TSFEGenReg
 
 __all__ = [
     'AirPassengers',
@@ -30,4 +31,5 @@ __all__ = [
     'ObjectDetector',
     'Regressor',
     'TimeSeriesFeatureExtractor',
+    'TSFEGenReg',
 ]
