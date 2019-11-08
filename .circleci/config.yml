@@ -16,7 +16,7 @@ jobs:
             cd doc
             make html
       - persist_to_workspace: # save contents of doc/_build to intermediate location accesible to later jobs
-          root: doc/_build 
+          root: doc/_build
           paths: html
       - store_artifacts: # store so built docs can be viewed post build
           path: doc/_build/html
