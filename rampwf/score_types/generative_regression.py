@@ -118,10 +118,9 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, max_dists, name='logLKGauss', precision=2):
+    def __init__(self, name='logLKGauss', precision=2):
         self.name = name
         self.precision = precision
-        self.max_dists = max_dists
 
     def __call__(self, y_true, y_pred):
 
@@ -137,11 +136,6 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
         for y_true_dim in y_true:
 
             nb_dists = int(y_pred[0, curr_idx])
-
-            assert nb_dists <= self.max_dists, "The maximum number " \
-                                               "of distributions allowed is {0} but you use {1}" \
-                .format(self.max_dists, nb_dists)
-
             curr_idx += 1
             id_params_start = curr_idx + nb_dists * 2
             weights = y_pred[:, curr_idx:curr_idx + nb_dists]
@@ -174,13 +168,12 @@ class LikelihoodRatioDists(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, max_dists, name='ll_ratio', precision=2):
+    def __init__(self, name='ll_ratio', precision=2):
         self.name = name
         self.precision = precision
-        self.max_dists = max_dists
 
     def __call__(self, y_true, y_pred):
-        nll_reg_score = NegativeLogLikelihoodRegDists(self.max_dists)
+        nll_reg_score = NegativeLogLikelihoodRegDists()
         nll_reg = nll_reg_score(y_true, y_pred)
 
         if len(y_true.shape) == 1:
