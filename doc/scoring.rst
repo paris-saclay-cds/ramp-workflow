@@ -102,7 +102,7 @@ prediction.
 Note that technically this is not what bagging means, but the name is used for
 historical reasons.
 
-RAMP Studio submissions
+RAMP event submissions
 =======================
 
 The above scores are also calculated when you make a submission to a RAMP

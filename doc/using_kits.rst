@@ -36,7 +36,7 @@ To get started working on an existing RAMP challenge:
      .. code-block:: bash
 
         $ pip install -r requirements.txt
-        # install ramp workflow
+        # install ramp-workflow
         $ pip install https://api.github.com/repos/paris-saclay-cds/ramp-workflow/zipball/master
 
 3. Test that the starting kit works:
@@ -56,7 +56,11 @@ To get started working on an existing RAMP challenge:
    for more details.
 
 Now you are ready to write your own solution for the prediction problem. It is
-useful to read the starting kit notebook which will outline the 
+useful to read the starting kit notebook which will introduce the problem,
+provide some data analysis and visualisation and walk you through a simple
+example solution. There will also be at least one example submission in
+``submissions/``, which show you which files are required for each submission,
+how they need to be named and how each file should be structured.
 
 Submiting to a RAMP event
 =========================
