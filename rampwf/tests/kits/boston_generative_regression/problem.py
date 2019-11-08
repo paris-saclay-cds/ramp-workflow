@@ -13,8 +13,8 @@ Predictions = rw.prediction_types. \
                                label_names=_target_column_name)
 
 score_types = [
-    rw.score_types.NegativeLogLikelihoodRegDists(MAX_DISTS),
-    rw.score_types.LikelihoodRatioDists(MAX_DISTS)
+    rw.score_types.NegativeLogLikelihoodRegDists(),
+    rw.score_types.LikelihoodRatioDists()
 ]
 
 
