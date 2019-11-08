@@ -19,5 +19,5 @@ __all__ = ['assert_cv',
            'run_submission_on_cv_fold',
            'distributions_dispatcher',
            'MAX_PARAMS',
-           'distributions_dict'
+           'distributions_dict',
            ]
