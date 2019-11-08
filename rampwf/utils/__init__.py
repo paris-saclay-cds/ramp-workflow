@@ -27,5 +27,5 @@ __all__ = ['assert_cv',
            'import_file',
            'distributions_dispatcher',
            'MAX_PARAMS',
-           'distributions_dict'
+           'distributions_dict',
            ]
