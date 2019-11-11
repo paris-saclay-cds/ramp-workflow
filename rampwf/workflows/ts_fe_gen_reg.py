@@ -79,7 +79,7 @@ class TSFEGenReg:
                           axis=1)
         obs = ['y_' + obs for obs in self.target_column_observation_names]
         reg = self.regressor_workflow.train_submission(
-            module_path, X_obs,
+            module_path, X_obs,  # we could use y_array[train_is] here
             X_df.to_dataframe()[obs].iloc[train_is].values)
         return fe, reg
 
