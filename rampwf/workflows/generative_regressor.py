@@ -105,8 +105,6 @@ class GenerativeRegressor(object):
                 X_array = X_array.drop(columns=self.restart_name)
                 n_columns -= len(self.restart_name)
             except KeyError:
-                print("The generative regressor was not given information about"
-                      " restarts, make sur this is intended.")
                 restart = None
 
         truths = ["y_" + t for t in self.target_column_name]
