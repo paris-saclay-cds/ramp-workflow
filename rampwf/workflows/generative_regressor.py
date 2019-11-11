@@ -47,8 +47,6 @@ class GenerativeRegressor(object):
                 X_array = X_array.drop(columns=self.restart_name)
                 restart = restart[train_is,]
             except KeyError:
-                print("The generative regressor was not given information about"
-                      " restarts, make sur this is intended.")
                 restart = None
 
         if type(X_array).__module__ != np.__name__:
