@@ -10,6 +10,9 @@ from .detection import (
     OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
     AverageDetectionPrecision, DetectionAveragePrecision)
 from .f1_above import F1Above
+from .generative_regression import (
+    NegativeLogLikelihoodReg, LikelihoodRatio,
+    NegativeLogLikelihoodRegDists, LikelihoodRatioDists)
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
@@ -50,4 +53,8 @@ __all__ = [
     'ROCAUC',
     'SCP',
     'SoftAccuracy',
+    'NegativeLogLikelihoodReg',
+    'LikelihoodRatio',
+    'NegativeLogLikelihoodRegDists',
+    'LikelihoodRatioDists'
 ]

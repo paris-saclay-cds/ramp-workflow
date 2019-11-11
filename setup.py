@@ -60,7 +60,8 @@ if __name__ == "__main__":
             'scipy',
             'pandas>=0.19.2',
             'scikit-learn>=0.18',
-            'cloudpickle'],
+            'cloudpickle',
+            'click'],
         platforms='any',
         packages=find_packages(),
         entry_points={

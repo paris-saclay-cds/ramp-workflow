@@ -338,7 +338,8 @@ class RandomEngine(object):
             next_value_indices = [
                 h.get_index(v) for h, v
                 in zip(self.hyperparameters, next_values)]
-            fold_i = incomplete_folds.iloc[0]['fold_i'] % n_folds
+            # for some reason iloc converts int to float
+            fold_i = int(incomplete_folds.iloc[0]['fold_i']) % n_folds
         # Otherwise select hyperparameter values from those that haven't
         # been selected yet, using also prior
         else:
@@ -453,10 +454,17 @@ class HyperparameterOptimization(object):
     def _save_best_model(self):
         official_scores = self.df_summary_[
             'valid_' + self.problem.score_types[0].name + '_m']
-        best_defaults = official_scores.idxmax()
+        if self.problem.score_types[0].is_lower_the_better:
+            best_defaults = official_scores.idxmin()
+        else:
+            best_defaults = official_scores.idxmax()
         print('Best hyperparameters: ', best_defaults)
-        for bd, h in zip(best_defaults, self.hyperparameters):
-            h.set_default(bd)
+        try:
+            for bd, h in zip(best_defaults, self.hyperparameters):
+                h.set_default(bd)
+        except(TypeError):
+            # single hyperparameter
+            self.hyperparameters[0].set_default(best_defaults)
         # Overwrite the submission with the best hyperparameter values
         write_hyperparameters(
             self.submission_dir, self.submission_dir,

@@ -51,7 +51,7 @@ def assert_cv(ramp_kit_dir='.', ramp_data_dir='.'):
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     print_title('Reading cv ...')
     cv = list(problem.get_cv(X_train, y_train))
-    return cv
+    return cv, X_train, y_train
 
 
 def assert_score_types(ramp_kit_dir='.'):
@@ -87,7 +87,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
-    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
+    cv, X_train, y_train = assert_cv(ramp_kit_dir, ramp_data_dir)
     score_types = assert_score_types(ramp_kit_dir)
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
