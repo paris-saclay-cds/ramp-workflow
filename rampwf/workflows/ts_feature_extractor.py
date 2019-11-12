@@ -120,7 +120,7 @@ class TimeSeriesFeatureExtractor(object):
             X_neq = np.not_equal(
                 X_test_array[:check_size], X_check_array[:check_size])
             x_neq = np.any(X_neq, axis=1)
-            x_neq_nonzero = x_neq.nonzero()
+            x_neq_nonzero = x_neq.to_numpy().nonzero()
             if len(x_neq_nonzero[0]) == 0:  # no change anywhere
                 first_modified_index = check_index
             else:

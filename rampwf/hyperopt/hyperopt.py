@@ -147,7 +147,7 @@ class Hyperparameter(object):
                 The string representation of the hyperparameter.
         """
         repr = '{} = Hyperparameter(\n'.format(self.name)
-        repr += "\tdtype='{}'".format(str(self.dtype))
+        repr += '\tdtype={}'.format(str(self.dtype))
         repr += ', default={}'.format(self.default_repr)
         repr += ', values={})\n'.format(self.values_repr)
         return repr
