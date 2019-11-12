@@ -57,29 +57,16 @@ class TSFEGenReg:
 
         fe = self.feature_extractor_workflow.train_submission(
             module_path, X_df, y_array, train_is)
-
         if train_is is None:
             train_is = slice(None, None, None)
-
         cols_for_extraction = self.target_column_observation_names + \
                               self.target_column_action_names + \
                               self.restart_names
-
-        X_train_array = self.feature_extractor_workflow.test_submission(
+        X_train_df = self.feature_extractor_workflow.test_submission(
             fe, X_df[cols_for_extraction][{self.timestamp_name: train_is}])
-
-        # X_obs is o(t-1), a(t-1) concatenated with a(t)
-        extra_actions = [act + '_extra' for act in
-                         self.target_column_action_names]
-
-        X_obs = pd.concat([X_train_array,
-                           X_df[extra_actions][{
-                               self.timestamp_name: train_is
-                           }].to_dataframe()],
-                          axis=1)
         obs = ['y_' + obs for obs in self.target_column_observation_names]
         reg = self.regressor_workflow.train_submission(
-            module_path, X_obs,  # we could use y_array[train_is] here
+            module_path, X_train_df,  # we could use y_array[train_is] here
             X_df.to_dataframe()[obs].iloc[train_is].values)
         return fe, reg
 
@@ -91,22 +78,14 @@ class TSFEGenReg:
                               self.target_column_action_names + \
                               self.restart_names
 
-        X_test_array = self.feature_extractor_workflow.test_submission(
+        X_test_df = self.feature_extractor_workflow.test_submission(
             fe, X_df[cols_for_extraction])
-
-        extra_actions = [act + '_extra' for act in
-                         self.target_column_action_names]
-        X_obs = pd.concat(
-            [X_test_array, X_df[extra_actions].to_dataframe()], axis=1)
-
         extra_obs = ['y_' + obs for obs in
                      self.target_column_observation_names]
-        X_obs = pd.concat([X_obs, X_df[extra_obs].to_dataframe()], axis=1)
-
-        y_pred_obs = self.regressor_workflow.test_submission(reg, X_obs)
-
+        X_test_df = pd.concat(
+            [X_test_df, X_df[extra_obs].to_dataframe()], axis=1)
+        y_pred_obs = self.regressor_workflow.test_submission(reg, X_test_df)
         nb_dists = y_pred_obs[0, 0]
-
         assert nb_dists <= self.max_dists, \
             "The maximum number of distributions allowed is {0}" \
             "but you use {1}".format(self.max_dists, nb_dists)
