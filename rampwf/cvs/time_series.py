@@ -78,7 +78,7 @@ class TimeSeries(object):
 
 
 def fold_to_str(idxs):
-    """Printing corss validation folds."""
+    """Printing cross validation folds."""
     idx_array = np.array(idxs)
     boundaries = np.array((idx_array[1:] - 1 != idx_array[:-1]).nonzero())
     boundaries = np.insert(boundaries, 0, -1)
@@ -105,7 +105,7 @@ class InsideRestart(object):
         episode_bounds = list(np.where(X_df['restart'])[0])
         episode_bounds.insert(0, 0)
         episode_bounds.append(len(y))
-        print('restarts: {}'.format(episode_bounds))
+        print('episode bounds: {}'.format(episode_bounds))
         n_episodes = X_df['restart'].sum()  # The number of episodes
         episode_list = []
         ranges = []
@@ -146,7 +146,7 @@ class PerRestart(object):
         episode_bounds = list(np.where(X_df['restart'])[0])
         episode_bounds.insert(0, 0)
         episode_bounds.append(len(y))
-        print('restarts: {}'.format(episode_bounds))
+        print('episode bounds: {}'.format(episode_bounds))
         n_episodes = X_df['restart'].sum() + 1  # The number of episodes
         k_fold = KFold(n_splits=n_episodes, shuffle=False)
         for fold_i, (train_idx, test_idx) in enumerate(k_fold.split(
