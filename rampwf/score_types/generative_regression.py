@@ -140,9 +140,9 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
             id_params_start = curr_idx + nb_dists * 2
             weights = y_pred[:, curr_idx:curr_idx + nb_dists]
             types = y_pred[:, curr_idx + nb_dists:id_params_start]
-
-            assert np.allclose(weights.sum(axis=1), 1.0), \
-                "The weight should sum up to 1"
+            sum_weights = weights.sum(axis=1)
+            assert np.allclose(sum_weights, 1.0), \
+                "The weights should sum up to 1, not {}.".format(sum_weights)
 
             curr_idx = id_params_start
             weighted_probs = np.zeros(len(y_true_dim))
