@@ -124,22 +124,26 @@ class Beta(AbstractDists):
         loc = params[:, 2]
         scale = params[:, 3]
         y = (x - loc) / scale
-        Beta.assert_params(x, params)
+        Beta.assert_params(x)
         probs = (gamma(a + b) * y ** (a - 1) * (1 - y) ** (b - 1)) / \
                 (gamma(a) * gamma(b) * scale)
+
+        probs = np.array(np.real(probs), dtype='float64')
+        probs[x < loc] = 0
+        probs[x > loc + scale] = 0
         return probs
 
     @staticmethod
-    def assert_params(x, params):
+    def assert_params(params):
         a = params[:, 0]
         b = params[:, 1]
-        loc = params[:, 2]
+        # loc = params[:, 2]
         scale = params[:, 3]
         assert np.all(a > 0), "Make sure all \"a\" > 0"
         assert np.all(b > 0), "Make sure all \"b\" > 0"
         assert np.all(scale > 0), "Make sure all \"scale\" > 0"
-        assert np.all(x >= loc), "Make sure all \"x\" > \"loc\""
-        assert np.all(x <= loc + scale), "Make sure all \"x\" < \"loc\"+\"scale\""
+        # assert np.all(x >= loc), "Make sure all \"x\" > \"loc\""
+        # assert np.all(x <= loc + scale), "Make sure all \"x\" < \"loc\"+\"scale\""
 
     @staticmethod
     def sample(params):
@@ -266,18 +270,23 @@ class VonMises(AbstractDists):
         kappa = params[:, 0]
         loc = params[:, 1]
         scale = params[:, 2]
-        VonMises.assert_params(x, params)
-        return vonmises.pdf(x, kappa, loc, scale)
+        VonMises.assert_params(params)
+        probs = vonmises.pdf(x, kappa, loc, scale)
+
+        probs = np.array(probs)
+        probs[x < loc-np.pi*scale] = 0
+        probs[x > loc+np.pi*scale] = 0
+        return
 
     @staticmethod
-    def assert_params(x, params):
+    def assert_params(params):
         kappa = params[:, 0]
         loc = params[:, 1]
         scale = params[:, 2]
         assert np.all(kappa > 0), "Make sure all \"kappa\" > 0"
         assert np.all(scale > 0), "Make sure all \"scale\" > 0"
-        assert np.all(x >= loc-np.pi*scale), "Make sure all \"x\" >= \"loc-np.pi*scale\""
-        assert np.all(x <= loc+np.pi*scale), "Make sure all \"x\" <= \"loc+np.pi*scale\""
+        # assert np.all(x >= loc-np.pi*scale), "Make sure all \"x\" >= \"loc-np.pi*scale\""
+        # assert np.all(x <= loc+np.pi*scale), "Make sure all \"x\" <= \"loc+np.pi*scale\""
 
     @staticmethod
     def sample(params):
