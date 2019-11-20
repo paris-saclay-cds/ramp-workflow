@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from scipy.special import gamma
-from scipy.stats import truncnorm, norm, foldnorm, vonmises
+from scipy.stats import truncnorm, norm, foldnorm, vonmises, beta
 
 # The maximum numbers of parameters a distribution would need
 MAX_PARAMS = 5
@@ -298,6 +298,62 @@ class VonMises(AbstractDists):
     @staticmethod
     def mu(params):
         return params[:, 1]
+
+    @staticmethod
+    def var(params):
+        raise NotImplementedError()
+
+
+class Pert(AbstractDists):
+    nb_params = 4
+    id = 6
+    params = ['a', 'b', 'c', 'lamb']
+
+    @staticmethod
+    def pdf(x, params):
+        a = params[:, 0]
+        b = params[:, 1]
+        c = params[:, 2]
+        lamb = params[:, 3]
+        Pert.assert_params(params)
+
+        size = c - a
+        alphas = 1 + (lamb * ((b-a)/size))
+        betas = 1 + (lamb * ((c-b)/size))
+        x_trans = ((x - a) / size)
+
+        probs = beta.pdf(x_trans, alphas, betas) / size
+        probs = np.array(probs)
+        probs[x < a] = 0
+        probs[x > c] = 0
+        return probs
+
+    @staticmethod
+    def assert_params(params):
+        a = params[:, 0]
+        b = params[:, 1]
+        c = params[:, 2]
+        lamb = params[:, 3]
+        assert np.all(b > a), "Make sure all \"b\" > \"a\""
+        assert np.all(c > b), "Make sure all \"c\" > \"b\""
+        assert np.all(lamb > 0), "Make sure all \"lambda\" > 0"
+
+    @staticmethod
+    def sample(params):
+        a = params[:, 0]
+        b = params[:, 1]
+        c = params[:, 2]
+        lamb = params[:, 3]
+
+        size = c - a
+        alphas = 1 + lamb * (b-a)/size
+        betas = 1 + lamb * (c-b)/size
+        sampled = beta.rvs(alphas, betas) * size + a
+        return sampled
+
+    @staticmethod
+    def mu(params):
+        raise NotImplementedError()
 
     @staticmethod
     def var(params):
