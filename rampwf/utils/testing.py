@@ -4,6 +4,10 @@
 from __future__ import print_function
 
 import os
+<<<<<<< HEAD
+=======
+import imp
+>>>>>>> 3d21143 (fixing blending)
 import shutil
 
 import numpy as np
@@ -252,6 +256,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             predictions_valid_list, ground_truths_valid,
             score_types[score_type_index],
             min_improvement=min_improvement)
+        print(best_index_list)
 
         # we share a unit of 1. among the contributive submissions
         unit_contributivity = 1. / len(best_index_list)
