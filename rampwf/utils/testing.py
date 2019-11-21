@@ -212,7 +212,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     print_title('Blending {}'.format(problem.problem_title))
     X_train, y_train, X_test, y_test = assert_data(
         ramp_kit_dir, ramp_data_dir, data_label)
-    cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
+    cv, _, _ = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     score_types = assert_score_types(ramp_kit_dir)
     n_folds = len(valid_is_list)
