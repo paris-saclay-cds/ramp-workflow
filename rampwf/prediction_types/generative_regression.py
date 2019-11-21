@@ -42,7 +42,7 @@ def _combine(cls, predictions_list, index_list=None):
         curr_weights = []
         curr_types = []
         curr_params = []
-        for i in index_list:
+        for i in range(len(index_list)):
             curr_pred = predictions_list[index_list[i]].y_pred
             dim_sizes = curr_pred[:, curr_indicies[i]]
             selected = np.isfinite(dim_sizes)
@@ -55,7 +55,7 @@ def _combine(cls, predictions_list, index_list=None):
             combined_size += curr_size
 
             temp_weights = curr_pred[:, curr_indicies[i] + 1:
-                                        curr_indicies[i] + 1 + curr_size]
+                                     curr_indicies[i] + 1 + curr_size]
 
             temp_weights[~selected] = 0
 
