@@ -276,7 +276,7 @@ class VonMises(AbstractDists):
         probs = np.array(probs)
         probs[x < loc-np.pi*scale] = 0
         probs[x > loc+np.pi*scale] = 0
-        return
+        return probs
 
     @staticmethod
     def assert_params(params):
