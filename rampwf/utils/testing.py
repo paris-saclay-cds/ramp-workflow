@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import imp
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -157,13 +158,36 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='.', save_output=False,
                       min_improvement=0.0):
+    """Blending submissions in a ramp-kit and compute contributivities.
+
+    If save_output is True, we create three files:
+    <ramp_submission_dir>/training_output/contributivities.csv
+    <ramp_submission_dir>/training_output/bagged_scores_combined.csv
+    <ramp_submission_dir>/training_output/bagged_scores_foldwise_best.csv
+
+    Parameters
+    ----------
+    submissions : list of str
+        List of submission names (folders in <ramp_submission_dir>).
+    ramp_kit_dir : str, default='.'
+        The directory of the ramp-kit to be blended.
+    ramp_data_dir : str, default='.'
+        The directory of the data.
+    ramp_submission_dir : str, default='./submissions'
+        The directory of the submissions.
+    save_output : bool, default is False
+        Whether to store the blending results.
+    min_improvement : float, default is 0.0
+        The minimum improvement under which greedy blender is stopped.
+    """
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
     cv, _, _ = assert_cv(ramp_kit_dir, ramp_data_dir)
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     score_types = assert_score_types(ramp_kit_dir)
-    contributivitys = np.zeros(len(submissions))
+    n_folds = len(valid_is_list)
+    contributivitys = np.zeros((len(submissions), n_folds))
 
     combined_predictions_valid_list = []
     foldwise_best_predictions_valid_list = []
@@ -194,11 +218,12 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         best_index_list = blend_on_fold(
             predictions_valid_list, ground_truths_valid, score_types[0],
             min_improvement=min_improvement)
+        print(best_index_list)
 
         # we share a unit of 1. among the contributive submissions
         unit_contributivity = 1. / len(best_index_list)
         for i in best_index_list:
-            contributivitys[i] += unit_contributivity
+            contributivitys[i, fold_i] += unit_contributivity
 
         combined_predictions_valid_list.append(
             problem.Predictions.combine(
@@ -211,18 +236,30 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         foldwise_best_predictions_test_list.append(
             predictions_test_list[best_index_list[0]])
 
-    contributivitys /= len(cv)
+    contributivitys /= n_folds
     contributivitys_df = pd.DataFrame()
     contributivitys_df['submission'] = np.array(submissions)
-    contributivitys_df['contributivity'] = np.round(contributivitys, 3)
-    contributivitys_df = contributivitys_df.reset_index()
+    contributivitys_df['contributivity'] = np.zeros(len(submissions))
+    for fold_i in range(n_folds):
+        c_i = contributivitys[:, fold_i]
+        contributivitys_df['fold_{}'.format(fold_i)] = c_i
+        contributivitys_df['contributivity'] += c_i
+    percentage_factor = 100 / contributivitys_df['contributivity'].sum()
+    contributivitys_df['contributivity'] *= percentage_factor
+    rounded = contributivitys_df['contributivity'].round().astype(int)
+    contributivitys_df['contributivity'] = rounded
     contributivitys_df = contributivitys_df.sort_values(
         'contributivity', ascending=False)
     print(contributivitys_df.to_string(index=False))
 
-    training_output_path = os.path.join(ramp_kit_dir, 'training_output')
-    if not os.path.exists(training_output_path):
-        os.mkdir(training_output_path)
+    if save_output:
+        training_output_path = os.path.join(
+            ramp_submission_dir, 'training_output')
+        contributivitys_df.to_csv(os.path.join(
+            training_output_path, 'contributivities.csv'), index=False)
+        if not os.path.exists(training_output_path):
+            os.mkdir(training_output_path)
+
     # bagging the foldwise ensembles
     bag_submissions(
         problem, cv, y_train, y_test, combined_predictions_valid_list,
@@ -230,6 +267,11 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         ramp_data_dir=ramp_data_dir, score_type_index=0,
         save_output=save_output, score_table_title='Combined bagged scores',
         score_f_name_prefix='foldwise_best')
+    if save_output:
+        shutil.move(
+            os.path.join(training_output_path, 'bagged_scores.csv'),
+            os.path.join(training_output_path, 'bagged_scores_combined.csv'))
+
     # bagging the foldwise best submissions
     bag_submissions(
         problem, cv, y_train, y_test, foldwise_best_predictions_valid_list,
@@ -238,3 +280,8 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         save_output=save_output,
         score_table_title='Foldwise best bagged scores',
         score_f_name_prefix='combined')
+    if save_output:
+        shutil.move(
+            os.path.join(training_output_path, 'bagged_scores.csv'),
+            os.path.join(
+                training_output_path, 'bagged_scores_foldwise_best.csv'))
