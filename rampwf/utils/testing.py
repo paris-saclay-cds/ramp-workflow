@@ -160,7 +160,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
-    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
+    cv, _, _ = assert_cv(ramp_kit_dir, ramp_data_dir)
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     score_types = assert_score_types(ramp_kit_dir)
     contributivitys = np.zeros(len(submissions))
@@ -201,11 +201,15 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             contributivitys[i] += unit_contributivity
 
         combined_predictions_valid_list.append(
-            problem.Predictions.combine(predictions_valid_list))
-        foldwise_best_predictions_valid_list.append(predictions_valid_list[0])
+            problem.Predictions.combine(
+                predictions_valid_list, best_index_list))
+        foldwise_best_predictions_valid_list.append(
+            predictions_valid_list[best_index_list[0]])
         combined_predictions_test_list.append(
-            problem.Predictions.combine(predictions_test_list))
-        foldwise_best_predictions_test_list.append(predictions_test_list[0])
+            problem.Predictions.combine(
+                predictions_test_list, best_index_list))
+        foldwise_best_predictions_test_list.append(
+            predictions_test_list[best_index_list[0]])
 
     contributivitys /= len(cv)
     contributivitys_df = pd.DataFrame()
