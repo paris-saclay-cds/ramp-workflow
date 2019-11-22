@@ -112,6 +112,15 @@ def _combine(cls, predictions_list, index_list=None):
 
 def set_valid_in_train(self, predictions, test_is):
     """Set a cross-validation slice."""
+
+    # Blending can create arbitrary-length mixtures. Sometimes
+    # we need to extend the prediction array to accomodate this.
+    if predictions.y_pred.shape[1] > self.y_pred.shape[1]:
+        shape = (self.y_pred.shape[0], predictions.y_pred.shape[1])
+        y_pred = np.empty(shape, dtype=float)
+        y_pred.fill(np.nan)
+        y_pred[:, :self.y_pred.shape[1]] = self.y_pred
+        self.y_pred = y_pred
     self.y_pred[test_is, :predictions.y_pred.shape[1]] = predictions.y_pred
 
 
