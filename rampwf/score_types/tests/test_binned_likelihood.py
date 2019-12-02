@@ -2,7 +2,7 @@ from __future__ import division
 
 import numpy as np
 
-from rampwf.score_types.negative_log_likelihood import NegativeLogLikelihoodReg
+from rampwf.score_types.generative_regression import NegativeLogLikelihoodReg
 import pytest
 
 NBINS = 2
