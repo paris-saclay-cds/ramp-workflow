@@ -52,7 +52,7 @@ def assert_cv(ramp_kit_dir='.', ramp_data_dir='.'):
     X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     print_title('Reading cv ...')
     cv = list(problem.get_cv(X_train, y_train))
-    return cv, X_train, y_train
+    return cv
 
 
 def assert_score_types(ramp_kit_dir='.'):
@@ -183,7 +183,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
-    cv, _, _ = assert_cv(ramp_kit_dir, ramp_data_dir)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     score_types = assert_score_types(ramp_kit_dir)
     n_folds = len(valid_is_list)
@@ -254,10 +254,10 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     if save_output:
         training_output_path = os.path.join(
             ramp_submission_dir, 'training_output')
-        contributivitys_df.to_csv(os.path.join(
-            training_output_path, 'contributivities.csv'), index=False)
         if not os.path.exists(training_output_path):
             os.mkdir(training_output_path)
+        contributivitys_df.to_csv(os.path.join(
+            training_output_path, 'contributivities.csv'), index=False)
 
     # bagging the foldwise ensembles
     bag_submissions(
