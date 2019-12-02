@@ -3,10 +3,10 @@
 The problem.py file
 ###################
 
-The ``problem.py`` file uses building blocks from the `RAMP-workflow`_
+The ``problem.py`` file uses building blocks from the `RAMP workflow`_
 library. These building blocks allow the ``problem.py`` file to be relatively
 simple because the complexity is hidden by the implementation of the building
-blocks in RAMP-workflow. Titanic survival classification challenge
+blocks in RAMP workflow. Titanic survival classification challenge
 will be used as an example when discussing each aspect of the ``problem.py``
 file. It is worth taking a look at the `whole file
 <https://github.com/ramp-kits/titanic/blob/master/problem.py>`_ for reference.
@@ -60,9 +60,9 @@ file. It is worth taking a look at the `whole file
 
   Select the appropriate prediction class for your challenge and state this
   in the ``problem.py`` file. If the appropriate prediction class does not
-  exist in `RAMP-workflow`_, you can define your own prediction class within
+  exist in `RAMP workflow`_, you can define your own prediction class within
   the ``problem.py`` file. If it is not too specific, we would also encourage
-  you to add your class to `RAMP-workflow`_ so others can use it in future.
+  you to add your class to `RAMP workflow`_ so others can use it in future.
   See :ref:`contributing`.
   
   For example, the Titanic survival classification
@@ -85,7 +85,7 @@ file. It is worth taking a look at the `whole file
    testing time. An attribute called ``workflow_element_names`` is also
    required. This attribute is a list of the file names that
    ``ramp_test_submission`` expects for each submission. This class is
-   implemented by RAMP-workflow internals to train and test each submission of a
+   implemented by RAMP workflow internals to train and test each submission of a
    challenge. The `workflows
    <https://github.com/paris-saclay-cds/ramp-workflow/tree/master/rampwf/workflows>`_
    available are described below:
@@ -151,16 +151,13 @@ file. It is worth taking a look at the `whole file
     a model to batches of images (you can define batch size). For an example
     you can take a look at the `MNIST
     <https://github.com/ramp-kits/MNIST>`_
-    or `Pollenating insects
-    <https://github.com/ramp-kits/pollenating_insects>`_
-    challenges.
+    or `Pollenating insects`_ challenges.
   * ``SimplifiedImageClassifier()`` - this is a simplified version of the
     above workflow where there is no image preprocessing step and instead of
     training and test batches of images, ``fit()`` and ``predict_proba()`` is
     performed on one image at a time. For an example, take a look at the
     `MNIST simplified <https://github.com/ramp-kits/MNIST_simplified>`_
-    and `Pollenating insects <https://github.com/ramp-kits/pollenating_insects_3_simplified>`_
-    challenges.
+    and `Pollenating insects`_ challenges.
   * ``ObjectDetector()`` - this workflow is used for image object detection
     tasks. It workflow imports one, ``object_detector.py``, from the
     submissions folder, which should define a class, ``ObjectDetector``, with
@@ -196,10 +193,10 @@ file. It is worth taking a look at the `whole file
     requires 4 files named; ``feature_extractor_clf.py``,
     ``classifier.py``, ``feature_extractor_reg.py`` and ``regressor.py``.
 
-   If the appropriate workflow class does not exist in `RAMP-workflow`_, you
+   If the appropriate workflow class does not exist in `RAMP workflow`_, you
    can define your own workflow class within the ``problem.py`` file. If it is
    not too specific,We would also encourage you to add your class to
-   `RAMP-workflow`_ so others can use it in future. See :ref:`contributing`.
+   `RAMP workflow`_ so others can use it in future. See :ref:`contributing`.
 
    The Titanic challenge employed the ``feature_extractor_classifier()``
    workflow. This can be specified simply with::
@@ -245,9 +242,9 @@ file. It is worth taking a look at the `whole file
   this example, the extra complexity was ignored.
 
   Again if the appropriate score metric class does not exist in
-  `RAMP-workflow`_, you can define your own score metric class within the
+  `RAMP workflow`_, you can define your own score metric class within the
   ``problem.py`` file. If it is not too specific, we would also encourage you
-  to add your class to `RAMP-workflow`_ so others can use it in future. See
+  to add your class to `RAMP workflow`_ so others can use it in future. See
   :ref:`contributing`.
 
 .. _cross-validation:
@@ -298,4 +295,5 @@ file. It is worth taking a look at the `whole file
    The ``_read_data()`` is not strictly required and is acting as a helper
    function in the code above.
 
-   .. _RAMP-workflow: https://github.com/paris-saclay-cds/ramp-workflow
+.. _RAMP workflow: https://github.com/paris-saclay-cds/ramp-workflow
+.. _Pollenating insects: <https://github.com/ramp-kits/pollenating_insects>`_

@@ -61,48 +61,52 @@ look like this::
 
 Locally, there should be a training dataset and a testing dataset, usually
 within a folder named ``data/``. We will call these datasets the 'public'
-training data and the 'public' test data. This is because, for a RAMP event,
+training data and the 'public' test data. This is because, for a RAMP challenge,
 there will also be private training and test data (see :ref:`data` for more).
 
-Eight-fold cross-validation is performed, whereby the public training data is
-split into 'training' and 'validation' subsets 8 times. The subsets are
-different each time. For each cross-validation fold, the model is trained with
-the training data and used to predict targets for the validation subset and the
-public testing data. The scores are computed for the training, validation and
-testing datasets, for each fold. The mean of these 8 scores are calculated and
-printed under ``Mean CV scores``. In the example above, there is only one
-score metric 'auc'. If more than one score metric was defined in ``problem.py``
-(see :ref:`score-types`), scores for all the score metrics will be printed.
+Eight-fold cross-validation (CV) is performed, whereby the public training data
+is split into 'training' and 'validation' subsets 8 times. The subsets are
+different each time. For each CV fold, the model is trained with
+the training data then used to predict targets for the training and validation
+subsets and the public testing data. The scores are computed for the training,
+validation and testing datasets, for each fold. The mean of these 8 scores are
+calculated and printed under ``Mean CV scores``. In the example above, there is
+only one score metric; 'auc'. If more than one score metric was defined in
+``problem.py`` (see :ref:`score types <score-types>`), scores for all the score
+metrics will be printed.
 
 ``Bagged scores`` are calculated by combining the predictions of the 8 folds
 and using the combined prediction to calculate the score. For regression
-problems the combined prediction is just the mean of the predictions and
+problems the combined prediction is the mean of the predictions and
 for classification problems, it is the mean probability of each class. For
-detection problems the combined prediction calculation is more complex. See
+detection problems, the combined prediction calculation is more complex. See
 the `source code 
 <https://github.com/paris-saclay-cds/ramp-workflow/blob/12512a3192bcc515c2da956a6a6704849cdadeee/rampwf/prediction_types/detection.py#L37>`_
 for more details.
 
-For example, the Titanic challenge aims to predict whether or no each
-passenger survived. For each fold, different survival predictions are made for
-the test data. This is because each model is different as it was trained using
-different data). The probality of each classification (survived or did not
-survive), from the 8 predictions, is averaged and the classification computed
-with the new average probabilities. This is done for each sample in the test
-data and the new 'combined prediction' is used to calculate the 'bagged' score.
-This differs slightly for the validation score because the validation datasets
-will be different between each fold, and samples may or may not overlap between
-folds. In cases where there is only one prediction for a validation sample, the
-combined prediction will simply be the single prediction.
+For example, the Titanic challenge aims to predict whether or not each
+passenger survived. For each CV fold, different survival predictions are made
+for the test data. This is because for each CV fold, the model is different as
+it was trained using different data. The probality of each classification
+(survived or did not survive), computed from the 8 CV models, is averaged for
+every sample in the test dataset. The classification label is
+then computed using the new averaged probabilities. This new 'combined
+prediction' is used to calculate the 'bagged' score. The validation bagged
+score is calculated similarly, though there is a slight variation because the
+validation datasets differ between each CV fold. Validation
+samples may or may not overlap between CV folds. In cases where a validation
+sample was present in only one CV fold, there is only one prediction for that
+sample. The combined prediction for this sample will simply be that single
+prediction.
 
 Note that technically this is not what bagging means, but the name is used for
 historical reasons.
 
 RAMP event submissions
-======================
+=======================
 
 The above scores are also calculated when you make a submission to a RAMP
-event. However, only the mean cv validation score (i.e.,
+event on `RAMP studio`_. However, only the mean cv validation score (i.e.,
 ``valid  0.825 ± 0.0096`` above) is shown on the public leaderboard. The
 mean cv test score is not shown as we wish to assess if the participants
 submissions generalise to the private test data. Providing them with the
@@ -112,3 +116,5 @@ data.
 
 Typically, the test score is used to officially rank the participants and
 are made public at the end of a RAMP event.
+
+.. _RAMP Studio: https://ramp.studio/

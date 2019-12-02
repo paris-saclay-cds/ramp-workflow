@@ -11,13 +11,14 @@ the submission: ``./submissions/starting_kit/``.
 
 Options:
 
-* ``[--ramp_kit_dir]`` Root directory of the 'ramp-kit' to test. Default: ``.``.
+* ``[--ramp_kit_dir]`` Root directory of the 'ramp-kit' to test. Default:
+  ``'.'``.
 * ``[--ramp_data_dir]`` Directory containing the data. This directory should
-  contain a 'data' folder. Default: ``.``.
+  contain a 'data' folder. Default: ``'.'``.
 * ``[--ramp_submission_dir]`` Directory where the submissions are stored.
-  Default: ``.``.                            
+  Default: ``'.'``.                            
 * ``[--submission]`` The folder name of the submission to test. It should be
-  located in the ``ramp_submission_dir``. If ``ALL``, all submissions in the
+  located in the ``ramp_submission_dir``. If ``'ALL'``, all submissions in the
   directory will be tested. Default: ``starting_kit``.
 * ``[--quick-test]`` Specify this flag to test the submission on a small subset
   of the data.
@@ -38,19 +39,18 @@ score for each fold is output.
 
 Options:
 
-* ``[--ramp_kit_dir]`` Root directory of the ramp-kit to test. Default: ``.``.
+* ``[--ramp_kit_dir]`` Root directory of the ramp-kit to test. Default: ``'.'``.
 * ``[--ramp_data_dir]`` Directory containing the data. This directory should
-  contain a 'data' folder. Default: ``.``.
+  contain a 'data' folder. Default: ``'.'``.
 * ``[--ramp_submission_dir]`` Directory where the submissions are stored.
   Default: ``.``.
 * ``[--submission]`` The folder name of the submission to blend. They should be
   located in the ``ramp_submission_dir``. Separate submissions by a comma
-  without any spaces. If ``ALL``, all submissions in the ``ramp_submission_dir`` directory will be
-  blended. Default:
+  without any spaces. If ``'ALL'``, all submissions in the 
+  ``ramp_submission_dir`` directory will be blended. Default: ``'ALL'``.
 * ``[--save_output]`` Specify this flag to save predictions after blending.
 * ``[--min-improvement]`` The minimum score improvement when adding submissions
   to the ensemble. Default: ``0.0``.
-
 
 ``ramp_leaderboard``
 ^^^^^^^^^^^^^^^^^^^^
@@ -61,12 +61,13 @@ Pretty prints scores from previous locally tested submissions (using
 
 Options:
 
-* ``[--ramp_kit_dir]`` Root directory of the RAMP-kit. Default ``.``.
+* ``[--ramp_kit_dir]`` Root directory of the RAMP-kit. Default ``'.'``.
 * ``[--cols]`` list of columns (separated by ',') to display. By default it is
   'train\_<metric>,valid\_<metric>,test\_<metric>' where <metric> is the first
-  score metric from ``score_types`` (see :ref:`score-types`) according to
+  score metric from ``score_types`` (see :ref:`score types <score-types>`)
+  according to
   alphabetical order. Use ``--help-cols`` to show the column names. Column
-  names are of the form '<step>_<metric>' where step could be one of 'train',
+  names are of the form '<step>_<metric>' where <step> could be one of 'train',
   'valid' or 'test' and <metric> is any ``score_type`` defined in
   ``problem.py``. Default: ``None``.
 * ``[--asc]`` sort scores in ascending order if ``True``, otherwise descending
@@ -87,26 +88,25 @@ Examples:
 * ``ramp_leaderboard --cols=train_acc,valid_acc,test_acc``
 * ``ramp_leaderboard --cols=train_nll --sort-by=train_nll,train_acc --asc``
 
-Commands for use on server
-==========================
+**Commands for use on server**
 
 ``ramp_test_notebook``
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Converts the starting kit notebook into HTML using ``nbconvert`` and tests
-if the notebook can be executed.
+First converts the starting kit notebook into HTML using ``nbconvert`` then
+tests if the notebook can be executed.
 
 Options:
 
-* ``[--ramp_kit_dir]`` Directory containing the notebook. Default: ``.``.
+* ``[--ramp_kit_dir]`` Directory containing the notebook. Default: ``'.'``.
 
 ``ramp_convert_notebook``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Converts the starting kit notebook into HTML using ``nbconvert``. This is
-used on the problem page on RAMP studio.
+Converts the starting kit notebook into HTML using ``nbconvert``. This is would
+be used on the welcome page of the challenge on RAMP studio.
 
 Options:
 
-* ``[--ramp_kit_dir]`` Directory containing the notebook. Default: ``.``.
+* ``[--ramp_kit_dir]`` Directory containing the notebook. Default: ``'.'``.
  
