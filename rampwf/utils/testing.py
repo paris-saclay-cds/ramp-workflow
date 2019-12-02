@@ -88,7 +88,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
-    cv, X_train, y_train = assert_cv(ramp_kit_dir, ramp_data_dir)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     score_types = assert_score_types(ramp_kit_dir)
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
