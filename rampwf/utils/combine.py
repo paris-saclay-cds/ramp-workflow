@@ -124,10 +124,11 @@ def _get_next_best_submission(predictions_list, ground_truths,
             Predictions, predictions_list, new_index_list)
         new_score = score_type.score_function(
             ground_truths, combined_predictions)
-        iltb = score_type.is_lower_the_better
-        nltb = new_score < best_score - min_improvement
-        bltn = new_score > best_score + min_improvement
-        if (iltb and nltb) or (not iltb and bltn):
+        if score_type.is_lower_the_better:
+            is_improved = new_score < best_score - min_improvement
+        else:
+            is_improved = new_score > best_score + min_improvement
+        if is_improved:
             best_predictions = combined_predictions
             best_index = i
             best_score = new_score
@@ -167,14 +168,14 @@ def blend_on_fold(predictions_list, ground_truths_valid, score_type,
         best_prediction_index = np.argmax(valid_scores)
     score = valid_scores[best_prediction_index]
     best_index_list = np.array([best_prediction_index])
-    improvement = True
-    while improvement and len(best_index_list) < max_n_ensemble:
+    is_improved = True
+    while is_improved and len(best_index_list) < max_n_ensemble:
         print('\t{}: {}'.format(best_index_list, score))
         old_best_index_list = best_index_list
         best_index_list, score = _get_next_best_submission(
             predictions_list, ground_truths_valid, score_type, best_index_list,
             min_improvement)
-        improvement = len(best_index_list) != len(old_best_index_list)
+        is_improved = len(best_index_list) != len(old_best_index_list)
     return best_index_list
     # we share a unit of 1. among the contributive submissions
     # unit_contributivity = 1. / len(best_index_list)
