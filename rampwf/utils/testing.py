@@ -88,7 +88,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
-    cv, X_train, y_train = assert_cv(ramp_kit_dir, ramp_data_dir)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
     score_types = assert_score_types(ramp_kit_dir)
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
@@ -218,7 +218,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         best_index_list = blend_on_fold(
             predictions_valid_list, ground_truths_valid, score_types[0],
             min_improvement=min_improvement)
-        
+
         # we share a unit of 1. among the contributive submissions
         unit_contributivity = 1. / len(best_index_list)
         for i in best_index_list:
