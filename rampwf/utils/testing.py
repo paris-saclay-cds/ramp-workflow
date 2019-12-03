@@ -4,10 +4,6 @@
 from __future__ import print_function
 
 import os
-<<<<<<< HEAD
-=======
-import imp
->>>>>>> 3d21143 (fixing blending)
 import shutil
 
 import numpy as np
@@ -108,7 +104,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(
         ramp_kit_dir, ramp_data_dir, data_label)
-    cv, X_train, y_train = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
     score_types = assert_score_types(ramp_kit_dir)
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
