@@ -9,7 +9,7 @@ class Workflow(object):
         if train_is is None:
             train_is = slice(None, None, None)
         # import files
-        solution_files = {filename: import_file(module_path, filename) \
+        solution_files = {filename: import_file(module_path, filename)
                           for filename in self.element_names}
 
         if 'feature_extractor' in solution_files:
