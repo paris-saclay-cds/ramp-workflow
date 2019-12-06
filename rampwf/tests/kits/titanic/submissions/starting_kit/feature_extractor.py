@@ -19,3 +19,4 @@ class FeatureExtractor():
         X_df_new = X_df_new.fillna(-1)
         XX = X_df_new.values
         return XX
+

@@ -16,3 +16,4 @@ class Classifier(BaseEstimator):
 
     def predict_proba(self, X):
         return self.clf.predict_proba(X)
+
