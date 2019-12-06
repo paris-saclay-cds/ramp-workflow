@@ -115,7 +115,8 @@ def leaderboard(ramp_kit_dir, metric, step, sort_by, ascending, precision,
         df = (df.sort_index(axis=1, level=0)
                 .reindex(labels=step, level='step', axis=1))
         headers = (["\n".join(df.columns.names)] +
-                   ["\n".join(col_names) for col_names in df.columns.get_values()])
+                   ["\n".join(col_names)
+                    for col_names in df.columns.get_values()])
 
     df = df.round(precision)
     print(df.columns)
