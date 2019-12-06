@@ -21,6 +21,8 @@ class PythonLiteralOption(click.Option):
 def _load_score_submission(submission_path, metric, step):
     """Load the score for a single submission."""
     training_output_path = os.path.join(submission_path, 'training_output')
+    if not os.path.isdir(training_output_path):
+        return None
     folds_path = [
         os.path.join(training_output_path, fold_name)
         for fold_name in os.listdir(training_output_path)
