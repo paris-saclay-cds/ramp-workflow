@@ -1,5 +1,5 @@
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import Imputer
+from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator
 
@@ -7,8 +7,8 @@ from sklearn.base import BaseEstimator
 class Classifier(BaseEstimator):
     def __init__(self):
         self.clf = Pipeline([
-            ('imputer', Imputer(strategy='median')),
-            ('classifier', LogisticRegression(C=1.))
+            ('imputer', SimpleImputer(strategy='median')),
+            ('classifier', LogisticRegression(C=1., solver='lbfgs'))
         ])
 
     def fit(self, X, y):
