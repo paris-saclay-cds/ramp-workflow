@@ -8,7 +8,7 @@ class Classifier(BaseEstimator):
     def __init__(self):
         self.clf = Pipeline([
             ('imputer', SimpleImputer(strategy='median')),
-            ('classifier', LogisticRegression(C=1.))
+            ('classifier', LogisticRegression(C=1., solver='lbfgs'))
         ])
 
     def fit(self, X, y):
