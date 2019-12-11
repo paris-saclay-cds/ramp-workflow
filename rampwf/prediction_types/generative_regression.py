@@ -34,7 +34,7 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
 def _combine(cls, predictions_list, index_list=None):
     if index_list is None:
         index_list = range(len(predictions_list))
-    curr_indicies = np.zeros(len(predictions_list)).astype(int)
+    curr_indicies = np.zeros(len(index_list)).astype(int)
     dims = []
     idx_curr_dim = 0
     while idx_curr_dim < cls.n_columns:
@@ -43,7 +43,7 @@ def _combine(cls, predictions_list, index_list=None):
         curr_types = []
         curr_params = []
         for i in index_list:
-            curr_pred = predictions_list[i].y_pred
+            curr_pred = predictions_list[index_list[i]].y_pred
             dim_sizes = curr_pred[:, curr_indicies[i]]
             selected = np.isfinite(dim_sizes)
             curr_sizes = dim_sizes[selected]

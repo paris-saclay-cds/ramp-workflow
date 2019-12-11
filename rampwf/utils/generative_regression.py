@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from scipy.special import gamma
+from scipy.special import gamma, iv
 from scipy.stats import truncnorm, norm, foldnorm, vonmises, beta
 
 # The maximum numbers of parameters a distribution would need
@@ -10,6 +10,7 @@ MAX_PARAMS = 5
 class AbstractDists(ABC):
     nb_params = np.nan
     id = np.nan
+    discrete = False
     params = None
 
     @staticmethod
@@ -274,8 +275,8 @@ class VonMises(AbstractDists):
         probs = vonmises.pdf(x, kappa, loc, scale)
 
         probs = np.array(probs)
-        probs[x < loc-np.pi*scale] = 0
-        probs[x > loc+np.pi*scale] = 0
+        probs[x < loc - np.pi * scale] = 0
+        probs[x > loc + np.pi * scale] = 0
         return probs
 
     @staticmethod
@@ -318,8 +319,8 @@ class Pert(AbstractDists):
         Pert.assert_params(params)
 
         size = c - a
-        alphas = 1 + (lamb * ((b-a)/size))
-        betas = 1 + (lamb * ((c-b)/size))
+        alphas = 1 + (lamb * ((b - a) / size))
+        betas = 1 + (lamb * ((c - b) / size))
         x_trans = ((x - a) / size)
 
         probs = beta.pdf(x_trans, alphas, betas) / size
@@ -346,8 +347,8 @@ class Pert(AbstractDists):
         lamb = params[:, 3]
 
         size = c - a
-        alphas = 1 + lamb * (b-a)/size
-        betas = 1 + lamb * (c-b)/size
+        alphas = 1 + lamb * (b - a) / size
+        betas = 1 + lamb * (c - b) / size
         sampled = beta.rvs(alphas, betas) * size + a
         return sampled
 
@@ -358,6 +359,47 @@ class Pert(AbstractDists):
     @staticmethod
     def var(params):
         raise NotImplementedError()
+
+
+# https://en.wikipedia.org/wiki/Gaussian_function#Discrete_Gaussian
+class NormalDiscrete(AbstractDists):
+    nb_params = 2
+    id = 7
+    discrete = True
+    params = ['loc', 'scale']
+
+    @staticmethod
+    def pdf(x, params):
+        loc = params[:, 0]
+        scale = params[:, 1]
+        NormalDiscrete.assert_params(params)
+        probs = np.exp(-scale) * iv((x - loc), scale)
+        probs[~np.equal(np.mod(x, 1), 0)] = 0
+        return probs
+
+    @staticmethod
+    def assert_params(params):
+        sd = params[:, 1]
+        assert np.all(sd >= 0), "Make sure all sigmas are positive " \
+                                "(second parameter)"
+
+
+    @staticmethod
+    def sample(params):
+        # For sampling, how much do we look right and left of the mean
+        tail = 5
+        xmin = params[0] - (tail * params[1])
+        xmax = params[0] - (tail * params[1])
+        sampled = rejection_sampling(NormalDiscrete.pdf, params, xmin, xmax, discrete=True)
+        return int(np.random.normal(params[0], params[1]))
+
+    @staticmethod
+    def mu(params):
+        return params[:, 0]
+
+    @staticmethod
+    def var(params):
+        return params[:, 1] ** 2
 
 
 class EmptyDist(AbstractDists):
@@ -389,6 +431,28 @@ class EmptyDist(AbstractDists):
 distributions_dict = {
     cls.id: cls for cls in AbstractDists.__subclasses__()
 }
+
+
+# Bevington page 84. http://hosting.astro.cornell.edu/academics/courses/astro3310/Books/Bevington_opt.pdf
+def rejection_sampling(pdf, params, xmin=0, xmax=1, discrete=False, nb_attemps=1000):
+    if discrete:
+        x = np.arange(xmin, xmax)
+        x_sampler = np.random.randint
+    else:
+        x = np.linspace(xmin, xmax, nb_attemps)
+        x_sampler = np.random.uniform
+    y = pdf(x, params)
+    pmin = 0.
+    pmax = np.max(y)
+    i = 0
+    while i < nb_attemps:
+        i += 1
+        x = x_sampler(xmin, xmax)
+        y = np.random.uniform(pmin, pmax)
+
+        if y < pdf(x, params):
+            return x
+    return np.nan
 
 
 def distributions_dispatcher(d_type=-1):

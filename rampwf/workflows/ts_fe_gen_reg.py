@@ -106,12 +106,8 @@ class TSFEGenReg:
         # We only care about sampling for the last provided timestep
         X_test_array = X_test_array.iloc[-1]
 
-        extra_actions = [act + '_extra' for act in
-                         self.target_column_action_names]
-        newest_actions = X_df[extra_actions].to_dataframe().iloc[-1]
-        X_obs = X_test_array.append(newest_actions)
 
-        sampled = self.regressor_workflow.step(reg, X_obs, seed)
+        sampled = self.regressor_workflow.step(reg, X_test_array, seed)
 
         sampled_df = pd.DataFrame(sampled)
 

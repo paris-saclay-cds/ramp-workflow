@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import norm
+import matplotlib.pyplot as plt
 from .base import BaseScoreType
 from ..utils import distributions_dispatcher
 
@@ -118,10 +119,11 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='logLKGauss', precision=2):
+    def __init__(self, name='logLKGauss', precision=2, verbose = False):
         self.name = name
         self.precision = precision
-
+        self.verbose = verbose
+        
     def __call__(self, y_true, y_pred):
 
         if len(y_true.shape) == 1:
@@ -132,8 +134,10 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
         logLK = 0
 
         curr_idx = 0
+        
+        lk_by_i = np.zeros(y_true.shape)
 
-        for y_true_dim in y_true:
+        for i_true, y_true_dim in enumerate(y_true):
 
             nb_dists = int(y_pred[0, curr_idx])
             curr_idx += 1
@@ -159,7 +163,11 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
             partial_lk = np.log(weighted_probs)
             logLK += np.sum(-partial_lk)
 
-        return logLK / y_true.size
+            lk_by_i[i_true, :] = -partial_lk
+        if self.verbose :  
+            return logLK / y_true.size, lk_by_i
+        else:
+            return logLK / y_true.size
 
 
 class LikelihoodRatioDists(BaseScoreType):
@@ -167,13 +175,19 @@ class LikelihoodRatioDists(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='ll_ratio', precision=2):
+    def __init__(self, name='ll_ratio', precision=2, verbose = True, plot = False):
         self.name = name
         self.precision = precision
+        self.verbose = verbose
+        self.plot = plot
 
     def __call__(self, y_true, y_pred):
-        nll_reg_score = NegativeLogLikelihoodRegDists()
-        nll_reg = nll_reg_score(y_true, y_pred)
+
+        nll_reg_score = NegativeLogLikelihoodRegDists(verbose=self.verbose)
+        if self.verbose:
+            nll_reg, lk_by_i = nll_reg_score(y_true, y_pred)
+        else:
+            nll_reg = nll_reg_score(y_true, y_pred)
 
         if len(y_true.shape) == 1:
             y_true = np.array([y_true])
@@ -185,6 +199,16 @@ class LikelihoodRatioDists(BaseScoreType):
         baseline_lls = np.array([
             norm.logpdf(y, loc=mean, scale=std)
             for y, mean, std in zip(y_true, means, stds)])
+        
+        if self.verbose:
+            print(np.exp( np.sum(-lk_by_i, axis=1)/ baseline_lls.size - np.sum(baseline_lls, axis = 1) / baseline_lls.size))
+            if self.plot:
+                ratio_by_point = np.exp(-lk_by_i - baseline_lls)
+                for i, ratio in enumerate(ratio_by_point):
+                    plt.plot(ratio)
+                    plt.title(i)
+                    plt.show()
+
 
         return np.exp(-nll_reg - np.sum(
             baseline_lls) / baseline_lls.size)
