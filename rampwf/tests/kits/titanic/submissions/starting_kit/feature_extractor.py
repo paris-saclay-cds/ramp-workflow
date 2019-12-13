@@ -1,21 +1,16 @@
-import pandas as pd
+from sklearn.pipeline import make_pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
 
 
-class FeatureExtractor():
-    def __init__(self):
-        pass
+def get_feature_extractor():
+    numeric_cols = ['Pclass', 'Age', 'SibSp', 'Parch',
+                    'Fare']
+    to_drop = ['Name', 'Sex', 'Ticket', 'Cabin', 'Embarked']
 
-    def fit(self, X_df, y):
-        pass
+    transformer = ColumnTransformer(transformers=[
+        ('numeric', make_pipeline(SimpleImputer(strategy='median')), numeric_cols),
+        ('drop', 'drop', to_drop),
+    ])
 
-    def transform(self, X_df):
-        X_df_new = pd.concat(
-            [X_df.get(['Fare', 'Age', 'SibSp', 'Parch']),
-             pd.get_dummies(X_df.Sex, prefix='Sex', drop_first=True),
-             pd.get_dummies(X_df.Pclass, prefix='Pclass', drop_first=True),
-             pd.get_dummies(
-                 X_df.Embarked, prefix='Embarked', drop_first=True)],
-            axis=1)
-        X_df_new = X_df_new.fillna(-1)
-        XX = X_df_new.values
-        return XX
+    return transformer

@@ -1,4 +1,5 @@
 from ..utils.importing import import_file
+from sklearn.pipeline import Pipeline
 
 
 class Workflow(object):
@@ -10,42 +11,33 @@ class Workflow(object):
             train_is = slice(None, None, None)
         # import files
         solution_files = {filename: import_file(module_path, filename)
-                          for filename in self.element_names}
+                            for filename in self.element_names}
 
         if 'feature_extractor' in solution_files:
-            fe = solution_files['feature_extractor'].FeatureExtractor()
-            fe.fit(X_df.iloc[train_is], y_array[train_is])
-            X_train_array = fe.transform(X_df.iloc[train_is])
+            fe = solution_files['feature_extractor'].get_feature_extractor()
         else:
             fe = None
-            X_train_array = X_df[train_is]
 
         if 'classifier' in solution_files:
-            clf = solution_files['classifier'].Classifier()
-            clf.fit(X_train_array, y_array[train_is])
+            clf = solution_files['classifier'].get_classifier()
         else:
             clf = None
 
         if 'regressor' in solution_files:
-            reg = solution_files['regressor'].Regressor()
-            reg.fit(X_train_array, y_array[train_is])
+            reg = solution_files['regressor'].get_regressor()
         else:
             reg = None
 
-        return fe, clf, reg
+        steps = []
+        for wkfl in (fe, clf, reg):
+            if wkfl is not None:
+                steps.append(wkfl)
+
+        self.pipeline = Pipeline(steps=list(zip(self.element_names, steps)))
+        return self.pipeline.fit(X_df.iloc[train_is], y_array[train_is])
 
     def test_submission(self, trained_model, X_df):
-        fe, clf, reg = trained_model
-
-        if fe is not None:
-            X_test_array = fe.transform(X_df)
-        else:
-            X_test_array = X_df
-
-        if clf is not None:
-            y_pred = clf.predict_proba(X_test_array)
-
-        if reg is not None:
-            y_pred = reg.predict(X_test_array)
-
-        return y_pred
+        if 'regressor' in self.element_names:
+            return trained_model.predict(X_df)
+        elif 'classifier' in self.element_names:
+            return trained_model.predict_proba(X_df)
