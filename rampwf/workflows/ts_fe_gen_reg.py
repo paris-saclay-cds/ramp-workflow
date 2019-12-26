@@ -13,10 +13,10 @@ sequence `X_ds`, making the training and testing slightly complicated.
 
 # Author: Gabriel Hurtado <gabriel.j.hurtado@gmail.com>
 # License: BSD 3 clause
-import numpy as np
 import pandas as pd
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .generative_regressor import GenerativeRegressor
+
 
 class TSFEGenReg:
     def __init__(self,
@@ -50,6 +50,27 @@ class TSFEGenReg:
             check_sizes=check_sizes, check_indexs=check_indexs)
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
+        """Train model.
+
+        Parameters
+        ----------
+        module_path : string,
+            Path of the model to train.
+
+        X_df : pandas dataframe
+            Training data. Each sample contains data of a given timestep. Note
+            that the targets have to be included in the training samples as the
+            chaining rule is used: feature p - 1 of the target is needed to
+            predict feature p of the target.
+
+        y_array : numpy array, shape (n_samples,)
+            Training targets.
+
+        Returns
+        -------
+        fe, reg : tuple
+            Trained feature extractor and generative regressor.
+        """
 
         # FE uses is o(t-1), a(t-1) concatenated without a(t)
         # If train is none here, it still should not be a slice,
@@ -59,9 +80,9 @@ class TSFEGenReg:
             module_path, X_df, y_array, train_is)
         if train_is is None:
             train_is = slice(None, None, None)
-        cols_for_extraction = self.target_column_observation_names + \
-                              self.target_column_action_names + \
-                              self.restart_names
+        cols_for_extraction = (self.target_column_observation_names +
+                               self.target_column_action_names +
+                               self.restart_names)
         X_train_df = self.feature_extractor_workflow.test_submission(
             fe, X_df[cols_for_extraction][{self.timestamp_name: train_is}])
         obs = ['y_' + obs for obs in self.target_column_observation_names]
@@ -74,9 +95,9 @@ class TSFEGenReg:
 
         fe, reg = trained_model
 
-        cols_for_extraction = self.target_column_observation_names + \
-                              self.target_column_action_names + \
-                              self.restart_names
+        cols_for_extraction = (self.target_column_observation_names +
+                               self.target_column_action_names +
+                               self.restart_names)
 
         X_test_df = self.feature_extractor_workflow.test_submission(
             fe, X_df[cols_for_extraction])
@@ -93,21 +114,42 @@ class TSFEGenReg:
         return y_pred_obs
 
     def step(self, trained_model, X_df, seed=None):
+        """Sample next observation.
+
+        The next observation is sampled from the trained model given a history.
+
+        Parameters
+        ----------
+        trained_model : tuple
+            Trained model returned by the train_submission method.
+
+        X_df : pandas dataframe
+            History used to sample the next observation.
+
+            For reinforcement learning, each sample of the history is assumed
+            to contain one observation and one action, the action being the one
+            selected after the observation. The action of the last row is the
+            one for which we want to sample the next observation.
+
+        Return
+        ------
+        sample_df : pandas dataframe
+            The next observation.
+        """
 
         fe, reg = trained_model
 
-        cols_for_extraction = self.target_column_observation_names + \
-                              self.target_column_action_names + \
-                              self.restart_names
+        cols_for_extraction = (self.target_column_observation_names +
+                               self.target_column_action_names +
+                               self.restart_names)
 
         X_test_array = self.feature_extractor_workflow.test_submission(
             fe, X_df[cols_for_extraction])
 
         # We only care about sampling for the last provided timestep
-        X_test_array =  X_test_array.iloc[-1:]
+        X_test_array = X_test_array.iloc[-1]
 
         sampled = self.regressor_workflow.step(reg, X_test_array, seed)
-
         sampled_df = pd.DataFrame(sampled)
 
         new_names = self.target_column_observation_names
