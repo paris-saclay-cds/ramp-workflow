@@ -113,7 +113,7 @@ class TSFEGenReg:
 
         return y_pred_obs
 
-    def step(self, trained_model, X_df, seed=None):
+    def step(self, trained_model, X_df, random_state=None):
         """Sample next observation.
 
         The next observation is sampled from the trained model given a history.
@@ -130,6 +130,12 @@ class TSFEGenReg:
             to contain one observation and one action, the action being the one
             selected after the observation. The action of the last row is the
             one for which we want to sample the next observation.
+
+        random_state : int, RandomState instance or None, default=None
+            If int, random_state is the seed used by the random number
+            generator; If RandomState instance, random_state is the random
+            number generator; If None, the random number generator is the
+            RandomState instance used by np.random.
 
         Return
         ------
@@ -149,7 +155,7 @@ class TSFEGenReg:
         # We only care about sampling for the last provided timestep
         X_test_array = X_test_array.iloc[-1]
 
-        sampled = self.regressor_workflow.step(reg, X_test_array, seed)
+        sampled = self.regressor_workflow.step(reg, X_test_array, random_state)
         sampled_df = pd.DataFrame(sampled)
 
         new_names = self.target_column_observation_names
