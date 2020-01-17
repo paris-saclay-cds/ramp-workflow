@@ -12,7 +12,7 @@ from .object_detector import ObjectDetector
 from .regressor import Regressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
-from .sklearn_pipeline import sklearn_pipeline
+from .SKLearnPipeline import SKLearnPipeline
 
 __all__ = [
     'AirPassengers',
