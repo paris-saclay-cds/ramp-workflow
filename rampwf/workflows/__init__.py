@@ -29,5 +29,5 @@ __all__ = [
     'Regressor',
     'TimeSeriesFeatureExtractor',
     'GridFeatureExtractorClassifier',
-    'sklearn_pipeline'
+    'SKLearnPipeline'
 ]

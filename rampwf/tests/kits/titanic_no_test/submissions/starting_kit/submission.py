@@ -10,7 +10,7 @@ def get_pipeline():
 
     to_encode = ['Sex', 'Pclass', 'Embarked']
     to_keep = ['Age', 'SibSp', 'Parch', 'Fare']
-    to_drop = ['Name', , 'Ticket', 'Cabin']
+    to_drop = ['Name', 'Ticket', 'Cabin']
 
     transformer = ColumnTransformer(transformers=[
         ('onehotencode', make_pipeline(OneHotEncoder(

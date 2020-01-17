@@ -1,5 +1,4 @@
 from ..utils.importing import import_file
-from sklearn.pipeline import Pipeline
 import pandas as pd
 
 
