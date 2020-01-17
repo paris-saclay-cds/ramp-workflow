@@ -13,7 +13,7 @@ _prediction_label_names = ['setosa', 'versicolor', 'virginica']
 Predictions = rw.prediction_types.make_multiclass(
     label_names=_prediction_label_names)
 # An object implementing the workflow
-workflow = rw.workflows.sklearn_pipeline(file_name='classifier', is_proba=True)
+workflow = rw.workflows.SKLearnPipeline(file_name='classifier', is_proba=True)
 
 score_types = [
     rw.score_types.Accuracy(name='acc'),

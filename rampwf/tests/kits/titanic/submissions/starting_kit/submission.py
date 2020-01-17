@@ -17,6 +17,6 @@ def get_pipeline():
     ])
     pipeline = Pipeline(steps=[
         ('transformer', transformer),
-        ('classifier', LogisticRegression(C=1., solver='lbfgs'),)
+        ('classifier', LogisticRegression(C=1., solver='lbfgs')),
     ])
     return pipeline
