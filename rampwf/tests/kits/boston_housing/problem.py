@@ -11,7 +11,7 @@ _target_column_name = 'medv'
 Predictions = rw.prediction_types.make_regression()
 # An object implementing the workflow
 # workflow = rw.workflows.Regressor()
-workflow = rw.workflows.Workflow(['regressor'])
+workflow = rw.workflows.sklearn_pipeline(file_name='regressor', is_proba=False)
 
 
 score_types = [
