@@ -12,7 +12,7 @@ from .object_detector import ObjectDetector
 from .regressor import Regressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
-from .workflow import Workflow
+from .sklearn_pipeline import sklearn_pipeline
 
 __all__ = [
     'AirPassengers',
@@ -29,5 +29,5 @@ __all__ = [
     'Regressor',
     'TimeSeriesFeatureExtractor',
     'GridFeatureExtractorClassifier',
-    'Workflow'
+    'sklearn_pipeline'
 ]
