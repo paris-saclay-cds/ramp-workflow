@@ -14,7 +14,7 @@ def get_pipeline():
 
     transformer = ColumnTransformer(transformers=[
         ('onehotencode', make_pipeline(OneHotEncoder(
-            handle_unknown='ignore', drop='first')), to_encode),
+            handle_unknown='ignore')), to_encode),
         ('numeric', make_pipeline(SimpleImputer(
             strategy='constant', fill_value=-1)), to_keep),
         ('drop', 'drop', to_drop),
