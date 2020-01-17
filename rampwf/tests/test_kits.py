@@ -1,5 +1,6 @@
 import os
 import glob
+import shutil
 
 import pytest
 
@@ -77,3 +78,6 @@ def test_blending():
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
         ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
         save_output=True)
+    # cleaning up so next test doesn't try to train "training_output"
+    shutil.rmtree(os.path.join(
+        PATH, "kits", "iris", "submissions", "training_output"))
