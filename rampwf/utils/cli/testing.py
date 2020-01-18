@@ -46,8 +46,8 @@ def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
     if quick_test:
         os.environ['RAMP_TEST_MODE'] = '1'
 
-    if ignore_warning:
-        warnings.simplefilter("ignore")
+    # if ignore_warning:
+    #     warnings.simplefilter("ignore")
 
     if submission == "ALL":
         ramp_submission_dir = os.path.join(ramp_kit_dir, 'submissions')
