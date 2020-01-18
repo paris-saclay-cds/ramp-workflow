@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import click
 
@@ -37,11 +38,16 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--retrain', is_flag=True,
               help='Specify this flag to retrain the submission on the full '
               'training set after the CV loop.')
+@click.option('--ignore-warning', is_flag=True,
+              help='Will filters all warning and avoid to print them.')
 def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
-         notebook, quick_test, pickle, save_output, retrain):
+         notebook, quick_test, pickle, save_output, retrain, ignore_warning):
     """Test a submission and/or a notebook before to submit on RAMP studio."""
     if quick_test:
         os.environ['RAMP_TEST_MODE'] = '1'
+
+    if ignore_warning:
+        warnings.simplefilter("ignore")
 
     if submission == "ALL":
         ramp_submission_dir = os.path.join(ramp_kit_dir, 'submissions')
