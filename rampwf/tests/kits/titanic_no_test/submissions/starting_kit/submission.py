@@ -6,24 +6,21 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 
 
-def get_pipeline():
+def get_estimator():
 
-    to_encode = ['Sex', 'Pclass', 'Embarked']
-    to_keep = ['Age', 'SibSp', 'Parch', 'Fare']
-    to_drop = ['Name', 'Ticket', 'Cabin']
+    categorical_cols = ['Sex', 'Pclass', 'Embarked']
+    numerical_cols = ['Age', 'SibSp', 'Parch', 'Fare']
 
-    transformer = ColumnTransformer(transformers=[
-        ('onehotencode', make_pipeline(OneHotEncoder(
-            handle_unknown='ignore')), to_encode),
-        ('numeric', make_pipeline(SimpleImputer(
-            strategy='constant', fill_value=-1)), to_keep),
-        ('drop', 'drop', to_drop),
+    preprocessor = ColumnTransformer(transformers=[
+        ('onehotencode', OneHotEncoder(handle_unknown='ignore'),
+         categorical_cols),
+        ('numeric', SimpleImputer(strategy='constant', fill_value=-1)),
+         numerical_cols),
     ])
 
     pipeline = Pipeline([
-        ('transformer', transformer),
-        ('imputer', SimpleImputer(strategy='median')),
-        ('classifier', LogisticRegression(C=1., solver='lbfgs')),
+        ('transformer', preprocessor),
+        ('classifier', LogisticRegression()),
     ])
 
     return pipeline

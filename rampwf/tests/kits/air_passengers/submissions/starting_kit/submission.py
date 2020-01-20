@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 
 
-def _merge_weather(X):
+def _merge_external_data(X):
     filepath = os.path.join(os.path.dirname(__file__),
                             'external_data_mini.csv')
     X_weather = pd.read_csv(filepath)
@@ -16,18 +16,19 @@ def _merge_weather(X):
                         on=['DateOfDeparture', 'Arrival'], sort=False)
     return X_merged
 
-def get_pipeline():
-    merge_transformer = FunctionTransformer(_merge_weather, validate=False)
-    to_encode = ['Arrival', 'Departure']
-    transformer = ColumnTransformer(transformers=[
-        ('onehotencode', make_pipeline(OneHotEncoder(handle_unknown='ignore')),
-         to_encode),
-        ('drop', 'drop', 'DateOfDeparture')
+def get_estimator():
+    merge_transformer = FunctionTransformer(_merge_external_data,
+                                            validate=False)
+    categorical_cols = ['Arrival', 'Departure']
+    passthrough_cols = ['WeeksToDeparture', 'log_PAX', 'std_wtd']
+    preoprocessor = ColumnTransformer(transformers=[
+        ('onehotencode', OneHotEncoder(handle_unknown='ignore'),
+         categorical_cols),
+        ('passthrough', 'passthrough', passthrough_cols)
     ])
-
     pipeline = Pipeline(steps=[
         ('merge', merge_transformer),
-        ('transfomer', transformer),
+        ('transfomer', preoprocessor),
         ('regressor', RandomForestRegressor(n_estimators=10, max_depth=10,
                                             max_features=10)),
     ])

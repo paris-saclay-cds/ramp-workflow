@@ -1,18 +1,18 @@
 import pandas as pd
 from ..utils.importing import import_file
+from sklearn.base import is_classifier
 
 
 class SKLearnPipeline(object):
-    def __init__(self, file_name, is_proba):
-        self.file_name = file_name
-        self.is_proba = is_proba
+    def __init__(self, fname):
+        self.fname = fname
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
         if train_is is None:
             train_is = slice(None, None, None)
         # import files
-        pipeline = import_file(module_path, self.file_name)
-        pipeline = pipeline.get_pipeline()
+        pipeline = import_file(module_path, self.fname)
+        pipeline = pipeline.get_estimator()
         if isinstance(X_df, pd.DataFrame):
             X_train = X_df.iloc[train_is]
         else:
@@ -20,8 +20,6 @@ class SKLearnPipeline(object):
         return pipeline.fit(X_train, y_array[train_is])
 
     def test_submission(self, trained_model, X_df):
-        if self.is_proba:
-            y = trained_model.predict_proba(X_df)
-        else:
-            y = trained_model.predict(X_df)
-        return y
+        if is_classifier(trained_model):
+            return trained_model.predict_proba(X_df)
+        return trained_model.predict(X_df)
