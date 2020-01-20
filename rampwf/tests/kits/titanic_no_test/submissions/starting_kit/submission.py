@@ -1,5 +1,4 @@
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -14,7 +13,7 @@ def get_estimator():
     preprocessor = ColumnTransformer(transformers=[
         ('onehotencode', OneHotEncoder(handle_unknown='ignore'),
          categorical_cols),
-        ('numeric', SimpleImputer(strategy='constant', fill_value=-1)),
+        ('numeric', SimpleImputer(strategy='constant', fill_value=-1),
          numerical_cols),
     ])
 

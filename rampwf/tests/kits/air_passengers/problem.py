@@ -10,7 +10,7 @@ _target_column_name = 'log_PAX'
 # A type (class) which will be used to create wrapper objects for y_pred
 Predictions = rw.prediction_types.make_regression()
 # An object implementing the workflow
-workflow = rw.workflows.SKLearnPipeline('submission', is_proba=False)
+workflow = rw.workflows.SKLearnPipeline(fname='submission')
 
 score_types = [
     rw.score_types.RMSE(name='rmse', precision=3),

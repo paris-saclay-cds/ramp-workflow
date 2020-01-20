@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor

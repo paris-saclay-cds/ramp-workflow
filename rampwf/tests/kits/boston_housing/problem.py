@@ -10,8 +10,7 @@ _target_column_name = 'medv'
 # A type (class) which will be used to create wrapper objects for y_pred
 Predictions = rw.prediction_types.make_regression()
 # An object implementing the workflow
-# workflow = rw.workflows.Regressor()
-workflow = rw.workflows.SKLearnPipeline(fname='regressor', is_proba=False)
+workflow = rw.workflows.SKLearnPipeline(fname='regressor')
 
 
 score_types = [
