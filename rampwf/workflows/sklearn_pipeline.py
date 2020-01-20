@@ -1,5 +1,5 @@
-from ..utils.importing import import_file
 import pandas as pd
+from ..utils.importing import import_file
 
 
 class SKLearnPipeline(object):
