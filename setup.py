@@ -35,7 +35,7 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Operating System :: MacOS',
                'Programming Language :: Python :: 3.6',
                'Programming Language :: Python :: 3.7']
-INSTALL_REQUIRES = ['numy', 'scipy', 'pandas', 'scikit-learn', 'joblib',
+INSTALL_REQUIRES = ['numpy', 'scipy', 'pandas', 'scikit-learn', 'joblib',
                     'click']
 EXTRAS_REQUIRE = {
     'tests': ['pytest', 'pytest-cov'],
