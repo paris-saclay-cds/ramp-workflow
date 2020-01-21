@@ -31,6 +31,8 @@ bigger than the corresponding `check_index`.
 # Author: Balazs Kegl <balazs.kegl@gmail.com>
 # License: BSD 3 clause
 
+import os
+
 import numpy as np
 
 from ..utils.importing import import_module_from_source
