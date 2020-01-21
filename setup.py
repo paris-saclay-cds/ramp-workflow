@@ -8,7 +8,7 @@ from codecs import open
 from setuptools import setup, find_packages
 
 # get __version__ from _version.py
-ver_file = os.path.join('ramp_database', '_version.py')
+ver_file = os.path.join('rampwf', '_version.py')
 with open(ver_file) as f:
     exec(f.read())
 
