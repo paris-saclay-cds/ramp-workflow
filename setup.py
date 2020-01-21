@@ -7,8 +7,10 @@ from codecs import open
 
 from setuptools import setup, find_packages
 
-import versioneer
-
+# get __version__ from _version.py
+ver_file = os.path.join('ramp_database', '_version.py')
+with open(ver_file) as f:
+    exec(f.read())
 
 # Get the long description from the README file
 with open('README.md', encoding='utf-8') as f:
