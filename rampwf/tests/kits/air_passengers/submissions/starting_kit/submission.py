@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from sklearn.preprocessing import FunctionTransformer
-from sklearn.compose import ColumnTransformer
+from sklearn.compose import make_column_transformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
@@ -19,12 +19,12 @@ def get_estimator():
     merge_transformer = FunctionTransformer(_merge_external_data,
                                             validate=False)
     categorical_cols = ['Arrival', 'Departure']
-    passthrough_cols = ['WeeksToDeparture', 'log_PAX', 'std_wtd']
-    preoprocessor = ColumnTransformer(transformers=[
-        ('onehotencode', OneHotEncoder(handle_unknown='ignore'),
-         categorical_cols),
-        ('passthrough', 'passthrough', passthrough_cols)
-    ])
+    drop_col = ['WeeksToDeparture',]
+    preoprocessor = make_column_transformer(
+        (OneHotEncoder(handle_unknown='ignore'), categorical_cols),
+        ('drop', drop_col),
+        remainder='passthrough'
+    )
     pipeline = Pipeline(steps=[
         ('merge', merge_transformer),
         ('transfomer', preoprocessor),
