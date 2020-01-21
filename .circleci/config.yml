@@ -8,7 +8,8 @@ jobs:
             MINICONDA_PATH: ~/miniconda
       - image: circleci/postgres:9.6.2
         environment:
-            POSTGRES_USER: mrramp
+            POSTGRES_USER: mrrampmaster_doc = 'index'
+
             POSTGRES_PASSWORD: mrramp
             POSTGRES_DB: databoard_test
     environment:

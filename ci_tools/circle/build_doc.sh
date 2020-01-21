@@ -15,6 +15,7 @@ source activate testenv
 pip install -r requirements.txt --progress-bar off
 pip install sphinx sphinx_rtd_theme --progress-bar off
 pip install sphinx-gallery sphinx-click
+pip install numpydoc
 pip install .
 
 # The pipefail is requested to propagate exit code
