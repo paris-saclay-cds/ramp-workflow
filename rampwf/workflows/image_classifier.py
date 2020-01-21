@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-from ..utils.importing import import_file
+from ..utils.importing import import_module_from_source
 
 
 class ImageClassifier(object):
@@ -76,12 +76,18 @@ class ImageClassifier(object):
         folder, X_array = folder_X_array
         if train_is is None:
             train_is = slice(None, None, None)
-        image_preprocessor = import_file(module_path, self.element_names[0])
+        image_preprocessor = import_module_from_source(
+            os.path.join(module_path, self.element_names[0] + '.py'),
+            self.element_names[0]
+        )
         transform_img = image_preprocessor.transform
         transform_test_img = getattr(image_preprocessor,
                                      'transform_test',
                                      transform_img)
-        batch_classifier = import_file(module_path, self.element_names[1])
+        batch_classifier = import_module_from_source(
+            os.path.join(module_path, self.element_names[1] + '.py'),
+            self.element_names[1]
+        )
         clf = batch_classifier.BatchClassifier()
 
         gen_builder = BatchGeneratorBuilder(

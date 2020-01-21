@@ -22,9 +22,11 @@ into `prediction_types.Clustering` and evaluated by
 # Author: Balazs Kegl <balazs.kegl@gmail.com>
 # License: BSD 3 clause
 
+import os
+
 import numpy as np
 
-from ..utils.importing import import_file
+from ..utils.importing import import_module_from_source
 
 
 class Clusterer(object):
@@ -34,7 +36,10 @@ class Clusterer(object):
     def train_submission(self, module_path, X_array, y_array, train_is=None):
         if train_is is None:
             train_is = slice(None, None, None)
-        clusterer = import_file(module_path, self.element_names[0])
+        clusterer = import_module_from_source(
+            os.path.join(module_path, self.element_names[0] + '.py'),
+            self.element_names[0]
+        )
         ctr = clusterer.Clusterer()
         ctr.fit(X_array[train_is], y_array[train_is])
         return ctr

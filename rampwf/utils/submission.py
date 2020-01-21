@@ -4,7 +4,7 @@ Utilities to manage the submissions
 """
 import os
 import time
-from collections import Iterable
+from collections.abc import Iterable
 from collections import OrderedDict
 
 import pandas as pd

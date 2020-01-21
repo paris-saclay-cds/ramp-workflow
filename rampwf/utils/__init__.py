@@ -6,7 +6,7 @@ from .testing import (
     assert_submission, assert_notebook, blend_submissions)
 from .submission import run_submission_on_cv_fold
 from .combine import get_score_cv_bags
-from .importing import import_file
+from .importing import import_module_from_source
 
 __all__ = ['assert_cv',
            'assert_data',
@@ -16,11 +16,10 @@ __all__ = ['assert_cv',
            'assert_title',
            'blend_submissions',
            'get_score_cv_bags',
-           'import_file',
+           'import_module_from_source',
            'ramp_blend_submissions',
            'ramp_convert_notebook',
            'ramp_test_notebook',
            'ramp_test_submission',
            'run_submission_on_cv_fold',
-           'import_file'
            ]
