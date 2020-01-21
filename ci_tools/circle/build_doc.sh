@@ -14,6 +14,7 @@ conda create --name testenv python=3
 source activate testenv
 pip install -r requirements.txt --progress-bar off
 pip install sphinx sphinx_rtd_theme --progress-bar off
+pip install sphinx-gallery
 pip install .
 
 # The pipefail is requested to propagate exit code
