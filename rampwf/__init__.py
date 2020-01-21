@@ -4,7 +4,7 @@ from . import prediction_types
 from . import score_types
 from . import utils
 from . import workflows
-from ._version import get_versions
+from ._version import __version__
 
 
 __all__ = [
@@ -14,7 +14,5 @@ __all__ = [
     'score_types',
     'utils',
     'workflows',
+    '__version__'
 ]
-
-__version__ = get_versions()['version']
-del get_versions

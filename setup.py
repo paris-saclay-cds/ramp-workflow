@@ -7,8 +7,10 @@ from codecs import open
 
 from setuptools import setup, find_packages
 
-import versioneer
-
+# get __version__ from _version.py
+ver_file = os.path.join('rampwf', '_version.py')
+with open(ver_file) as f:
+    exec(f.read())
 
 # Get the long description from the README file
 with open('README.md', encoding='utf-8') as f:
@@ -33,8 +35,7 @@ if __name__ == "__main__":
 
     setup(
         name=DISTNAME,
-        version=versioneer.get_version(),
-        cmdclass=versioneer.get_cmdclass(),
+        version=__version__,
         maintainer=MAINTAINER,
         include_package_data=True,
         maintainer_email=MAINTAINER_EMAIL,
