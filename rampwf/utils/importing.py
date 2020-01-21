@@ -3,8 +3,6 @@ Utility to import local files from the filesystem as modules.
 
 """
 import importlib
-import os
-import warnings
 
 
 def import_module_from_source(source, name):
