@@ -52,7 +52,7 @@ jobs:
 
       - add_ssh_keys:
           fingerprints:
-              - "09:57:56:6e:0b:ad:45:11:83:08:e4:72:d4:78:77:18"
+              - "36:72:da:c4:54:0d:ab:57:84:80:a7:65:59:1f:02:f9"
 
       - deploy:
           name: Deploy documentation
