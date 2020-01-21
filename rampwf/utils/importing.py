@@ -2,32 +2,27 @@
 Utility to import local files from the filesystem as modules.
 
 """
-import imp
+import importlib
 import os
 import warnings
 
 
-def import_file(module_path, filename):
-    """
-    Import a submission file based on the filename and submission path.abs
+def import_module_from_source(source, name):
+    """Load a module from a Python source file.
 
     Parameters
     ----------
-    module_path : str
-        The path to the submission directory.
-    filename : str
-        The filename of the submitted workflow element.
+    source : str
+        Path to the Python source file which will be loaded as a module.
+    name : str
+        Name to give to the module once loaded.
 
     Returns
     -------
-    submitted_module : module object
-
+    module : Python module
+        Return the Python module which has been loaded.
     """
-    submitted_path = (
-        '.'.join(list(os.path.split(module_path)) + [filename])
-        .replace('/', ''))
-    submitted_file = os.path.join(module_path, filename + '.py')
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', category=RuntimeWarning)
-        submitted_module = imp.load_source(submitted_path, submitted_file)
-    return submitted_module
+    spec = importlib.util.spec_from_file_location(name, source)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module

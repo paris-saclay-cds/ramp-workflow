@@ -4,7 +4,6 @@
 from __future__ import print_function
 
 import os
-import imp
 import shutil
 
 import numpy as np
@@ -12,6 +11,7 @@ import pandas as pd
 
 from .combine import blend_on_fold
 from .io import load_y_pred
+from .importing import import_module_from_source
 from .pretty_print import print_title, print_df_scores
 from .notebook import execute_notebook, convert_notebook
 from .scoring import round_df_scores, mean_score_matrix
@@ -27,10 +27,9 @@ def assert_notebook(ramp_kit_dir='.'):
 
 def assert_read_problem(ramp_kit_dir='.'):
     # giving a random name to the module so it passes looped tests
-    module_name = str(int(1000000000 * np.random.rand()))
-    problem = imp.load_source(module_name,
-                              os.path.join(ramp_kit_dir, 'problem.py'))
-    return problem
+    return import_module_from_source(
+        os.path.join(ramp_kit_dir, 'problem.py'), 'problem'
+    )
 
 
 def assert_title(ramp_kit_dir='.'):
