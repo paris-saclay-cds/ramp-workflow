@@ -55,12 +55,12 @@ clean:
 html:
 	# These two lines make the build a bit more lengthy, and the
 	# the embedding of images more robust
-	rm -rf $(BUILDDIR)/html/_images
+	rm -rf $(BUILDDIR)/html/stable/_images
 	#rm -rf _build/doctrees/
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	touch $(BUILDDIR)/html/.nojekyll
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html/stable
+	touch $(BUILDDIR)/html/stable/.nojekyll
 	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html/stable."
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
@@ -83,27 +83,27 @@ json:
 	@echo "Build finished; now you can process the JSON files."
 
 htmlhelp:
-	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp
+	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/html/stablehelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
-	      ".hhp project file in $(BUILDDIR)/htmlhelp."
+	      ".hhp project file in $(BUILDDIR)/html/stablehelp."
 
 qthelp:
 	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(BUILDDIR)/qthelp
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
 	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/imbalanced-learn.qhcp"
+	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/ramp-workflow.qhcp"
 	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/imbalanced-learn.qhc"
+	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/ramp-workflow.qhc"
 
 devhelp:
 	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/imbalanced-learn"
-	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/imbalanced-learn"
+	@echo "# mkdir -p $$HOME/.local/share/devhelp/ramp-workflow"
+	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/ramp-workflow"
 	@echo "# devhelp"
 
 epub:
