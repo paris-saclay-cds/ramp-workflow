@@ -15,11 +15,12 @@ def _merge_external_data(X):
                         on=['DateOfDeparture', 'Arrival'], sort=False)
     return X_merged
 
+
 def get_estimator():
     merge_transformer = FunctionTransformer(_merge_external_data,
                                             validate=False)
     categorical_cols = ['Arrival', 'Departure']
-    drop_col = ['DateOfDeparture',]
+    drop_col = ['DateOfDeparture']
     preoprocessor = make_column_transformer(
         (OneHotEncoder(handle_unknown='ignore'), categorical_cols),
         ('drop', drop_col),
