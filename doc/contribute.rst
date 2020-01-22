@@ -4,7 +4,7 @@ Contributing
 ############
 
 You are welcome to contribute to `ramp-workflow`_, particularly if there
-are `Prediction types 
+are `Prediction types
 <https://github.com/paris-saclay-cds/ramp-workflow/tree/master/rampwf/prediction_types>`_,
 `workflows
 <https://github.com/paris-saclay-cds/ramp-workflow/tree/master/rampwf/workflows>`_
@@ -28,7 +28,7 @@ To contribute:
 3. Install requirements:
 
    .. code-block:: bash
-   
+
     $ pip install -r requirements.txt
 
 Alternatively you may wish to install the required packages in a specific
@@ -46,3 +46,19 @@ environment for ramp-workflow.
 
 
 .. _ramp-workflow: https://github.com/paris-saclay-cds/ramp-workflow
+
+Release process
+---------------
+
+The following explain the main steps to release `ramp-board`:
+
+1. Run `bumpversion release`. It will remove the `dev0` tag.
+2. Commit the change `git commit -am "bumpversion 0.1.0"`.
+3. Create a branch for this version `git checkout -b 0.1.X`.
+4. Push the new branch into the upstream repository.
+5. You can create a GitHub release.
+6. Change the symlink in the `ramp-docs` repository such that stable point on
+   0.1.X.
+7. Push on PyPI by executing the following:
+   `python setup.py sdist bdist_wheel && twine upload dist/*`.
+8. In `master`, run `bumpversion minor`, commit and push on upstream.

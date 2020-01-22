@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-from ..utils.importing import import_file
+from ..utils.importing import import_module_from_source
 
 
 class SimplifiedImageClassifier(object):
@@ -54,7 +54,10 @@ class SimplifiedImageClassifier(object):
         folder, X_array = folder_X_array
         if train_is is None:
             train_is = slice(None, None, None)
-        image_classifier = import_file(module_path, self.element_names[0])
+        image_classifier = import_module_from_source(
+            os.path.join(module_path, self.element_names[0] + '.py'),
+            self.element_names[0]
+        )
         clf = image_classifier.ImageClassifier()
         img_loader = ImageLoader(
             X_array[train_is], y_array[train_is],

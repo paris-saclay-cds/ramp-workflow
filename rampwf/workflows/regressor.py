@@ -1,4 +1,6 @@
-from ..utils.importing import import_file
+import os
+
+from ..utils.importing import import_module_from_source
 
 
 class Regressor(object):
@@ -9,7 +11,10 @@ class Regressor(object):
     def train_submission(self, module_path, X_array, y_array, train_is=None):
         if train_is is None:
             train_is = slice(None, None, None)
-        regressor = import_file(module_path, self.element_names[0])
+        regressor = import_module_from_source(
+            os.path.join(module_path, self.element_names[0] + '.py'),
+            self.element_names[0]
+        )
         reg = regressor.Regressor()
         reg.fit(X_array[train_is], y_array[train_is])
         return reg

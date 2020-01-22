@@ -1,55 +1,59 @@
 version: 2
 jobs:
-  doc-build:
+  build:
     docker:
-      - image: circleci/python:3.6-stretch
+      - image: circleci/python:3.6.4
+        environment:
+            # miniconda path install
+            MINICONDA_PATH: ~/miniconda
+      - image: circleci/postgres:9.6.2
+        environment:
+            POSTGRES_USER: mrrampmaster_doc = 'index'
+
+            POSTGRES_PASSWORD: mrramp
+            POSTGRES_DB: databoard_test
+    environment:
+      # The github organization or username of the repository which hosts the
+      # project and documentation.
+      USERNAME: glemaitre
+      # The name of the organization which host the repositories
+      ORGANIZATION: paris-saclay-cds
+      # The repository where the documentation will be hosted
+      DOC_REPO: ramp-docs
+      # The branch of the documentation
+      DOC_BRANCH: master
+      # The base URL for the Github page where the documentation will be hosted
+      DOC_URL: ""
+      # The email is to be used for commits in the Github Page
+      EMAIL: g.lemaitre58@gmail.com
     steps:
       - checkout
-      - run: 
-          name: prep environment & make docs
-          command: |
-            python3 -m venv doc-env
-            . doc-env/bin/activate
-            pip install -r requirements.txt --progress-bar off
-            pip install sphinx sphinx_rtd_theme --progress-bar off
-            pip install .
-            cd doc
-            make html
-      - persist_to_workspace: # save contents of doc/_build to intermediate location accesible to later jobs
-          root: doc/_build
-          paths: html
-      - store_artifacts: # store so built docs can be viewed post build
-          path: doc/_build/html
-  doc-deploy:
-    docker:
-      - image: node:8.10.0  # use node base image to use `npm` package
-    steps:
-      - checkout
-      - attach_workspace:
-          at: doc/_build # mounts the doc/_build dir
       - run:
-          name: Disable jekyll builds
-          command: touch doc/_build/html/.nojekyll
+          name: Checkout merge commit
+          command: ./ci_tools/circle/checkout_merge_commit.sh
       - run:
-          name: Install and configure dependencies
-          command: |
-            npm install -g --silent gh-pages@2.0.1
-            git config user.email "jliu176@gmail.com"
-            git config user.name "ci-build"
+          # Check whether the doc build is required, install build dependencies and
+          # run sphinx to build the doc.
+          name: Build documentation
+          command: ./ci_tools/circle/build_doc.sh
+          timeout: "3600"  # seconds
+
+      - run:
+          # Grep error on the documentation
+          name: Parse errors
+          command: cat ~/log.txt && if grep -q "Traceback (most recent call last):" ~/log.txt; then false; else true; fi
+
+      - store_artifacts:
+          name: Store the log
+          path: ~/log.txt
+      - store_artifacts:
+          name: Store the documentation
+          path: doc/_build/html/stable
+
       - add_ssh_keys:
           fingerprints:
-            - "77:20:93:4f:81:5f:94:83:33:b5:06:c7:31:e1:a0:c9"
-      - run:
-          name: Deploy docs to gh-pages branch
-          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist doc/_build/html
-workflows:
-  version: 2
-  push:
-    jobs:
-      - doc-build
-      - doc-deploy:
-          requires: # only run if doc-build completes successfully
-            - doc-build  
-          filters:
-            branches: # only run for builds of master branch
-              only: master
+              - "36:72:da:c4:54:0d:ab:57:84:80:a7:65:59:1f:02:f9"
+
+      - deploy:
+          name: Deploy documentation
+          command: ./ci_tools/circle/push_doc.sh doc/_build/html/stable

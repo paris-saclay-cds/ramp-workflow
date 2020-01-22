@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from tempfile import mkdtemp
 from ..utils import (
-    assert_read_problem, import_file, run_submission_on_cv_fold)
+    assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
@@ -237,7 +237,10 @@ def parse_hyperparameters(module_path, workflow_element_name):
         hyperparameters : list of instances of Hyperparameter
     """
     hyperparameters = []
-    workflow_element = import_file(module_path, workflow_element_name)
+    workflow_element = import_module_from_source(
+        os.path.join(module_path, workflow_element_name + '.py'),
+        workflow_element_name
+    )
     for object_name in dir(workflow_element):
         o = getattr(workflow_element, object_name)
         if type(o) == Hyperparameter:

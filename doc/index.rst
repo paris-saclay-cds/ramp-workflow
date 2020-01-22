@@ -19,18 +19,16 @@ and `prediction types <https://github.com/paris-saclay-cds/ramp-workflow/tree/ma
 Installation
 ************
 
-To install the latest version of the ramp-workflow library, run:
+Ramp-workflow is available on PyPI and can be installed via `pip`::
 
-.. code-block:: bash
-
-    $ pip install git+https://github.com/paris-saclay-cds/ramp-workflow.git
+    $ pip install ramp-workflow
 
 .. toctree::
    :maxdepth: 2
    :caption: What can RAMP offer you?
 
    who_are_you
-   
+
 .. toctree::
    :maxdepth: 2
    :caption: Using RAMP workflow
