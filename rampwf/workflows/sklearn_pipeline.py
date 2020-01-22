@@ -1,6 +1,9 @@
+import os
+
 import pandas as pd
-from ..utils.importing import import_file
 from sklearn.base import is_classifier
+
+from ..utils.importing import import_module_from_source
 
 
 class SKLearnPipeline(object):
@@ -11,7 +14,10 @@ class SKLearnPipeline(object):
         if train_is is None:
             train_is = slice(None, None, None)
         # import files
-        pipeline = import_file(module_path, self.fname)
+        pipeline = import_module_from_source(
+            os.path.join(module_path, self.fname + '.py'),
+            self.fname
+        )
         pipeline = pipeline.get_estimator()
         if isinstance(X_df, pd.DataFrame):
             X_train = X_df.iloc[train_is]
