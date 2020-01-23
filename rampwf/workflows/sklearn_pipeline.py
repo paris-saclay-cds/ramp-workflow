@@ -1,6 +1,5 @@
 import os
 
-import pandas as pd
 from sklearn.base import is_classifier
 from sklearn.utils import _safe_indexing
 
