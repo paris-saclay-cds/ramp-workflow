@@ -13,7 +13,7 @@ _prediction_label_names = [0, 1]
 Predictions = rw.prediction_types.make_multiclass(
     label_names=_prediction_label_names)
 # An object implementing the workflow
-workflow = rw.workflows.SKLearnPipeline()
+workflow = rw.workflows.FeatureExtractorClassifier()
 
 score_types = [
     rw.score_types.ROCAUC(name='auc'),
@@ -49,4 +49,5 @@ def get_train_data(path='.'):
 
 
 def get_test_data(path='.'):
-    return None, None
+    f_name = 'test.csv'
+    return _read_data(path, f_name)
