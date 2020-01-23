@@ -7,7 +7,7 @@ from ..utils.importing import import_module_from_source
 
 
 class SKLearnPipeline(object):
-    def __init__(self, fname):
+    def __init__(self, fname='estimator'):
         self.fname = fname
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
