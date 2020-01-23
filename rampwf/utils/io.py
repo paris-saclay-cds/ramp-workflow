@@ -125,7 +125,7 @@ def print_submission_exception(save_output, output_path):
     try:
         if trace[4].find('load_source') > -1:
             trace = trace[5:]
-    except:
+    except IndexError:
         trace = trace[4:]
     if save_output:
         with open(os.path.join(output_path, 'error.txt'), 'w') as fd:
