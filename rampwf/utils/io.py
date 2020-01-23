@@ -121,9 +121,11 @@ def print_submission_exception(save_output, output_path):
     trace = tb.format_exception(exc_type, exc_value, exc_traceback)
     for s in trace:
         print(s)
-    if trace[4].find('load_source') > -1:
-        trace = trace[5:]
-    else:
+    # some times traces is <5
+    try:
+        if trace[4].find('load_source') > -1:
+            trace = trace[5:]
+    except IndexError:
         trace = trace[4:]
     if save_output:
         with open(os.path.join(output_path, 'error.txt'), 'w') as fd:
