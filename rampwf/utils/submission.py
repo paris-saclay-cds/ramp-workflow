@@ -93,12 +93,11 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test=None,
     t0 = time.time()
     try:
         trained_workflow = problem.workflow.train_submission(
-            module_path, X_train, y_train, train_is=train_is)
+            module_path, X_train, y_train, train_is)
     except Exception:
         print_submission_exception(save_output, output_path)
         set_state('training_error', save_output, output_path)
-        # exit(1)
-        raise
+        exit(1)
     train_time = time.time() - t0
     set_state('trained', save_output, output_path)
     if is_pickle:
@@ -178,7 +177,7 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
     train_is, valid_is = fold
     pred, timing = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        save_output, fold_output_path, train_is=train_is)
+        save_output, fold_output_path, train_is)
     y_pred_train, y_pred_test = pred
     train_time, valid_time, test_time = timing
 
