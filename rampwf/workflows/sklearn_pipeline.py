@@ -14,6 +14,9 @@ class SKLearnPipeline:
     filename : str, default='estimator.py'
         The name of the python file used in the kit submission. In general,
         `estimator.py` is the used in RAMP starting-kit.
+    addtional_filenames : list
+        Typically of addtional file (e.g. external files) which will be used
+        in the workflow.
     """
     def __init__(self, filename='estimator.py', additional_filenames=None):
         self.element_names = [os.path.splitext(filename)[0]]
