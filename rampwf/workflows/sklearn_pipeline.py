@@ -19,7 +19,6 @@ class SKLearnPipeline:
         self.element_names = [os.path.splitext(filename)[0]]
         if additional_filenames is not None:
             self.element_names += additional_filenames
-        print(self.element_names)
         self.filename = filename
 
     def train_submission(self, module_path, X, y, train_idx=None):
