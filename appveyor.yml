@@ -3,13 +3,18 @@ build: false
 environment:
   matrix:
     - PYTHON: "C:\\Miniconda3-x64"
-      PYTHON_VERSION_ENV: "3.5"
-      PYTHON_VERSION: "3.5.x"
+      PYTHON_VERSION_ENV: "3.6"
+      PYTHON_VERSION: "3.6.x"
       PYTHON_ARCH: "64"
 
     - PYTHON: "C:\\Miniconda3-x64"
-      PYTHON_VERSION_ENV: "3.6"
-      PYTHON_VERSION: "3.6.x"
+      PYTHON_VERSION_ENV: "3.7"
+      PYTHON_VERSION: "3.7.x"
+      PYTHON_ARCH: "64"
+
+    - PYTHON: "C:\\Miniconda3-x64"
+      PYTHON_VERSION_ENV: "3.8"
+      PYTHON_VERSION: "3.8.x"
       PYTHON_ARCH: "64"
 
 install:
