@@ -6,7 +6,7 @@ from sklearn.utils import _safe_indexing
 from ..utils.importing import import_module_from_source
 
 
-class SKLearnPipeline(object):
+class SKLearnPipeline:
     """Wrapper to convert a scikit-learn estimator into a RAMP workflow.
 
     Parameters
@@ -15,7 +15,11 @@ class SKLearnPipeline(object):
         The name of the python file used in the kit submission. In general,
         `estimator.py` is the used in RAMP starting-kit.
     """
-    def __init__(self, filename='estimator.py'):
+    def __init__(self, filename='estimator.py', additional_filenames=None):
+        self.element_names = [os.path.splitext(filename)[0]]
+        if additional_filenames is not None:
+            self.element_names += additional_filenames
+        print(self.element_names)
         self.filename = filename
 
     def train_submission(self, module_path, X, y, train_idx=None):
