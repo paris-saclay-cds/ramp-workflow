@@ -12,7 +12,7 @@ from .object_detector import ObjectDetector
 from .regressor import Regressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
-from .sklearn_pipeline import SKLearnPipeline
+from .sklearn_pipeline import SKLearnPipeline, Estimator, EstimatorExternalData
 
 __all__ = [
     'AirPassengers',
@@ -29,5 +29,7 @@ __all__ = [
     'Regressor',
     'TimeSeriesFeatureExtractor',
     'GridFeatureExtractorClassifier',
-    'SKLearnPipeline'
+    'SKLearnPipeline',
+    'Estimator',
+    'EstimatorExternalData'
 ]
