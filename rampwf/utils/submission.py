@@ -48,9 +48,9 @@ def save_submissions(problem, y_pred, data_path='.', output_path='.',
         pass
 
 
-def train_test_submission(problem, module_path, X_train, y_train, X_test=None,
-                          is_pickle=False, save_output=False, output_path='.',
-                          model_name='model.pkl', train_is=None):
+def train_test_submission(problem, module_path, X_train, y_train, X_test,
+                          is_pickle, save_output, output_path,
+                          model_name, train_is):
     """Train and test submission, on cv fold if train_is not none.
 
     Parameters
@@ -177,7 +177,7 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
     train_is, valid_is = fold
     pred, timing = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        save_output, fold_output_path, train_is)
+        save_output, fold_output_path, 'model.pkl', train_is)
     y_pred_train, y_pred_test = pred
     train_time, valid_time, test_time = timing
 
@@ -273,7 +273,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
     """
     (y_pred_train, y_pred_test), _ = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        save_output, output_path, model_name='retrained_model.pkl')
+        save_output, output_path, 'retrained_model.pkl', None)
     predictions_train = problem.Predictions(y_pred=y_pred_train)
     ground_truth_train = problem.Predictions(y_true=y_train)
     if y_test is not None:
