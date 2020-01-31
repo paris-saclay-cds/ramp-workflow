@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 def _merge_external_data(X):
     filepath = os.path.join(os.path.dirname(__file__),
-                            'external_data_mini.csv')
+                            'external_data.csv')
     X_external = pd.read_csv(filepath)
     X_merged = pd.merge(X, X_external, how='left',
                         on=['DateOfDeparture', 'Arrival'], sort=False)
