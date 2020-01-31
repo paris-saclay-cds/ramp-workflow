@@ -87,7 +87,7 @@ class SKLearnPipeline:
 class Estimator(SKLearnPipeline):
     """Wrapper to convert a scikit-learn estimator into a RAMP workflow.
 
-    This workflow has 1 element called estimator.py
+    This workflow has 1 element that must be called `estimator.py
     """
     def __init__(self):
         super().__init__()
@@ -97,7 +97,7 @@ class EstimatorExternalData(SKLearnPipeline):
     """Wrapper to convert a scikit-learn estimator into a RAMP workflow
     in the presence of some external data.
 
-    This workflow has 2 elements: estimator.py and external_data.csv
+    This workflow requires 2 elements: `estimator.py` and `external_data.csv`
     """
     def __init__(self):
         super().__init__(additional_filenames=['external_data.csv'])
