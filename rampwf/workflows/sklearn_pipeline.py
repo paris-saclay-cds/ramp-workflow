@@ -9,6 +9,14 @@ from ..utils.importing import import_module_from_source
 class SKLearnPipeline:
     """Wrapper to convert a scikit-learn estimator into a RAMP workflow.
 
+
+    .. notes::
+
+        This class should not be used directly in problem.py
+        when using ramp-board database as it requires to have
+        a fixed set of elements (files) in the workflow for
+        the web frontend.
+
     Parameters
     ----------
     filename : str, default='estimator.py'
@@ -74,3 +82,22 @@ class SKLearnPipeline:
         if is_classifier(estimator_fitted):
             return estimator_fitted.predict_proba(X)
         return estimator_fitted.predict(X)
+
+
+class Estimator(SKLearnPipeline):
+    """Wrapper to convert a scikit-learn estimator into a RAMP workflow.
+
+    This workflow has 1 element that must be called `estimator.py
+    """
+    def __init__(self):
+        super().__init__()
+
+
+class EstimatorExternalData(SKLearnPipeline):
+    """Wrapper to convert a scikit-learn estimator into a RAMP workflow
+    in the presence of some external data.
+
+    This workflow requires 2 elements: `estimator.py` and `external_data.csv`
+    """
+    def __init__(self):
+        super().__init__(additional_filenames=['external_data.csv'])
