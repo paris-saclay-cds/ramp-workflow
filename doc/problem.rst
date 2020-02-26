@@ -54,7 +54,7 @@ file. It is worth taking a look at the `whole file
   * ``make_detection()`` - a unique class specifically designed for the
     `Mars crater detection <https://github.com/ramp-kits/mars_craters>`_
     challenge. A unique algorithm is implemented for combining predictions
-    from different models. See the `source code 
+    from different models. See the `source code
     <https://github.com/paris-saclay-cds/ramp-workflow/blob/master/rampwf/prediction_types/detection.py>`_
     for more information.
 
@@ -79,16 +79,34 @@ file. It is worth taking a look at the `whole file
     label_names=_prediction_label_names)
 
 4. Select a workflow
-   Workflows implement the steps of the machine learning problem. Each workflow
+   `Workflows
+   <https://github.com/paris-saclay-cds/ramp-workflow/tree/master/rampwf/workflows>`_
+   implement the steps of the machine learning problem. Each workflow
    is a class with a ``train_submission()`` and a ``test_submission()``
    function, which defines the workflow to implement during training and
    testing time. An attribute called ``workflow_element_names`` is also
    required. This attribute is a list of the file names that
    ``ramp_test_submission`` expects for each submission. This class is
    implemented by RAMP workflow internals to train and test each submission of a
-   challenge. The `workflows
-   <https://github.com/paris-saclay-cds/ramp-workflow/tree/master/rampwf/workflows>`_
-   available are described below:
+   challenge.
+
+   * ``Estimator()`` - a versatile, commonly used workflow that will work for
+     any `scikit-learn <https://scikit-learn.org/stable/>`_ estimator or
+     pipeline (where the last step is an estimator). It imports a file
+     named ``estimator.py`` from the submission directory (e.g.
+     ``submissions/starting_kit/``). This ``estimator.py`` file should define a
+     function named ``get_estimator()``, which returns a scikit-learn
+     estimator or pipeline with a final estimator. The ``fit`` and ``predict``
+     methods of the estimator/pipeline are then performed on the training
+     and test data respectively.
+  * ``EstimatorExternalData()`` - similar to the workflow above, except it
+    allows an external data file, named``external_data.csv``, to be used in the
+    workflow.
+
+  There are also more specific workflows, for example for timeseries or image
+  data. Some of specific workflows were designed for one specific challenge but
+  can be re-used for similar challenges. The first four workflows below are used
+  as building blocks for the more specific workflows that follow:
 
    * ``Regressor()`` - this workflow is for simple regression problems. It will
      import the file named ``regressor.py`` from the submission directory
@@ -102,24 +120,23 @@ file. It is worth taking a look at the `whole file
     will import the file named ``classifier.py`` from the submission directory
     (e.g. ``submissions/starting_kit/``). This ``classifier.py`` file should
     define a class named ``Classifier`` that has a ``fit()`` and a
-    ``predict_proba()`` method. This workflow will run ``fit()`` on the 
+    ``predict_proba()`` method. This workflow will run ``fit()`` on the
     training data and at testing time, run ``predict_proba()`` on the test
     data, using the trained model. If you are using a scikit-learn function,
     you can simply call the ``fit()`` and ``predict_proba()`` methods of the
     model you are using.
   * ``FeatureExtractor()`` - this workflow is designed for preprocessing data,
     for example converting non-numeric features into numeric, normalising data
-    and creating new features using existing features. This workflow is
-    designed to be used with the ``Classifier`` or ``Regressor`` workflow. It
-    will import the file named ``feature_extractor.py`` from the submission
-    directory (e.g. ``submissions/starting_kit/``). This
-    ``feature_extractor.py`` file should define a class named
-    ``FeatureExtractor`` with a ``fit()`` and a ``transform()`` method. This
-    workflow will run ``fit()`` on the features and target of the data and run
-    ``transform()`` on the features of training data. Note that ``fit()`` takes
-    both the features and target of the data as input to enable feature
-    engineering strategies such as target encoding during training time. The
-    output of this workflow is the preprocessed features of the data.
+    and creating new features using existing features. It will import the file
+    named ``feature_extractor.py`` from the submission directory
+    (e.g. ``submissions/starting_kit/``). This ``feature_extractor.py`` file
+    should define a class named ``FeatureExtractor`` with a ``fit()`` and a
+    ``transform()`` method. This workflow will run ``fit()`` on the features
+    and target of the data and run ``transform()`` on the features of training
+    data. Note that ``fit()`` takes both the features and target of the data as
+    input to enable feature engineering strategies such as target encoding
+    during training time. The output of this workflow is the preprocessed
+    features of the data.
   * ``feature_extractor_regressor()`` - this workflow combines the
     ``FeatureExtrator()`` and ``Regressor()`` workflows such that data is first
     preprocessed with ``FeatureExtractor()`` and then ``Regressor()``
@@ -133,9 +150,7 @@ file. It is worth taking a look at the `whole file
     ``FeatureExtractor()`` is only performed on training data but not test
     data.
 
-  There are also a number of much more specific workflows, some of which were
-  designed for one specific challenge but can be re-used for similar
-  challenges:
+  Workflows for specific data challenges:
 
   * ``ImageClassifier()`` - this workflow is for image classification
     tasks, particularly for cases when the dataset cannot be stored in memory.
@@ -163,7 +178,7 @@ file. It is worth taking a look at the `whole file
     submissions folder, which should define a class, ``ObjectDetector``, with
     ``fit()`` and ``predict()`` methods. It was used in the `Mars craters
     <https://github.com/ramp-kits/mars_craters>`_ challenge and the `Astronomy
-    <https://github.com/ramp-kits/astrophd_tutorial>`_ tutorial. 
+    <https://github.com/ramp-kits/astrophd_tutorial>`_ tutorial.
   * ``Clusterer()`` - this workflow was used for the `High-energy physics
     tracking <https://github.com/ramp-kits/HEP_tracking>`_ challenge which
     aimed to cluster particle hits. This workflow
