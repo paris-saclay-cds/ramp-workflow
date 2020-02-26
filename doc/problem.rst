@@ -24,7 +24,7 @@ file. It is worth taking a look at the `whole file
     problem_title = 'Titanic survival classification'
 
 3. Select a prediction type
-   `Prediction types 
+   `Prediction types
    <https://github.com/paris-saclay-cds/ramp-workflow/tree/master/rampwf/prediction_types>`_
    are classes used internally to store predictions and calculate scores. There
    are different prediction classes to be used with different types of
@@ -64,7 +64,7 @@ file. It is worth taking a look at the `whole file
   the ``problem.py`` file. If it is not too specific, we would also encourage
   you to add your class to `RAMP workflow`_ so others can use it in future.
   See :ref:`contributing`.
-  
+
   For example, the Titanic survival classification
   challenge aimed to predict whether or not each passenger survived. Survival
   is indicated by 0 (did not survive) or 1 (survived). Since this is a
@@ -219,7 +219,7 @@ file. It is worth taking a look at the `whole file
         rw.score_types.Accuracy(name='acc'),
         rw.score_types.NegativeLogLikelihood(name='nll'),
     ]
-    
+
    If you select more than one score, all the score metrics will be calculated
    when you enter a submission to RAMP. You can select one score metric to be
    used as the official score, used to rank participants, or calculate a
@@ -235,7 +235,7 @@ file. It is worth taking a look at the `whole file
         rw.score_types.Combined(
             name='combined', score_types=[score_type_1, score_type_2],
             weights=[2. / 3, 1. / 3], precision=3),
-    ]    
+    ]
 
   Note that the actual implementation was more complex as this challenge
   consisted of both a classification and regression task. For the purposes of
@@ -260,7 +260,7 @@ file. It is worth taking a look at the `whole file
    valuidation data will be the same for all participants.
 
    For example, the Titanic challenge used ``StratifiedShuffleSplit()``::
-    
+
     def get_cv(X, y):
         cv = StratifiedShuffleSplit(n_splits=8, test_size=0.2, random_state=57)
         return cv.split(X, y)
