@@ -56,7 +56,7 @@ and are required to launch a RAMP challenge on `RAMP Studio`_.
   to use ``conda``.
 * ``README.md`` - this is the homepage when the challenge is on GitHub and
   should provide a quick start guide.
-  
+
 The base directory of a full ramp-kit should thus look like::
 
     <ramp_kit_name>/    # root ramp-kit directory
@@ -67,7 +67,7 @@ The base directory of a full ramp-kit should thus look like::
     ├── <ramp_kit_name>_starting_kit.ipynb
     ├── data
     └── submissions/
-        └── <starting_kit>/    
+        └── <starting_kit>/
 
 If you wish to launch a RAMP challenge on `RAMP Studio`_ you will need to
 upload the full ramp-kit to `ramp-kits <https://github.com/ramp-kits>`_.
