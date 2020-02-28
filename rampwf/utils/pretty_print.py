@@ -2,10 +2,13 @@
 """
 Utility methods to print the results in a terminal using term colors
 """
-from __future__ import print_function
+import platform
 
 from pandas import option_context
+
 from ..externals.colored import stylize, fg, attr
+
+IS_WINDOWS = platform.system() == "Windows"
 
 # Dictionary of term colors used for printing to terminal
 fg_colors = {
@@ -20,12 +23,16 @@ fg_colors = {
 }
 
 
-def print_title(str):
-    print(stylize(str, fg(fg_colors['title']) + attr('bold')))
+def print_title(title):
+    if not IS_WINDOWS:
+        title = stylize(title, fg(fg_colors['title']) + attr('bold'))
+    print(title)
 
 
-def print_warning(str):
-    print(stylize(str, fg(fg_colors['warning'])))
+def print_warning(warning):
+    if not IS_WINDOWS:
+        warning = stylize(warning, fg(fg_colors['warning']))
+    print(warning)
 
 
 def print_df_scores(df_scores, indent=''):
@@ -48,16 +55,18 @@ def print_df_scores(df_scores, indent=''):
             continue
         if color_key is None:
             # table header
-            line = stylize(line, fg(fg_colors['title']) + attr('bold'))
+            if not IS_WINDOWS:
+                line = stylize(line, fg(fg_colors['title']) + attr('bold'))
         if color_key is not None:
             tokens = line.split()
             tokens_bak = tokens[:]
             if 'official_' + color_key in fg_colors:
                 # line label and official score bold & bright
-                label_color = fg(fg_colors['official_' + color_key])
-                tokens[0] = stylize(tokens[0], label_color + attr('bold'))
-                tokens[1] = stylize(tokens[1], label_color + attr('bold'))
-            if color_key in fg_colors:
+                if not IS_WINDOWS:
+                    label_color = fg(fg_colors['official_' + color_key])
+                    tokens[0] = stylize(tokens[0], label_color + attr('bold'))
+                    tokens[1] = stylize(tokens[1], label_color + attr('bold'))
+            if not IS_WINDOWS and (color_key in fg_colors):
                 # other scores pale
                 tokens[2:] = [stylize(token, fg(fg_colors[color_key]))
                               for token in tokens[2:]]
