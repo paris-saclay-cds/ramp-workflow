@@ -4,6 +4,8 @@ Scoring utilities
 """
 import numpy as np
 import pandas as pd
+
+from .pretty_print import IS_WINDOWS
 from .pretty_print import print_warning
 
 
@@ -53,12 +55,20 @@ def mean_score_matrix(df_scores_list, score_types):
     precisions = [st.precision for st in score_types]
     precisions.append(1)  # for time
     # we use unicode no break space so split in print_df_scores works
-    strs = np.array([[
-        u'{val}\u00A0±\u00A0{std}'.format(
-            val=round(mean, prec),
-            std=round(std, prec + 1))
-        for mean, std, prec in zip(means, stds, precisions)]
-        for means, stds in zip(meanss, stdss)])
+    if not IS_WINDOWS:
+        strs = np.array([[
+            u'{val}\u00A0±\u00A0{std}'.format(
+                val=round(mean, prec),
+                std=round(std, prec + 1))
+            for mean, std, prec in zip(means, stds, precisions)]
+            for means, stds in zip(meanss, stdss)])
+    else:
+        strs = np.array([[
+            u'{val} +- {std}'.format(
+                val=round(mean, prec),
+                std=round(std, prec + 1))
+            for mean, std, prec in zip(means, stds, precisions)]
+            for means, stds in zip(meanss, stdss)])
     df_scores = pd.DataFrame(
         strs, columns=df_scores_list[0].columns, index=df_scores_list[0].index)
     return df_scores
