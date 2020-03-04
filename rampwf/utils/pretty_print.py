@@ -3,13 +3,21 @@
 Utility methods to print the results in a terminal using term colors
 """
 import os
+import platform
 
 from pandas import option_context
 
 from ..externals.colored import stylize, fg, attr
 
+IS_WINDOWS = platform.system() == "Windows"
+# known terminal types which can handle colors on any system
 COLOR_TERMS = ['xterm-256color', 'cygwin', 'xterm-color']
-IS_COLOR_TERM = 'TERM' in os.environ and os.environ['TERM'] in COLOR_TERMS
+# 'xterm' can handle color on macos but not on windows
+IS_COLOR_TERM = 'TERM' in os.environ and (
+    os.environ['TERM'] in COLOR_TERMS or (
+        os.environ['TERM'] == 'xterm' and not IS_WINDOWS
+    )
+)
 
 # Dictionary of term colors used for printing to terminal
 fg_colors = {
