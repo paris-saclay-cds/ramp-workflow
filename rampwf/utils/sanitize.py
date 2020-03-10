@@ -17,7 +17,7 @@ BLACKLIST = [
 
 def _sanitize_input(code):
     """Sanitize the user provided Python code
-    
+
     This is not intended to be failproof by any mean, but merely provide early
     warning / detections of users trying to temper with the RAMP board system.
     """

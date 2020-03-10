@@ -2,6 +2,7 @@ import pytest
 
 from rampwf.utils.sanitize import _sanitize_input
 
+
 def test_sanitize_input():
     _sanitize_input('Harmess code')
 
