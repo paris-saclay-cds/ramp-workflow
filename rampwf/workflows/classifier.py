@@ -13,7 +13,8 @@ class Classifier(object):
             train_is = slice(None, None, None)
         classifier = import_module_from_source(
             os.path.join(module_path, self.element_names[0] + '.py'),
-            self.element_names[0]
+            self.element_names[0],
+            sanitize=True
         )
         clf = classifier.Classifier()
         clf.fit(X_array[train_is], y_array[train_is])

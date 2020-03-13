@@ -62,7 +62,8 @@ class TimeSeriesFeatureExtractor(object):
         n_burn_in = X_ds.n_burn_in
         ts_feature_extractor = import_module_from_source(
             os.path.join(module_path, self.element_names[0] + '.py'),
-            self.element_names[0]
+            self.element_names[0],
+            sanitize=True
         )
         ts_fe = ts_feature_extractor.FeatureExtractor()
         # Fit is not required in the submissions but we add it here in case
