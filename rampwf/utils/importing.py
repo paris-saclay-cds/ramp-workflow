@@ -16,7 +16,7 @@ def import_module_from_source(source, name, sanitize=False):
     name : str
         Name to give to the module once loaded.
     sanitize: bool, default=False
-        check for blacklisted key words in code
+        Check for blacklisted key words in code.
 
     Returns
     -------
