@@ -12,7 +12,8 @@ class FeatureExtractor(object):
             train_is = slice(None, None, None)
         feature_extractor = import_module_from_source(
             os.path.join(module_path, self.element_names[0] + '.py'),
-            self.element_names[0]
+            self.element_names[0],
+            sanitize=True
         )
         fe = feature_extractor.FeatureExtractor()
         fe.fit(X_df.iloc[train_is], y_array[train_is])

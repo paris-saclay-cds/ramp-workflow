@@ -65,7 +65,8 @@ class ObjectDetector(object):
         # object detector model
         detector = import_module_from_source(
             os.path.join(module_path, self.element_names[0] + '.py'),
-            self.element_names[0]
+            self.element_names[0],
+            sanitize=True
         )
         clf = detector.ObjectDetector()
 

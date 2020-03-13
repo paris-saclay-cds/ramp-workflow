@@ -25,7 +25,8 @@ class GridFeatureExtractor(object):
             train_is = slice(None, None, None)
         feature_extractor = import_module_from_source(
             os.path.join(module_path, self.element_names[0] + '.py'),
-            self.element_names[0]
+            self.element_names[0],
+            sanitize=True
         )
         fe = feature_extractor.FeatureExtractor()
         dim_set = pd.Series(list(X_ds.dims.keys()))

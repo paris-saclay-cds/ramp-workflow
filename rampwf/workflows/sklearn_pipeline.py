@@ -57,7 +57,8 @@ class SKLearnPipeline:
         train_idx = slice(None, None, None) if train_idx is None else train_idx
         submission_module = import_module_from_source(
             os.path.join(module_path, self.filename),
-            os.path.splitext(self.filename)[0]  # keep the module name only
+            os.path.splitext(self.filename)[0],  # keep the module name only
+            sanitize=True
         )
         estimator = submission_module.get_estimator()
         X_train = _safe_indexing(X, train_idx)
