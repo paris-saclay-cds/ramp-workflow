@@ -27,8 +27,6 @@ class SoftAccuracy(BaseScoreType):
     def __call__(self, y_true_proba, y_proba):
         # Clip negative probas
         y_proba_positive = np.clip(y_proba, 0, 1)
-        # Normalize rows
-        y_proba = np.clip(y_proba, 0, 1)
         y_proba_normalized = y_proba_positive / np.sum(
             y_proba_positive, axis=1, keepdims=True)
         # Smooth true probabilities with score_matrix
