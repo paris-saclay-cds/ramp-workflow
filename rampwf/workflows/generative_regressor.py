@@ -112,7 +112,7 @@ class GenerativeRegressor(object):
 
         X_array, restart = self._check_restart(X_array)
 
-        if restart is not None:
+        if self.restart_name is not None:
                 n_columns -= len(self.restart_name)
 
         truths = ["y_" + t for t in self.target_column_name]
