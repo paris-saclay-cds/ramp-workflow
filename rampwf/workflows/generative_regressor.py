@@ -32,15 +32,8 @@ class GenerativeRegressor(object):
         self.restart_name = restart_name
         self.kwargs = kwargs
 
-    def train_submission(self, module_path, X_array, y_array, train_is=None):
-        if train_is is None:
-            train_is = slice(None, None, None)
-        gen_regressor = import_file(module_path, self.element_names[0])
-
-        truths = ["y_" + t for t in self.target_column_name]
-        X_array = X_array.copy()
+    def _check_restart(self, X_array, train_is=slice(None, None, None)):
         restart = None
-
         if self.restart_name is not None:
             try:
                 restart = X_array[self.restart_name].values
@@ -48,6 +41,18 @@ class GenerativeRegressor(object):
                 restart = restart[train_is,]
             except KeyError:
                 restart = None
+
+        return X_array, restart
+
+    def train_submission(self, module_path, X_array, y_array, train_is=None):
+        if train_is is None:
+            train_is = slice(None, None, None)
+        gen_regressor = import_file(module_path, self.element_names[0])
+
+        truths = ["y_" + t for t in self.target_column_name]
+        X_array = X_array.copy()
+
+        X_array, restart = self._check_restart(X_array, train_is)
 
         if type(X_array).__module__ != np.__name__:
             try:
@@ -103,15 +108,10 @@ class GenerativeRegressor(object):
         X_array = X_array.copy()
         n_regressors = len(regressors)
 
-        restart = None
+        X_array, restart = self._check_restart(X_array)
 
         if self.restart_name is not None:
-            try:
-                restart = X_array[self.restart_name].values
-                X_array = X_array.drop(columns=self.restart_name)
                 n_columns -= len(self.restart_name)
-            except KeyError:
-                restart = None
 
         truths = ["y_" + t for t in self.target_column_name]
 
@@ -175,6 +175,8 @@ class GenerativeRegressor(object):
         y_sampled = []
         np.random.seed(seed)
 
+        X_array, restart = self._check_restart(X_array)
+
         for i, reg in enumerate(regressors):
             X = X_array
             if type(X_array).__module__ != np.__name__:
@@ -194,7 +196,11 @@ class GenerativeRegressor(object):
                 if i > 0:
                     X = np.concatenate((X, sampled_array), axis=1)
 
-            dists = reg.predict(X)
+            if restart is not None:
+                dists = reg.predict(X,restart)
+
+            else:
+                dists = reg.predict(X)
 
             # TODO: rewrite sampling
             weights, types, params = dists
