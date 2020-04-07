@@ -152,8 +152,9 @@ class TSFEGenReg:
         X_test_array = self.feature_extractor_workflow.test_submission(
             fe, X_df[cols_for_extraction])
 
-        # We only care about sampling for the last provided timestep
-        X_test_array = X_test_array.iloc[-1]
+        # We only care about sampling for the last provided timestep.
+        # Using [-1] so that a pandas DataFrame is returned and not a Series
+        X_test_array = X_test_array.iloc[[-1]]
 
         sampled = self.regressor_workflow.step(reg, X_test_array, random_state)
         sampled_df = pd.DataFrame(sampled)
