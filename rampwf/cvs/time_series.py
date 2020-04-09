@@ -93,20 +93,22 @@ class InsideRestart(object):
     """We do CV inside each of the episodes defined by restart and
     concatenate the episodes in both train an test."""
 
-    def __init__(self, cv_method=None):
+    def __init__(self, cv_method=None, restart_name='restart'):
         """cv_method should typically be rw.cvs.TimeSeries().get_cv"""
         self.cv_method = cv_method
+        self.restart_name = restart_name
         if self.cv_method is None:
             self.cv_method = KFold(
                 n_splits=3, random_state=None, shuffle=False).split
+            
 
     def get_cv(self, X, y):
         X_df = X.to_dataframe()
-        episode_bounds = list(np.where(X_df['restart'])[0])
+        episode_bounds = list(np.where(X_df[self.restart_name])[0])
         episode_bounds.insert(0, 0)
         episode_bounds.append(len(y))
         print('episode bounds: {}'.format(episode_bounds))
-        n_episodes = X_df['restart'].sum()  # The number of episodes
+        n_episodes = int(X_df[self.restart_name].values.sum())  # The number of episodes
         episode_list = []
         ranges = []
         for episode_id in range(n_episodes + 1):
@@ -122,16 +124,16 @@ class InsideRestart(object):
             train_is = []
             test_is = []
             if fold_i > 0:
-                X['restart'][train_idx[0]] = 0
-                X['restart'][test_idx[0]] = 0
+                X[self.restart_name][train_idx[0]] = 0
+                X[self.restart_name][test_idx[0]] = 0
             for episode, curr_range in zip(episode_list, ranges):
                 train_idx, test_idx = next(episode)
                 train_idx = curr_range[train_idx]
                 test_idx = curr_range[test_idx]
                 train_is += list(train_idx)
                 test_is += list(test_idx)
-                X['restart'][train_idx[0]] = 1
-                X['restart'][test_idx[0]] = 1
+                X[self.restart_name][train_idx[0]] = 1
+                X[self.restart_name][test_idx[0]] = 1
             print('CV fold {}: train {} valid {}'.format(
                 fold_i, fold_to_str(train_is), fold_to_str(test_is)))
             yield (train_is, test_is)
@@ -140,14 +142,18 @@ class InsideRestart(object):
 class PerRestart(object):
     """We do K-fold CV, each time one of the episodes is test, the rest is
     training."""
+    
+    def __init__(self,  restart_name='restart'):
+        self.restart_name = restart_name
+        
 
     def get_cv(self, X, y):
         X_df = X.to_dataframe()
-        episode_bounds = list(np.where(X_df['restart'])[0])
+        episode_bounds = list(np.where(X_df[self.restart_name])[0])
         episode_bounds.insert(0, 0)
         episode_bounds.append(len(y))
         print('episode bounds: {}'.format(episode_bounds))
-        n_episodes = X_df['restart'].sum() + 1  # The number of episodes
+        n_episodes = int(X_df[self.restart_name].values.sum()) + 1  # The number of episodes
         k_fold = KFold(n_splits=n_episodes, shuffle=False)
         for fold_i, (train_idx, test_idx) in enumerate(k_fold.split(
                 np.arange(n_episodes))):

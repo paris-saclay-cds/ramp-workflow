@@ -104,8 +104,7 @@ class TSFEGenReg:
             fe, X_df[cols_for_extraction])
 
         # We only care about sampling for the last provided timestep
-        X_test_array = X_test_array.iloc[-1]
-
+        X_test_array =  X_test_array.iloc[-1:]
 
         sampled = self.regressor_workflow.step(reg, X_test_array, seed)
 
