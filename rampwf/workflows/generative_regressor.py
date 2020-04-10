@@ -1,5 +1,7 @@
 import numpy as np
-
+import json
+import collections
+import os
 from sklearn.utils.validation import check_random_state
 
 from rampwf.utils.importing import import_file
@@ -51,6 +53,28 @@ class GenerativeRegressor(object):
             train_is = slice(None, None, None)
         gen_regressor = import_file(module_path, self.element_names[0])
 
+        order_path = os.path.join(
+            module_path, 'order.json')
+
+        try:
+            with open(order_path, "r") as json_file:
+                order = json.load(json_file)
+                # Check if the names in the order and observables are all here
+                if set(order.keys()) == set(self.target_column_name):
+                    # We sort the variables names by userdefined order
+                    order = [k for k,_ in sorted(order.items(),
+                                                 key=lambda item: item[1])]
+                    # Map it to original order
+                    self.order = [self.target_column_name.index(i)
+                                  for i in order]
+
+                    y_array = y_array[:, self.order]
+                else:
+                    raise RuntimeError("Order variables are not correct")
+        except FileNotFoundError as e:
+            print("Using default order")
+            self.order = range(self.target_column_name)
+
         truths = ["y_" + t for t in self.target_column_name]
         X_array = X_array.copy()
 
@@ -95,7 +119,7 @@ class GenerativeRegressor(object):
     def test_submission(self, trained_model, X_array):
         original_predict = self.predict_submission(trained_model, X_array)
 
-#        self.check_cheat(trained_model, X_array)
+        self.check_cheat(trained_model, X_array)
         return original_predict
 
     def predict_submission(self, trained_model, X_array):
@@ -120,7 +144,7 @@ class GenerativeRegressor(object):
         if type(X_array).__module__ != np.__name__:
             y = X_array[truths]
             X_array.drop(columns=truths, inplace=True)
-            X_array = np.hstack([X_array.values, y.values])
+            X_array = np.hstack([X_array.values, y.values[:,self.order]])
 
         for i, reg in enumerate(regressors):
             X = X_array[:, :n_columns - n_regressors + i]
@@ -139,7 +163,8 @@ class GenerativeRegressor(object):
 
             dims.append(result)
 
-        preds_concat = np.concatenate(dims, axis=1)
+        dims_original_order = np.array(dims)[np.argsort(self.order)]
+        preds_concat = np.concatenate(dims_original_order, axis=1)
 
         return preds_concat
 
@@ -177,16 +202,17 @@ class GenerativeRegressor(object):
         regressors = trained_model
         y_sampled = []
 
+        column_names = np.array(self.target_column_name)[self.order]
         X_array, restart = self._check_restart(X_array)
 
         for i, reg in enumerate(regressors):
             X = X_array
             if type(X_array).__module__ != np.__name__:
                 if len(y_sampled)==1:
-                    X["y_" + self.target_column_name[0]] = y_sampled[0][0]
+                    X["y_" + column_names[0]] = y_sampled[0][0]
                 else:
                     for j, predicted_dim in enumerate(np.array(y_sampled)):
-                        X["y_" + self.target_column_name[j]] = predicted_dim
+                        X["y_" + column_names[j]] = predicted_dim
                     X = X.values
             if X.ndim == 1:
                 X = [X, ]
@@ -204,7 +230,7 @@ class GenerativeRegressor(object):
             else:
                 dists = reg.predict(X)
 
-            # TODO: rewrite sampling
+
             weights, types, params = dists
             nb_dists = types.shape[1]
             y_dim = []
@@ -228,4 +254,5 @@ class GenerativeRegressor(object):
                 )
             y_sampled.append(y_dim)
 
+        y_sampled=np.array(y_sampled)[np.argsort(self.order)]
         return np.array(y_sampled).swapaxes(0, 1)
