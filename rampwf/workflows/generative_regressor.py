@@ -214,20 +214,17 @@ class GenerativeRegressor(object):
         given in training"""
         rng = check_random_state(random_state)
         regressors = trained_model
-        y_sampled = []
 
         column_names = np.array(self.target_column_name)[self.order]
         X_array, restart = self._check_restart(X_array)
 
+        y_sampled = np.zeros(len(regressors))
         for i, reg in enumerate(regressors):
             X = X_array
             if type(X_array).__module__ != np.__name__:
-                if len(y_sampled) == 1:
-                    X["y_" + column_names[0]] = y_sampled[0][0]
-                else:
-                    for j, predicted_dim in enumerate(np.array(y_sampled)):
-                        X["y_" + column_names[j]] = predicted_dim
-                X = X.values
+                if i >= 1:
+                    X["y_" + self.target_column_name[i-1]] = y_sampled[i-1]
+                    X = X.values
             if X.ndim == 1:
                 X = [X, ]
 
@@ -246,26 +243,14 @@ class GenerativeRegressor(object):
 
             weights, types, params = dists
             nb_dists = types.shape[1]
-            y_dim = []
-            for i in range(len(types)):  # Number of timesteps
-                w = weights[i].ravel()
-                w = w / sum(w)
-                empty_dist = distributions_dispatcher()
-                selected_type = empty_dist
-                while selected_type == empty_dist:
-                    selected = rng.choice(list(range(nb_dists)), p=w)
-                    dist = distributions_dispatcher(int(types[i, selected]))
-                    selected_type = int(types[i, selected])
-                sel_id = 0
-                for k in range(selected):
-                    firs_valid = np.where(
-                                ~np.array(types[:, k] == empty_dist)
-                                )[0][0]
-                    sel_id += distributions_dispatcher(firs_valid).n_params
-                y_dim.append(
-                    dist.sample(params[i, sel_id:sel_id+dist.n_params])
-                )
-            y_sampled.append(y_dim)
+            w = weights[0].ravel()
+            w = w / sum(w)
+            selected = rng.choice(list(range(nb_dists)), p=w)
+            dist = distributions_dispatcher(int(types[0, selected]))
+            selected_type = int(types[0, selected])
 
-        y_sampled = np.array(y_sampled)[np.argsort(self.order)]
-        return np.array(y_sampled).swapaxes(0, 1)
+            sel_id = (distributions_dispatcher(selected_type).nb_params *
+                      selected)
+            y_sampled[i] = dist.sample(params[0, sel_id:sel_id+dist.nb_params])
+
+        return y_sampled[np.newaxis, :]
