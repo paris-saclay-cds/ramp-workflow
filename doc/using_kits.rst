@@ -14,29 +14,38 @@ directly from the event page (i.e. "Download kit" button).
 
    |
 
-It will provide a zip file providing all the necessary materials. Sometimes,
-each starting-kit comes with specific instructions (e.g. to download extra
-data) which will be available in the `README.md`.
+It will provide a zip file providing all the necessary materials. All RAMP
+starting kits can be found on the `RAMP starting kits
+<https://github.com/ramp-kits>`_ Github repository. Some starting-kits come
+with specific instructions (e.g. to download extra data). These instructions
+can be found in the `README.md`.
 
 Install dependencies
 ====================
 
 To run a submission and the notebook you will need the dependencies listed
-in `requirements.txt`. You can install install the dependencies with the
+in `requirements.txt`. You can install install the dependencies using with the
 following command-line:
 
 .. code-block:: bash
 
    $ pip install -U -r requirements.txt
 
-If you are using `conda`, we provide an `environment.yml` file for similar
-usage.
+If you are using `conda`, we provide an `environment.yml` file:
+
+.. code-block:: bash
+
+   $ conda env create -f environment.yml
+
 
 Test a submission
 =================
 
-The submissions need to be located in the `submissions` folder. For instance
-for `my_submission`, it should be located in `submissions/my_submission`.
+The code file(s) (e.g., `estimator.py`) for each submission need to be stored
+in their own folder, which then needs to be located within the `submissions`
+folder. The name of the folder containing the code file(s) is the name of
+the submission. For example, the code files for the submission named
+'my_submission' should be located at `submissions/my_submission`.
 
 To run a specific submission, you can use the `ramp-test` command line:
 
@@ -50,7 +59,7 @@ You can get more information regarding this command line:
 
    $ ramp-test --help
 
-The output of the `ramp-test` command will be looking like:
+The output of the `ramp-test` command should look like:
 
 .. code-block:: bash
 
@@ -88,6 +97,9 @@ provide some data analysis and visualisation and walk you through a simple
 example solution. There will also be at least one example submission in
 `submissions/`, which show you which files are required for each submission,
 how they need to be named and how each file should be structured.
+
+It is important to check that your submission works locally, using
+``ramp-test``, before you submit your solution to `RAMP studio`_.
 
 Submitting to a RAMP event
 ==========================
@@ -143,9 +155,19 @@ To submit your solution to `RAMP studio`_:
 
    |
 
-   You need to enter a submission name without any spaces containing between
-   4 and 20 characters. When ready, click on "Submit now".
-   Shortly, your submission will be send to training and you will be able to
-   see the processing status in the different leaderboard.
+   You need to enter a submission name, without any spaces, containing between
+   4 and 20 characters. When ready, click on "Submit now". Ensure each
+   submission has a unique name.
+   Shortly afterward, your submission will be sent for training and you will be
+   able to see the status of your submission in "My submissions". When your
+   submission is waiting in the queue to be trained, it will appear in the
+   table "New submissions". Once trained it will either appear in "Trained
+   submissions" (if it trained sucessfully) or in "Failed submissions". If your
+   submission failed, you can click on the error to see part of the trace.
+
+   .. image:: images/ramp_my_submissions.png
+    :width: 800
+
+   |
 
 .. _RAMP studio: https://www.ramp.studio
