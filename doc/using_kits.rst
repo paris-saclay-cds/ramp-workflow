@@ -24,7 +24,7 @@ Install dependencies
 ====================
 
 To run a submission and the notebook you will need the dependencies listed
-in `requirements.txt`. You can install install the dependencies using with the
+in `requirements.txt`. You can install install the dependencies using the
 following command-line:
 
 .. code-block:: bash
@@ -41,7 +41,7 @@ If you are using `conda`, we provide an `environment.yml` file:
 Test a submission
 =================
 
-The code file(s) (e.g., `estimator.py`) for each submission need to be stored
+The code file(s) (e.g., `estimator.py`) for each submission needs to be stored
 in their own folder, which then needs to be located within the `submissions`
 folder. The name of the folder containing the code file(s) is the name of
 the submission. For example, the code files for the submission named
