@@ -16,6 +16,7 @@ sequence `X_ds`, making the training and testing slightly complicated.
 import pandas as pd
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .generative_regressor import GenerativeRegressor
+from .generative_regressor_full import GenerativeRegressorFull
 
 
 class TSFEGenReg:
@@ -25,7 +26,7 @@ class TSFEGenReg:
                  target_column_action_names,
                  restart_names=['restart'],
                  timestamp_name='time',
-                 workflow_element_names=None):
+                 workflow_element_names=None, auto =True, full = False):
 
         self.max_dists = max_dists
         self.target_column_observation_names = target_column_observation_names
@@ -43,11 +44,22 @@ class TSFEGenReg:
                 workflow_element_names=[self.element_names[0]],
                 restart_name=self.restart_names)
 
-        self.regressor_workflow = GenerativeRegressor(
-            target_column_observation_names, self.max_dists,
-            workflow_element_names=[self.element_names[1]],
-            restart_name=restart_names,
-            check_sizes=check_sizes, check_indexs=check_indexs)
+        if not full:
+                self.regressor_workflow = GenerativeRegressor(
+                    target_column_observation_names, self.max_dists,
+                    workflow_element_names=[self.element_names[1]],
+                    restart_name=restart_names,
+                    check_sizes=check_sizes, check_indexs=check_indexs,
+                    auto=auto)
+
+
+        else:
+
+            self.regressor_workflow = GenerativeRegressorFull(
+                target_column_observation_names, self.max_dists,
+                workflow_element_names=[self.element_names[1]],
+                restart_name=restart_names,
+                check_sizes=check_sizes, check_indexs=check_indexs)
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
         """Train model.

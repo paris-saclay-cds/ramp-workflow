@@ -8,10 +8,10 @@ from rampwf.utils.importing import import_file
 from ..utils import distributions_dispatcher
 
 
-class GenerativeRegressor(object):
+class GenerativeRegressorFull(object):
     def __init__(self, target_column_name, max_dists, check_sizes, check_indexs,
-                 workflow_element_names=['generative_regressor'],
-                 restart_name=None, auto= True,
+                 workflow_element_names=['generative_regressor_full'],
+                 restart_name=None,
                  **kwargs):
         """
         The regressors are expected to return :
@@ -35,7 +35,6 @@ class GenerativeRegressor(object):
         self.max_dists = max_dists
         self.restart_name = restart_name
         self.kwargs = kwargs
-        self.auto = auto
 
     def _check_restart(self, X_array, train_is=slice(None, None, None)):
         restart = None
@@ -54,27 +53,7 @@ class GenerativeRegressor(object):
             train_is = slice(None, None, None)
         gen_regressor = import_file(module_path, self.element_names[0])
 
-        order_path = os.path.join(
-            module_path, 'order.json')
 
-        try:
-            with open(order_path, "r") as json_file:
-                order = json.load(json_file)
-                # Check if the names in the order and observables are all here
-                if set(order.keys()) == set(self.target_column_name):
-                    # We sort the variables names by userdefined order
-                    order = [k for k,_ in sorted(order.items(),
-                                                 key=lambda item: item[1])]
-                    # Map it to original order
-                    self.order = [self.target_column_name.index(i)
-                                  for i in order]
-
-                    y_array = y_array[:, self.order]
-                else:
-                    raise RuntimeError("Order variables are not correct")
-        except FileNotFoundError as e:
-            print("Using default order")
-            self.order = range(len(self.target_column_name))
 
         truths = ["y_" + t for t in self.target_column_name]
         X_array = X_array.copy()
@@ -90,33 +69,28 @@ class GenerativeRegressor(object):
             X_array = X_array.values
         X_array = X_array[train_is,]
 
-        regressors = []
-        for i in range(len(self.target_column_name)):
-            reg = gen_regressor.GenerativeRegressor(
-                self.max_dists, i, **self.kwargs)
+        reg = gen_regressor.GenerativeRegressorFull(
+                self.max_dists, **self.kwargs)
 
-            if i == 0 and y_array.shape[1] == 1:
+        if y_array.shape[1] == 1:
                 y = y_array[train_is]
-            else:
-                y = y_array[train_is, i]
+        else:
+                y = y_array[train_is, :]
 
-            shape = y.shape
-            if len(shape) == 1:
+        shape = y.shape
+        if len(shape) == 1:
                 y = y.reshape(-1, 1)
-            elif len(shape) == 2:
+        elif len(shape) == 2:
                 pass
-            else:
+        else:
                 raise ValueError("More than two dims for y not supported")
 
-            if restart is not None:
+        if restart is not None:
                 reg.fit(X_array, y, restart)
-            else:
+        else:
                 reg.fit(X_array, y)
 
-            if self.auto:
-                X_array = np.hstack([X_array, y])
-            regressors.append(reg)
-        return regressors
+        return reg
 
     def test_submission(self, trained_model, X_array):
         original_predict = self.predict_submission(trained_model, X_array)
@@ -134,11 +108,11 @@ class GenerativeRegressor(object):
         dims = []
         n_columns = X_array.shape[1]
         X_array = X_array.copy()
-        n_regressors = len(regressors)
+        n_targets = len(self.target_column_name)
 
         X_array, restart = self._check_restart(X_array)
 
-        if self.restart_name is not None:
+        if restart is not None:
                 n_columns -= len(self.restart_name)
 
         truths = ["y_" + t for t in self.target_column_name]
@@ -146,33 +120,48 @@ class GenerativeRegressor(object):
         if type(X_array).__module__ != np.__name__:
             y = X_array[truths]
             X_array.drop(columns=truths, inplace=True)
-            if self.auto:
-                X_array = np.hstack([X_array.values, y.values[:,self.order]])
-            else:
-                X = X_array.values
+            X_array = np.hstack([X_array.values, y.values])
 
-        for i, reg in enumerate(regressors):
-            if self.auto:
-                X = X_array[:, :n_columns - n_regressors + i]
-            if restart is not None:
-                dists = reg.predict(X, restart)
-            else:
-                dists = reg.predict(X)
+        X = X_array[:, :n_columns - n_targets]
+        if restart is not None:
+                dists = regressors.predict(X, restart)
+        else:
+                dists = regressors.predict(X)
 
-            weights, types, params = dists
+        weights, types, params = dists
 
-            nb_dists_curr = types.shape[1]
-            assert nb_dists_curr <= self.max_dists
+        nb_dists_curr = types.shape[1]
+        assert nb_dists_curr <= self.max_dists
 
-            sizes = np.full((len(types), 1), nb_dists_curr)
-            result = np.concatenate((sizes, weights, types, params), axis=1)
 
-            dims.append(result)
 
-        dims_original_order = np.array(dims)[np.argsort(self.order)]
-        preds_concat = np.concatenate(dims_original_order, axis=1)
+        nb_dists_per_dim = nb_dists_curr//n_targets
 
-        return preds_concat
+        #We assume that every dimesntion is preedicted with the same dists
+        sizes = np.full((len(types), n_targets), nb_dists_per_dim)
+
+        #result = np.concatenate((sizes, weights, types, params), axis=1)
+
+        size_concatenated = weights.shape[1]+nb_dists_curr+params.shape[1]
+        step = (size_concatenated+n_targets)//n_targets
+        result =  np.empty((len(types),n_targets+ size_concatenated))
+
+        result[:,0::step]= sizes
+
+        offset = 1
+        for i in range(offset, nb_dists_per_dim+offset):
+            result[:, i::step] = weights[:,i-offset::nb_dists_per_dim]
+
+        offset += nb_dists_per_dim
+        for i in range(offset, nb_dists_per_dim+offset):
+            result[:, i::step] = types[:,i-offset::nb_dists_per_dim]
+
+        offset += nb_dists_per_dim
+        for i in range(offset, params.shape[1]//n_targets+offset):
+            result[:, i::step] = params[:,i-offset::params.shape[1]//n_targets]
+
+
+        return result
 
     def check_cheat(self, trained_model, X_array):
         for check_size, check_index in zip(
@@ -211,54 +200,52 @@ class GenerativeRegressor(object):
         column_names = np.array(self.target_column_name)[self.order]
         X_array, restart = self._check_restart(X_array)
 
-        for i, reg in enumerate(regressors):
-            X = X_array
-            if type(X_array).__module__ != np.__name__:
-                if len(y_sampled)==1:
-                    X["y_" + column_names[0]] = y_sampled[0][0]
-                else:
-                    for j, predicted_dim in enumerate(np.array(y_sampled)):
-                        X["y_" + column_names[j]] = predicted_dim
-                    X = X.values
-            if X.ndim == 1:
-                X = [X, ]
 
-            if type(X_array).__module__ == np.__name__:
-                sampled_array = np.array(y_sampled).T
-                if sampled_array.ndim == 1:
-                    sampled_array = [sampled_array, ]
-                if i > 0:
-                    X = np.concatenate((X, sampled_array), axis=1)
-
-            if restart is not None:
-                dists = reg.predict(X,restart)
-
+        X = X_array
+        if type(X_array).__module__ != np.__name__:
+            if len(y_sampled)==1:
+                X["y_" + column_names[0]] = y_sampled[0][0]
             else:
-                dists = reg.predict(X)
+                for j, predicted_dim in enumerate(np.array(y_sampled)):
+                    X["y_" + column_names[j]] = predicted_dim
+                X = X.values
+        if X.ndim == 1:
+            X = [X, ]
 
+        if type(X_array).__module__ == np.__name__:
+            sampled_array = np.array(y_sampled).T
+            if sampled_array.ndim == 1:
+                sampled_array = [sampled_array, ]
+            if i > 0:
+                X = np.concatenate((X, sampled_array), axis=1)
 
-            weights, types, params = dists
-            nb_dists = types.shape[1]
-            y_dim = []
-            for i in range(len(types)): # Number of timesteps
-                w = weights[i].ravel()
-                w = w / sum(w)
-                empty_dist = distributions_dispatcher()
-                selected_type = empty_dist
-                while selected_type == empty_dist:
-                    selected = rng.choice(list(range(nb_dists)), p=w)
-                    dist = distributions_dispatcher(int(types[i, selected]))
-                    selected_type = int(types[i, selected])
-                sel_id = 0
-                for k in range(selected):
-                    firs_valid = np.where(
-                                ~np.array(types[:, k] == empty_dist)
-                                )[0][0]
-                    sel_id += distributions_dispatcher(firs_valid).nb_params
-                y_dim.append(
-                    dist.sample(params[i, sel_id:sel_id+dist.nb_params])
-                )
-            y_sampled.append(y_dim)
+        if restart is not None:
+            dists = regressors.predict(X,restart)
+        else:
+            dists = regressors.predict(X)
+
+        weights, types, params = dists
+        nb_dists = types.shape[1]
+        y_dim = []
+        for i in range(len(types)): # Number of timesteps
+            w = weights[i].ravel()
+            w = w / sum(w)
+            empty_dist = distributions_dispatcher()
+            selected_type = empty_dist
+            while selected_type == empty_dist:
+                selected = rng.choice(list(range(nb_dists)), p=w)
+                dist = distributions_dispatcher(int(types[i, selected]))
+                selected_type = int(types[i, selected])
+            sel_id = 0
+            for k in range(selected):
+                firs_valid = np.where(
+                            ~np.array(types[:, k] == empty_dist)
+                            )[0][0]
+                sel_id += distributions_dispatcher(firs_valid).nb_params
+            y_dim.append(
+                dist.sample(params[i, sel_id:sel_id+dist.nb_params])
+            )
+        y_sampled.append(y_dim)
 
         y_sampled=np.array(y_sampled)[np.argsort(self.order)]
         return np.array(y_sampled).swapaxes(0, 1)
