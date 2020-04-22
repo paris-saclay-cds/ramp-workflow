@@ -4,7 +4,7 @@ import collections
 import os
 from sklearn.utils.validation import check_random_state
 
-from rampwf.utils.importing import import_file
+from ..utils.importing import import_module_from_source
 from ..utils import distributions_dispatcher
 
 
@@ -51,9 +51,11 @@ class GenerativeRegressorFull(object):
     def train_submission(self, module_path, X_array, y_array, train_is=None):
         if train_is is None:
             train_is = slice(None, None, None)
-        gen_regressor = import_file(module_path, self.element_names[0])
-
-
+        gen_regressor = import_module_from_source(
+            os.path.join(module_path, self.element_names[0] + '.py'),
+            self.element_names[0],
+            sanitize=True
+        )
 
         truths = ["y_" + t for t in self.target_column_name]
         X_array = X_array.copy()
