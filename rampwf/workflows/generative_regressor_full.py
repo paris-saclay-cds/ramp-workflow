@@ -54,7 +54,7 @@ class GenerativeRegressorFull(object):
         gen_regressor = import_module_from_source(
             os.path.join(module_path, self.element_names[0] + '.py'),
             self.element_names[0],
-            sanitize=True
+            sanitize=False
         )
 
         truths = ["y_" + t for t in self.target_column_name]
