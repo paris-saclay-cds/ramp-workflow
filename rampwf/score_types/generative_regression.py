@@ -7,7 +7,8 @@ from ..utils import distributions_dispatcher
 
 class NegativeLogLikelihoodReg(BaseScoreType):
     is_lower_the_better = True
-    minimum = -float('inf')  # This is due to the fact that bins are possibly infinitesimally small
+    # This is due to the fact that bins are possibly infinitesimally small
+    minimum = -float('inf')
     maximum = float('inf')
 
     def __init__(self, n_bins, name='logLK', precision=2):
@@ -23,20 +24,22 @@ class NegativeLogLikelihoodReg(BaseScoreType):
             y_true = y_true.swapaxes(0, 1)
 
         bins = y_pred[:, :, :self.n_bins + 1].swapaxes(1, 0)
-        prob = y_pred[:, :, self.n_bins + 1: 2 * self.n_bins + 1].swapaxes(1, 0)
+        prob = y_pred[:, :, self.n_bins + 1: 2 * self.n_bins + 1].swapaxes(
+            1, 0)
 
         if np.isnan(bins).any() or np.isnan(prob).any():
             raise ValueError(
-                """The output of the regressor contains nans, or isof the wrong shape. 
-                It should be (time_step, dim_step, bins+probas)""")
+                """The output of the regressor contains nans, or isof the
+                wrong shape. It should be (time_step, dim_step, bins+probas)
+                """)
 
         summed_prob = np.sum(prob, axis=2, keepdims=True)
         if not np.all(summed_prob == 1):
             prob = (prob / summed_prob)
 
         # If one of the bins is not ordered
-        if any([time_step[i] >= time_step[i + 1] for dim_bin in bins for time_step in dim_bin for i in
-                range(len(time_step) - 1)]):
+        if any([time_step[i] >= time_step[i + 1] for dim_bin in bins\
+                for time_step in dim_bin for i in range(len(time_step) - 1)]):
             raise ValueError("Bins must be ordered and non empty")
 
         classes_matrix = np.full(y_true.shape, np.nan)
@@ -63,11 +66,13 @@ class NegativeLogLikelihoodReg(BaseScoreType):
         # Multi target regression
         preds_matrix = []
         selected_bins = []
-        for classes, prob_dim, bin_dim in zip(classes_matrix, prob, bins_sliding):
+        for classes, prob_dim, bin_dim in\
+                zip(classes_matrix, prob, bins_sliding):
             preds = prob_dim[range(len(classes)), classes]
             bins = bin_dim[range(len(classes)), classes]
 
-            # If the value is outside of the probability distribution we discretized, it is 0,
+            # If the value is outside of the probability distribution we
+            # discretized, it is 0,
             # and the scaling uses the size of the largest bin
             preds[classes == -1] = 0
             bins[classes == -1] = -1
@@ -119,7 +124,7 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='logLKGauss', precision=2, verbose = False):
+    def __init__(self, name='logLKGauss', precision=2, verbose=False):
         self.name = name
         self.precision = precision
         self.verbose = verbose
@@ -175,7 +180,8 @@ class LikelihoodRatioDists(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='ll_ratio', precision=2, verbose = True, plot = False):
+    def __init__(self, name='ll_ratio', precision=2, verbose=False,
+                 plot=False):
         self.name = name
         self.precision = precision
         self.verbose = verbose
@@ -201,7 +207,9 @@ class LikelihoodRatioDists(BaseScoreType):
             for y, mean, std in zip(y_true, means, stds)])
         
         if self.verbose:
-            print(np.exp( np.sum(-lk_by_i, axis=1)/ baseline_lls.size - np.sum(baseline_lls, axis = 1) / baseline_lls.size))
+            print(
+                np.exp(np.sum(-lk_by_i, axis=1) / baseline_lls.size -
+                np.sum(baseline_lls, axis = 1) / baseline_lls.size))
             if self.plot:
                 ratio_by_point = np.exp(-lk_by_i - baseline_lls)
                 for i, ratio in enumerate(ratio_by_point):
@@ -209,6 +217,4 @@ class LikelihoodRatioDists(BaseScoreType):
                     plt.title(i)
                     plt.show()
 
-
-        return np.exp(-nll_reg - np.sum(
-            baseline_lls) / baseline_lls.size)
+        return np.exp(-nll_reg - np.sum(baseline_lls) / baseline_lls.size)
