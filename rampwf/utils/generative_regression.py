@@ -30,7 +30,7 @@ class AbstractDists(ABC):
 
     @staticmethod
     @abstractmethod
-    def mu(params):
+    def mean(params):
         pass
 
     @staticmethod
@@ -42,14 +42,14 @@ class AbstractDists(ABC):
 class Normal(AbstractDists):
     nb_params = 2
     id = 0
-    params = ['mean', 'sd']
+    params = ['mean', 'std']
 
     @staticmethod
     def pdf(x, params):
         mean = params[:, 0]
-        sd = params[:, 1]
+        std = params[:, 1]
         Normal.assert_params(params)
-        var = sd ** 2
+        var = std ** 2
         denom = (2 * np.pi * var) ** .5
         diff = x - mean
         num = np.exp(-diff ** 2 / (2 * var))
@@ -58,16 +58,16 @@ class Normal(AbstractDists):
 
     @staticmethod
     def assert_params(params):
-        sd = params[:, 1]
-        assert np.all(sd > 0), "Make sure all sigmas are positive " \
-                               "(second parameter)"
+        std = params[:, 1]
+        assert np.all(std > 0),\
+            "Make sure all sigmas are positive (second parameter)"
 
     @staticmethod
     def sample(params):
         return np.random.normal(params[0], params[1])
 
     @staticmethod
-    def mu(params):
+    def mean(params):
         return params[:, 0]
 
     @staticmethod
@@ -101,7 +101,7 @@ class Uniform(AbstractDists):
         return np.random.uniform(params[0], params[1])
 
     @staticmethod
-    def mu(params):
+    def mean(params):
         a = params[:, 0]
         b = params[:, 1]
         return 0.5 * (a + b)
@@ -155,7 +155,7 @@ class Beta(AbstractDists):
         return x
 
     @staticmethod
-    def mu(params):
+    def mean(params):
         a = params[:, 0]
         b = params[:, 1]
         loc = params[:, 2]
@@ -175,16 +175,16 @@ class Beta(AbstractDists):
 class NormalTruncated(AbstractDists):
     nb_params = 4
     id = 3
-    params = ['mean', 'sd', 'a', 'b']
+    params = ['mean', 'std', 'a', 'b']
 
     @staticmethod
     def pdf(x, params):
         mean = params[:, 0]
-        sd = params[:, 1]
+        std = params[:, 1]
         a = params[:, 2]
         b = params[:, 3]
         NormalTruncated.assert_params(params)
-        return truncnorm.pdf(x, a, b, mean, sd)
+        return truncnorm.pdf(x, a, b, mean, std)
 
     @staticmethod
     def assert_params(params):
@@ -194,35 +194,35 @@ class NormalTruncated(AbstractDists):
     @staticmethod
     def sample(params):
         mean = params[:, 0]
-        sd = params[:, 1]
+        std = params[:, 1]
         a = params[:, 2]
         b = params[:, 3]
-        return truncnorm.rvs(a, b, mean, sd)
+        return truncnorm.rvs(a, b, mean, std)
 
     @staticmethod
-    def mu(params):
+    def mean(params):
         mean = params[:, 0]
-        sd = params[:, 1]
+        std = params[:, 1]
         a = params[:, 2]
         b = params[:, 3]
         alpha = (a - mean) / sd
         beta = (b - mean) / sd
-        return mean + sd * ((norm.pdf(alpha) - norm.pdf(beta))
-                            / (norm.cdf(beta) - norm.cdf(alpha)))
+        return mean + std * ((norm.pdf(alpha) - norm.pdf(beta))
+                             / (norm.cdf(beta) - norm.cdf(alpha)))
 
     @staticmethod
     def var(params):
         mean = params[:, 0]
-        sd = params[:, 1]
+        std = params[:, 1]
         a = params[:, 2]
         b = params[:, 3]
-        alpha = (a - mean) / sd
-        beta = (b - mean) / sd
+        alpha = (a - mean) / std
+        beta = (b - mean) / std
         z = norm.cdf(beta) - norm.cdf(alpha)
 
-        return (sd ** 2) * (1 +
-                            ((alpha * norm.pdf(alpha) - beta * norm.pdf(beta)) / z) +
-                            ((norm.pdf(alpha) - norm.pdf(beta)) / z) ** 2
+        return (std ** 2) * (
+            1 + ((alpha * norm.pdf(alpha) - beta * norm.pdf(beta)) / z) +
+            ((norm.pdf(alpha) - norm.pdf(beta)) / z) ** 2
                             )
 
 
@@ -253,7 +253,7 @@ class NormalFolded(AbstractDists):
         return foldnorm.rvs(c, loc, scale)
 
     @staticmethod
-    def mu(params):
+    def mean(params):
         raise NotImplementedError()
 
     @staticmethod
@@ -297,7 +297,7 @@ class VonMises(AbstractDists):
         return vonmises.rvs(kappa, loc, scale)
 
     @staticmethod
-    def mu(params):
+    def mean(params):
         return params[:, 1]
 
     @staticmethod
@@ -353,7 +353,7 @@ class Pert(AbstractDists):
         return sampled
 
     @staticmethod
-    def mu(params):
+    def mean(params):
         raise NotImplementedError()
 
     @staticmethod
@@ -390,11 +390,12 @@ class NormalDiscrete(AbstractDists):
         tail = 5
         xmin = params[0] - (tail * params[1])
         xmax = params[0] - (tail * params[1])
-        sampled = rejection_sampling(NormalDiscrete.pdf, params, xmin, xmax, discrete=True)
+        sampled = rejection_sampling(
+            NormalDiscrete.pdf, params, xmin, xmax, discrete=True)
         return int(np.random.normal(params[0], params[1]))
 
     @staticmethod
-    def mu(params):
+    def mean(params):
         return params[:, 0]
 
     @staticmethod
@@ -420,12 +421,14 @@ class EmptyDist(AbstractDists):
         raise RuntimeError("You should not sample from an empty distribution")
 
     @staticmethod
-    def mu(params):
-        raise RuntimeError("You should not get mu from an empty distribution")
+    def mean(params):
+        raise RuntimeError(
+            "You should not get mean from an empty distribution")
 
     @staticmethod
     def var(params):
-        raise RuntimeError("You should not get sigma from an empty distribution")
+        raise RuntimeError(
+            "You should not get sigma from an empty distribution")
 
 
 distributions_dict = {
@@ -433,8 +436,11 @@ distributions_dict = {
 }
 
 
-# Bevington page 84. http://hosting.astro.cornell.edu/academics/courses/astro3310/Books/Bevington_opt.pdf
-def rejection_sampling(pdf, params, xmin=0, xmax=1, discrete=False, nb_attemps=1000):
+# Bevington page 84.
+# http://hosting.astro.cornell.edu/
+# academics/courses/astro3310/Books/Bevington_opt.pdf
+def rejection_sampling(
+        pdf, params, xmin=0, xmax=1, discrete=False, nb_attemps=1000):
     if discrete:
         x = np.arange(xmin, xmax)
         x_sampler = np.random.randint
