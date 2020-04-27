@@ -4,6 +4,8 @@ from scipy.special import gamma, iv
 from scipy.stats import truncnorm, norm, foldnorm, vonmises, beta
 
 # The maximum numbers of parameters a distribution would need
+# Only matters for bagging mixture models in
+# prediction_types.generative_regression
 MAX_MDN_PARAMS = 5
 
 
