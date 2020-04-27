@@ -1,6 +1,6 @@
 import numpy as np
 from .base import BasePrediction
-from ..utils import MAX_PARAMS, distributions_dispatcher
+from ..utils import MAX_MDN_PARAMS, distributions_dispatcher
 import warnings
 import itertools
 
@@ -21,7 +21,9 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
         # for each dim, 1 for the nb of dists (which is max self.max_dists),
         # then nb_dists for weights, nb of dists for types
         # and lastly nb of dists*2 for dist parameters
-        shape = (n_samples, self.n_columns * (1 + (2 + MAX_PARAMS) * self.max_dists))
+        shape = (
+            n_samples,
+            self.n_columns * (1 + (2 + MAX_MDN_PARAMS) * self.max_dists))
         self.y_pred = np.empty(shape, dtype=float)
         self.y_pred.fill(np.nan)
     else:
@@ -79,7 +81,7 @@ def _combine(cls, predictions_list, index_list=None):
             for k in range(curr_size):
                 active_type = int(active_types[k])
                 dist = distributions_dispatcher(active_type)
-                end_single_genreg += dist.nb_params
+                end_single_genreg += dist.n_params
 
             curr_params.append(
                 curr_pred[:, curr_indicies[i]:end_single_genreg])

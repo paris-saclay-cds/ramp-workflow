@@ -4,11 +4,11 @@ from scipy.special import gamma, iv
 from scipy.stats import truncnorm, norm, foldnorm, vonmises, beta
 
 # The maximum numbers of parameters a distribution would need
-MAX_PARAMS = 5
+MAX_MDN_PARAMS = 5
 
 
 class AbstractDists(ABC):
-    nb_params = np.nan
+    n_params = np.nan
     id = np.nan
     discrete = False
     params = None
@@ -40,7 +40,7 @@ class AbstractDists(ABC):
 
 
 class Normal(AbstractDists):
-    nb_params = 2
+    n_params = 2
     id = 0
     params = ['mean', 'std']
 
@@ -76,7 +76,7 @@ class Normal(AbstractDists):
 
 
 class Uniform(AbstractDists):
-    nb_params = 2
+    n_params = 2
     id = 1
     params = ['a', 'b']
 
@@ -114,7 +114,7 @@ class Uniform(AbstractDists):
 
 
 class Beta(AbstractDists):
-    nb_params = 4
+    n_params = 4
     id = 2
     params = ['a', 'b', 'loc', 'scale']
 
@@ -173,7 +173,7 @@ class Beta(AbstractDists):
 
 
 class NormalTruncated(AbstractDists):
-    nb_params = 4
+    n_params = 4
     id = 3
     params = ['mean', 'std', 'a', 'b']
 
@@ -227,7 +227,7 @@ class NormalTruncated(AbstractDists):
 
 
 class NormalFolded(AbstractDists):
-    nb_params = 3
+    n_params = 3
     id = 4
     params = ['c', 'loc', 'scale']
 
@@ -262,7 +262,7 @@ class NormalFolded(AbstractDists):
 
 
 class VonMises(AbstractDists):
-    nb_params = 3
+    n_params = 3
     id = 5
     params = ['kappa', 'loc', 'scale']
 
@@ -306,7 +306,7 @@ class VonMises(AbstractDists):
 
 
 class Pert(AbstractDists):
-    nb_params = 4
+    n_params = 4
     id = 6
     params = ['a', 'b', 'c', 'lamb']
 
@@ -363,7 +363,7 @@ class Pert(AbstractDists):
 
 # https://en.wikipedia.org/wiki/Gaussian_function#Discrete_Gaussian
 class NormalDiscrete(AbstractDists):
-    nb_params = 2
+    n_params = 2
     id = 7
     discrete = True
     params = ['loc', 'scale']
@@ -404,7 +404,7 @@ class NormalDiscrete(AbstractDists):
 
 
 class EmptyDist(AbstractDists):
-    nb_params = np.nan
+    n_params = np.nan
     id = -1
     params = None
 

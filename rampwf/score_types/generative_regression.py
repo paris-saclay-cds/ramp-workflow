@@ -1,8 +1,45 @@
+"""Score types (metrics) for generative regression.
+
+`y_true` is either n x d dimensional where n is the number of data points and 
+d is the number of (output) dimensions, or n dimensional if d=1. `y_pred` is
+nxD dimensional where
+D = sum_j(1 + 2 * n_dists_j + sum_ell(n_params_{j, ell})). The
+following scheme was designed to be able to store the full y_pred as a
+numerical numpy array.
+ - y_pred[i] contains d variable-size blocks, one for each output dimension
+   j = 1, ..., d.
+ - The first element of the block is n_dists_j, the number of mixture
+   components in dimension j, decided by the submitters. Its maximum is
+   determined by the organizer in problem.py.
+ - This followed by n_dists_j integers representing mixture component types
+   (see utils.generative_regression). A submitter can mix different types of
+   components but the type sequence must be the same for all instances (to
+   make y_pred[i] having the same length for all i). The only exception is
+   that we can have instances with EmptyDist (id=-1) replacing any type.
+ - This followed by n_dists_j floats, the component weights in dimension j.
+   They all must be nonnegative and they have to add up to one.
+ - This followed by a variable length block of n_dists_j mixture component
+   parameters. The number of component parameters depend on the component
+   types (see utils.generative_regression).
+"""
+
+# Authors: Gabriel Hurtado <>,
+#          Balazs Kegl <balazs.kegl@gmail.com>
+# License: BSD 3 clause
+
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 from .base import BaseScoreType
 from ..utils import distributions_dispatcher
+
+
+def convert_y_true(y_true):
+    """Convert y_pred into output dimensions first."""
+    if len(y_true.shape) == 1:
+        return np.array([y_true])
+    else:
+        return y_true.swapaxes(0, 1)
 
 
 class NegativeLogLikelihoodReg(BaseScoreType):
@@ -17,12 +54,7 @@ class NegativeLogLikelihoodReg(BaseScoreType):
         self.n_bins = n_bins
 
     def __call__(self, y_true, y_pred):
-
-        if len(y_true.shape) == 1:
-            y_true = np.array([y_true])
-        else:
-            y_true = y_true.swapaxes(0, 1)
-
+        y_true = convert_y_true(y_true)
         bins = y_pred[:, :, :self.n_bins + 1].swapaxes(1, 0)
         prob = y_pred[:, :, self.n_bins + 1: 2 * self.n_bins + 1].swapaxes(
             1, 0)
@@ -103,12 +135,7 @@ class LikelihoodRatio(BaseScoreType):
     def __call__(self, y_true, y_pred):
         nll_reg_score = NegativeLogLikelihoodReg(self.n_bins)
         nll_reg = nll_reg_score(y_true, y_pred)
-
-        if len(y_true.shape) == 1:
-            y_true = np.array([y_true])
-        else:
-            y_true = y_true.swapaxes(0, 1)
-
+        y_true = convert_y_true(y_true)
         means = np.mean(y_true, axis=1)
         stds = np.std(y_true, axis=1)
         baseline_lls = np.array([
@@ -117,7 +144,6 @@ class LikelihoodRatio(BaseScoreType):
 
         return np.exp(-nll_reg - np.sum(
             baseline_lls) / baseline_lls.size)
-
 
 class NegativeLogLikelihoodRegDists(BaseScoreType):
     is_lower_the_better = True
@@ -130,49 +156,45 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
         self.verbose = verbose
         
     def __call__(self, y_true, y_pred):
-
-        if len(y_true.shape) == 1:
-            y_true = np.array([y_true])
-        else:
-            y_true = y_true.swapaxes(0, 1)
-
-        logLK = 0
-
+        y_true = convert_y_true(y_true)  # output dimension first
+        log_lk = 0  # negative log likelihood to be returned  
+        # negative log likelihoods of each output dimension and instance  
+        log_lks = np.zeros(y_true.shape)
+        # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
-        
-        lk_by_i = np.zeros(y_true.shape)
-
-        for i_true, y_true_dim in enumerate(y_true):
-
-            nb_dists = int(y_pred[0, curr_idx])
+        for j_dim, y_true_dim in enumerate(y_true):
+            # number of actual distributions
+            n_dists = int(y_pred[0, curr_idx])
             curr_idx += 1
-            id_params_start = curr_idx + nb_dists * 2
-            weights = y_pred[:, curr_idx:curr_idx + nb_dists]
-            types = y_pred[:, curr_idx + nb_dists:id_params_start]
+            id_params_start = curr_idx + n_dists * 2
+            weights = y_pred[:, curr_idx:curr_idx + n_dists]
+            types = y_pred[:, curr_idx + n_dists:id_params_start]
             sum_weights = weights.sum(axis=1)
             assert np.allclose(sum_weights, 1.0), \
                 "The weights should sum up to 1, not {}.".format(sum_weights)
 
             curr_idx = id_params_start
             weighted_probs = np.zeros(len(y_true_dim))
-            for i in range(nb_dists):
-                empy_dist_id = distributions_dispatcher().id
-                mask = ~np.array(types[:, i] == empy_dist_id)
-                currtype = int(types[:, i][mask][0])
+            for i in range(n_dists):
+                empty_dist_id = distributions_dispatcher().id
+                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                currtype = int(types[:, i][non_empty_mask][0])
+                # TODO: raise exception if type is not consistent
                 dist = distributions_dispatcher(currtype)
-                end_params = curr_idx + dist.nb_params
-                probs = dist.pdf(y_true_dim[mask],
-                                 y_pred[:, curr_idx:end_params][mask])
+                end_params = curr_idx + dist.n_params
+                probs = dist.pdf(
+                    y_true_dim[non_empty_mask],
+                    y_pred[:, curr_idx:end_params][non_empty_mask])
                 curr_idx = end_params
-                weighted_probs[mask] += weights[:, i][mask] * probs
-            partial_lk = np.log(weighted_probs)
-            logLK += np.sum(-partial_lk)
+                weighted_probs[non_empty_mask] +=\
+                    weights[:, i][non_empty_mask] * probs
+            log_lks[j_dim, :] = -np.log(weighted_probs)
+            log_lk += np.sum(log_lks[j_dim, :])
 
-            lk_by_i[i_true, :] = -partial_lk
-        if self.verbose :  
-            return logLK / y_true.size, lk_by_i
+        if self.verbose:  
+            return log_lk / y_true.size, log_lks
         else:
-            return logLK / y_true.size
+            return log_lk / y_true.size
 
 
 class LikelihoodRatioDists(BaseScoreType):
@@ -194,11 +216,7 @@ class LikelihoodRatioDists(BaseScoreType):
             nll_reg, lk_by_i = nll_reg_score(y_true, y_pred)
         else:
             nll_reg = nll_reg_score(y_true, y_pred)
-
-        if len(y_true.shape) == 1:
-            y_true = np.array([y_true])
-        else:
-            y_true = y_true.swapaxes(0, 1)
+        y_true = convert_y_true(y_true)
 
         means = np.mean(y_true, axis=1)
         stds = np.std(y_true, axis=1)
