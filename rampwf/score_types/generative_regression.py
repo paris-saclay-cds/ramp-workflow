@@ -183,7 +183,9 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
         self.verbose = verbose
         
     def __call__(self, y_true, y_pred):
+        n_instances = len(y_true)
         y_true = convert_y_true(y_true)  # output dimension first
+        n_dims = len(y_true)
         log_lk = 0  # negative log likelihood to be returned  
         # negative log likelihoods of each output dimension and instance  
         log_lks = np.zeros(y_true.shape)
@@ -206,11 +208,11 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
 
         if self.output_dim is None:
             if self.verbose:  
-                return log_lk / y_true.size, log_lks
+                return log_lk / n_instances / n_dims, log_lks
             else:
-                return log_lk / y_true.size
+                return log_lk / n_instances / n_dims
         else:
-            return np.sum(log_lks[self.output_dim, :]) / y_true.size
+            return np.sum(log_lks[self.output_dim, :]) / n_instances
 
 
 class LikelihoodRatioDists(BaseScoreType):
@@ -227,34 +229,37 @@ class LikelihoodRatioDists(BaseScoreType):
         self.plot = plot
 
     def __call__(self, y_true, y_pred):
-
+        n_instances = len(y_true)
         nll_reg_score = NegativeLogLikelihoodRegDists(
             output_dim=self.output_dim, verbose=self.verbose)
         if self.verbose:
-            nll_reg, lk_by_i = nll_reg_score(y_true, y_pred)
+            nll_reg, log_lks = nll_reg_score(y_true, y_pred)
         else:
             nll_reg = nll_reg_score(y_true, y_pred)
         y_true = convert_y_true(y_true)
-
+        n_dims = len(y_true)
+        
         means = np.mean(y_true, axis=1)
         stds = np.std(y_true, axis=1)
         if self.output_dim is None:
             baseline_lls = np.array([
                 norm.logpdf(y, loc=mean, scale=std)
                 for y, mean, std in zip(y_true, means, stds)])
+            n_dims = len(y_true)
         else:
             baseline_lls = norm.logpdf(
                 y_true[self.output_dim], loc=means[self.output_dim],
                 scale=stds[self.output_dim])
+            n_dims = 1
 
         if self.verbose:
             print(
-                np.exp(np.sum(-lk_by_i, axis=1) / baseline_lls.size -
-                np.sum(baseline_lls, axis = 1) / baseline_lls.size))
+                np.exp(np.sum(-log_lks, axis=1) / n_instances -
+                np.sum(baseline_lls, axis = 1) / n_instances))
             if self.plot:
-                ratio_by_point = np.exp(-lk_by_i - baseline_lls)
+                ratio_by_point = np.exp(-log_lks - baseline_lls)
                 for i, ratio in enumerate(ratio_by_point):
                     plt.plot(ratio)
                     plt.title(i)
                     plt.show()
-        return np.exp(-nll_reg - np.sum(baseline_lls) / baseline_lls.size)
+        return np.exp(-nll_reg - np.sum(baseline_lls) / n_instances / n_dims)
