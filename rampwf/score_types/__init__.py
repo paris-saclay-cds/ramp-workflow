@@ -12,7 +12,8 @@ from .detection import (
 from .f1_above import F1Above
 from .generative_regression import (
     NegativeLogLikelihoodReg, LikelihoodRatio,
-    NegativeLogLikelihoodRegDists, LikelihoodRatioDists)
+    NegativeLogLikelihoodRegDists, LikelihoodRatioDists, RMSERegDists,
+    R2RegDists)
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
@@ -50,7 +51,9 @@ __all__ = [
     'OSPA',
     'RelativeRMSE',
     'RMSE',
+    'RMSERegDists',
     'ROCAUC',
+    'R2RegDists',
     'SCP',
     'SoftAccuracy',
     'NegativeLogLikelihoodReg',

@@ -290,7 +290,8 @@ class RMSERegDists(BaseScoreType):
                 empty_dist_id = distributions_dispatcher().id
                 non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
                 means = dists[i].mean(paramss[i][non_empty_mask])
-                mean_preds[j_dim, non_empty_mask] += weights[:, i][non_empty_mask] * means
+                mean_preds[j_dim, non_empty_mask] +=\
+                    weights[:, i][non_empty_mask] * means
 
         if self.output_dim is None:
             return np.sqrt(
@@ -301,3 +302,39 @@ class RMSERegDists(BaseScoreType):
                 ** 2).sum() / n_instances)
 
 
+class R2RegDists(BaseScoreType):
+    is_lower_the_better = False
+    minimum = 0.0
+    maximum = 1.0
+
+    def __init__(self, name='R2', precision=2, output_dim=None):
+        self.name = name
+        self.precision = precision
+        self.output_dim = output_dim
+        
+    def __call__(self, y_true, y_pred):
+        n_instances = len(y_true)
+        y_true = convert_y_true(y_true)  # output dimension first
+        n_dims = len(y_true)
+        stds = np.std(y_true, axis=1)
+        mean_preds = np.zeros(y_true.shape)
+        rmse = 0  # rmse to be returned  
+        # pointer within the vector representation of mixtures y_pred[i]
+        curr_idx = 0
+        for j_dim, y_true_dim in enumerate(y_true):
+            curr_idx, n_dists, weights, types, dists, paramss =\
+                get_components(curr_idx, y_pred)
+            for i in range(n_dists):
+                empty_dist_id = distributions_dispatcher().id
+                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                means = dists[i].mean(paramss[i][non_empty_mask])
+                mean_preds[j_dim, non_empty_mask] +=\
+                    weights[:, i][non_empty_mask] * means
+        r2s = ((y_true - mean_preds) ** 2).mean(axis=1)
+        r2s /= stds ** 2
+        r2s = 1 - r2s
+
+        if self.output_dim is None:
+            return r2s.mean()
+        else:
+            return r2s[self.output_dim]
