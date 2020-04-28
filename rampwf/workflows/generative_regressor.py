@@ -11,7 +11,7 @@ from ..utils import distributions_dispatcher
 class GenerativeRegressor(object):
     def __init__(self, target_column_name, max_dists, check_sizes, check_indexs,
                  workflow_element_names=['generative_regressor'],
-                 restart_name=None, auto= True,
+                 restart_name=None, autoregressive=True,
                  **kwargs):
         """
         The regressors are expected to return :
@@ -35,7 +35,7 @@ class GenerativeRegressor(object):
         self.max_dists = max_dists
         self.restart_name = restart_name
         self.kwargs = kwargs
-        self.auto = auto
+        self.autoregressive = autoregressive
 
     def _check_restart(self, X_array, train_is=slice(None, None, None)):
         restart = None
@@ -117,7 +117,7 @@ class GenerativeRegressor(object):
             else:
                 reg.fit(X_array, y)
 
-            if self.auto:
+            if self.autoregressive:
                 X_array = np.hstack([X_array, y])
             regressors.append(reg)
         return regressors
@@ -150,13 +150,13 @@ class GenerativeRegressor(object):
         if type(X_array).__module__ != np.__name__:
             y = X_array[truths]
             X_array.drop(columns=truths, inplace=True)
-            if self.auto:
+            if self.autoregressive:
                 X_array = np.hstack([X_array.values, y.values[:,self.order]])
             else:
                 X = X_array.values
 
         for i, reg in enumerate(regressors):
-            if self.auto:
+            if self.autoregressive:
                 X = X_array[:, :n_columns - n_regressors + i]
             if restart is not None:
                 dists = reg.predict(X, restart)
