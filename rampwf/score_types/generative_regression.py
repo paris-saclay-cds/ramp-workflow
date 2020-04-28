@@ -155,7 +155,19 @@ def get_components(curr_idx, y_pred):
     weights /= weights.sum(axis=1)[:, np.newaxis]
     types = y_pred[:, curr_idx + n_dists:id_params_start]
     curr_idx = id_params_start
-    return curr_idx, n_dists, weights, types
+    dists = []
+    paramss = []
+    for i in range(n_dists):
+        empty_dist_id = distributions_dispatcher().id
+        non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+        currtype = int(types[:, i][non_empty_mask][0])
+        # TODO: raise exception if type is not consistent
+        dists.append(distributions_dispatcher(currtype))
+        end_params = curr_idx + dists[i].n_params
+        paramss.append(y_pred[:, curr_idx:end_params])
+        curr_idx = end_params
+
+    return curr_idx, n_dists, weights, types, dists, paramss
 
 
 class NegativeLogLikelihoodRegDists(BaseScoreType):
@@ -176,21 +188,15 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types = get_components(
-                curr_idx, y_pred)
-
+            curr_idx, n_dists, weights, types, dists, paramss =\
+                get_components(curr_idx, y_pred)
             weighted_probs = np.zeros(len(y_true_dim))
             for i in range(n_dists):
                 empty_dist_id = distributions_dispatcher().id
                 non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
-                currtype = int(types[:, i][non_empty_mask][0])
-                # TODO: raise exception if type is not consistent
-                dist = distributions_dispatcher(currtype)
-                end_params = curr_idx + dist.n_params
-                probs = dist.pdf(
+                probs = dists[i].pdf(
                     y_true_dim[non_empty_mask],
-                    y_pred[:, curr_idx:end_params][non_empty_mask])
-                curr_idx = end_params
+                    paramss[i][non_empty_mask])
                 weighted_probs[non_empty_mask] +=\
                     weights[:, i][non_empty_mask] * probs
             log_lks[j_dim, :] = -np.log(weighted_probs)
