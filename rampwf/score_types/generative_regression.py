@@ -263,3 +263,41 @@ class LikelihoodRatioDists(BaseScoreType):
                     plt.title(i)
                     plt.show()
         return np.exp(-nll_reg - np.sum(baseline_lls) / n_instances / n_dims)
+
+
+class RMSERegDists(BaseScoreType):
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = float('inf')
+
+    def __init__(self, name='RMSE', precision=2, output_dim=None):
+        self.name = name
+        self.precision = precision
+        self.output_dim = output_dim
+        
+    def __call__(self, y_true, y_pred):
+        n_instances = len(y_true)
+        y_true = convert_y_true(y_true)  # output dimension first
+        n_dims = len(y_true)
+        mean_preds = np.zeros(y_true.shape)
+        rmse = 0  # rmse to be returned  
+        # pointer within the vector representation of mixtures y_pred[i]
+        curr_idx = 0
+        for j_dim, y_true_dim in enumerate(y_true):
+            curr_idx, n_dists, weights, types, dists, paramss =\
+                get_components(curr_idx, y_pred)
+            for i in range(n_dists):
+                empty_dist_id = distributions_dispatcher().id
+                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                means = dists[i].mean(paramss[i][non_empty_mask])
+                mean_preds[j_dim, non_empty_mask] += weights[:, i][non_empty_mask] * means
+
+        if self.output_dim is None:
+            return np.sqrt(
+                ((y_true - mean_preds) ** 2).sum() / n_instances / n_dims)
+        else:
+            return np.sqrt((
+                (y_true[self.output_dim] - mean_preds[self.output_dim])
+                ** 2).sum() / n_instances)
+
+
