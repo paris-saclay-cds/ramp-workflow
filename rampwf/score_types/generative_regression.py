@@ -145,6 +145,19 @@ class LikelihoodRatio(BaseScoreType):
         return np.exp(-nll_reg - np.sum(
             baseline_lls) / baseline_lls.size)
 
+
+def get_components(curr_idx, y_pred):
+    n_dists = int(y_pred[0, curr_idx])
+    curr_idx += 1
+    id_params_start = curr_idx + n_dists * 2
+    weights = y_pred[:, curr_idx:curr_idx + n_dists]
+    assert (weights >= 0).all(), "Weights should all be positive."
+    weights /= weights.sum(axis=1)[:, np.newaxis]
+    types = y_pred[:, curr_idx + n_dists:id_params_start]
+    curr_idx = id_params_start
+    return curr_idx, n_dists, weights, types
+
+
 class NegativeLogLikelihoodRegDists(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
@@ -163,17 +176,9 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
-            # number of actual distributions
-            n_dists = int(y_pred[0, curr_idx])
-            curr_idx += 1
-            id_params_start = curr_idx + n_dists * 2
-            weights = y_pred[:, curr_idx:curr_idx + n_dists]
-            types = y_pred[:, curr_idx + n_dists:id_params_start]
-            sum_weights = weights.sum(axis=1)
-            assert np.allclose(sum_weights, 1.0), \
-                "The weights should sum up to 1, not {}.".format(sum_weights)
+            curr_idx, n_dists, weights, types = get_components(
+                curr_idx, y_pred)
 
-            curr_idx = id_params_start
             weighted_probs = np.zeros(len(y_true_dim))
             for i in range(n_dists):
                 empty_dist_id = distributions_dispatcher().id
