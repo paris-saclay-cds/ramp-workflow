@@ -104,7 +104,7 @@ class TimeSeriesFeatureExtractor(object):
         # array after index n_burn_in + check_index, and check if the first
         # check_size features have changed
         n_burn_in = X_ds.n_burn_in
-        """
+#        """
         for check_size, check_index in zip(
                 self.check_sizes, self.check_indexs):
             # We use a short prefix to save time
@@ -138,5 +138,5 @@ class TimeSeriesFeatureExtractor(object):
                     ' at least {} time steps'.format(
                         check_index - first_modified_index)
                 raise AssertionError(message)
-        """
+#        """
         return X_test_array
