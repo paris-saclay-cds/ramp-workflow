@@ -341,7 +341,7 @@ class R2RegDists(BaseScoreType):
 
 
 class KSCalibrationRegDists(BaseScoreType):
-    is_lower_the_better = False
+    is_lower_the_better = True
     minimum = 0.0
     maximum = 1.0
 
