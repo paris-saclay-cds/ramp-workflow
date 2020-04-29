@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from scipy.special import gamma, iv
-from scipy.stats import truncnorm, norm, foldnorm, vonmises, beta
+from scipy.stats import uniform, truncnorm, norm, foldnorm, vonmises, beta
 
 # The maximum numbers of parameters a distribution would need
 # Only matters for bagging mixture models in
@@ -18,6 +18,11 @@ class AbstractDists(ABC):
     @staticmethod
     @abstractmethod
     def pdf(x, params):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def cdf(x, params):
         pass
 
     @staticmethod
@@ -51,12 +56,14 @@ class Normal(AbstractDists):
         mean = params[:, 0]
         std = params[:, 1]
         Normal.assert_params(params)
-        var = std ** 2
-        denom = (2 * np.pi * var) ** .5
-        diff = x - mean
-        num = np.exp(-diff ** 2 / (2 * var))
-        probs = num / denom
-        return probs
+        return norm.pdf(x, loc=mean, scale=std)
+
+    @staticmethod
+    def cdf(x, params):
+        mean = params[:, 0]
+        std = params[:, 1]
+        Normal.assert_params(params)
+        return norm.cdf(x, loc=mean, scale=std)
 
     @staticmethod
     def assert_params(params):
@@ -87,9 +94,14 @@ class Uniform(AbstractDists):
         a = params[:, 0]
         b = params[:, 1]
         Uniform.assert_params(params)
-        probs = np.zeros(x.shape)
-        probs = np.where(np.logical_and(x >= a, x <= b), 1. / (b - a), probs)
-        return probs
+        return uniform.pdf(x, loc=a, scale=b-a)
+
+    @staticmethod
+    def cdf(x, params):
+        a = params[:, 0]
+        b = params[:, 1]
+        Uniform.assert_params(params)
+        return uniform.cdf(x, loc=a, scale=b-a)
 
     @staticmethod
     def assert_params(params):
@@ -135,6 +147,10 @@ class Beta(AbstractDists):
         probs[x < loc] = 0
         probs[x > loc + scale] = 0
         return probs
+
+    @staticmethod
+    def cdf(x, params):
+        raise NotImplementedError()
 
     @staticmethod
     def assert_params(params):
@@ -187,6 +203,10 @@ class NormalTruncated(AbstractDists):
         b = params[:, 3]
         NormalTruncated.assert_params(params)
         return truncnorm.pdf(x, a, b, mean, std)
+
+    @staticmethod
+    def cdf(x, params):
+        raise NotImplementedError()
 
     @staticmethod
     def assert_params(params):
@@ -242,6 +262,10 @@ class NormalFolded(AbstractDists):
         return foldnorm.pdf(x, c, loc, scale)
 
     @staticmethod
+    def cdf(x, params):
+        raise NotImplementedError()
+
+    @staticmethod
     def assert_params(params):
         c = params[:, 0]
         assert np.all(c >= 0), "Make sure all \"c\" > 0"
@@ -280,6 +304,10 @@ class VonMises(AbstractDists):
         probs[x < loc - np.pi * scale] = 0
         probs[x > loc + np.pi * scale] = 0
         return probs
+
+    @staticmethod
+    def cdf(x, params):
+        raise NotImplementedError()
 
     @staticmethod
     def assert_params(params):
@@ -332,6 +360,10 @@ class Pert(AbstractDists):
         return probs
 
     @staticmethod
+    def cdf(x, params):
+        raise NotImplementedError()
+
+    @staticmethod
     def assert_params(params):
         a = params[:, 0]
         b = params[:, 1]
@@ -380,11 +412,14 @@ class NormalDiscrete(AbstractDists):
         return probs
 
     @staticmethod
+    def cdf(x, params):
+        raise NotImplementedError()
+
+    @staticmethod
     def assert_params(params):
         sd = params[:, 1]
         assert np.all(sd >= 0), "Make sure all sigmas are positive " \
                                 "(second parameter)"
-
 
     @staticmethod
     def sample(params):
@@ -413,6 +448,10 @@ class EmptyDist(AbstractDists):
     @staticmethod
     def pdf(x, params):
         return np.zeros(params.shape[0])
+
+    @staticmethod
+    def cdf(x, params):
+        raise RuntimeError("You should not get cdf of an empty distribution")
 
     @staticmethod
     def assert_params(params):

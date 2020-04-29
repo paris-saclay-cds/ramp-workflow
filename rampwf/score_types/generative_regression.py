@@ -231,8 +231,8 @@ class LikelihoodRatioDists(BaseScoreType):
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
         nll_reg_score = NegativeLogLikelihoodRegDists(
-            output_dim=self.output_dim, verbose=self.verbose)
-        if self.verbose:
+            output_dim=self.output_dim, verbose=self.verbose or self.plot)
+        if self.verbose or self.plot:
             nll_reg, log_lks = nll_reg_score(y_true, y_pred)
         else:
             nll_reg = nll_reg_score(y_true, y_pred)
@@ -256,12 +256,12 @@ class LikelihoodRatioDists(BaseScoreType):
             print(
                 np.exp(np.sum(-log_lks, axis=1) / n_instances -
                 np.sum(baseline_lls, axis = 1) / n_instances))
-            if self.plot:
-                ratio_by_point = np.exp(-log_lks - baseline_lls)
-                for i, ratio in enumerate(ratio_by_point):
-                    plt.plot(ratio)
-                    plt.title(i)
-                    plt.show()
+        if self.plot:
+            ratio_by_point = np.exp(-log_lks - baseline_lls)
+            for i, ratio in enumerate(ratio_by_point):
+                plt.plot(ratio)
+                plt.title(i)
+                plt.show()
         return np.exp(-nll_reg - np.sum(baseline_lls) / n_instances / n_dims)
 
 
@@ -338,3 +338,60 @@ class R2RegDists(BaseScoreType):
             return r2s.mean()
         else:
             return r2s[self.output_dim]
+
+
+class KSCalibrationRegDists(BaseScoreType):
+    is_lower_the_better = False
+    minimum = 0.0
+    maximum = 1.0
+
+    def __init__(self, name='KS', precision=2, output_dim=None, plot=False):
+        self.name = name
+        self.precision = precision
+        self.output_dim = output_dim
+        self.plot = plot
+        
+    def __call__(self, y_true, y_pred):
+        n_instances = len(y_true)
+        y_true = convert_y_true(y_true)  # output dimension first
+        n_dims = len(y_true)
+        cdfs = np.zeros(y_true.shape)
+        # pointer within the vector representation of mixtures y_pred[i]
+        curr_idx = 0
+        for j_dim, y_true_dim in enumerate(y_true):
+            curr_idx, n_dists, weights, types, dists, paramss =\
+                get_components(curr_idx, y_pred)
+            for i in range(n_dists):
+                empty_dist_id = distributions_dispatcher().id
+                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                cdfss = dists[i].cdf(
+                    y_true_dim[non_empty_mask],
+                    paramss[i][non_empty_mask])
+                cdfs[j_dim, non_empty_mask] +=\
+                    weights[:, i][non_empty_mask] * cdfss
+        ks_stats = np.zeros(n_dims)
+        for j_dim in range(n_dims):
+            ks_stats[j_dim] = np.max(np.abs(
+                np.sort(cdfs[j_dim]) - np.arange(n_instances) / n_instances))
+ 
+        if self.plot:
+            if self.output_dim is None:
+                for j_dim in range(n_dims):
+                    plt.hist(cdfs[j_dim])
+                    plt.title(j_dim)
+                    plt.show()
+                    plt.plot(
+                        np.sort(cdfs[j_dim]),
+                        np.arange(n_instances) / n_instances)
+                    plt.plot([0, 1], [0, 1])
+                    plt.title(j_dim)
+                    plt.show()
+            else:
+                plt.hist(cdfs[self.output_dim])
+                plt.title(self.output_dim)
+                plt.show()
+
+        if self.output_dim is None:
+            return ks_stats.mean()
+        else:
+            return ks_stats[self.output_dim]

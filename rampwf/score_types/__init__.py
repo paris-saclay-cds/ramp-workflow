@@ -13,7 +13,7 @@ from .f1_above import F1Above
 from .generative_regression import (
     NegativeLogLikelihoodReg, LikelihoodRatio,
     NegativeLogLikelihoodRegDists, LikelihoodRatioDists, RMSERegDists,
-    R2RegDists)
+    R2RegDists, KSCalibrationRegDists)
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
@@ -40,6 +40,7 @@ __all__ = [
     'DetectionRecall',
     'DetectionAveragePrecision',
     'F1Above',
+    'KSCalibrationRegDists',
     'MacroAveragedRecall',
     'MakeCombined',
     'MADCenter',
