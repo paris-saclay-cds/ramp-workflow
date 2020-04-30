@@ -217,7 +217,7 @@ class GenerativeRegressor(object):
         for i, reg in enumerate(regressors):
             X = X_array
             if type(X_array).__module__ != np.__name__:
-                if len(y_sampled)==1:
+                if len(y_sampled) == 1:
                     X["y_" + column_names[0]] = y_sampled[0][0]
                 else:
                     for j, predicted_dim in enumerate(np.array(y_sampled)):
@@ -234,16 +234,15 @@ class GenerativeRegressor(object):
                     X = np.concatenate((X, sampled_array), axis=1)
 
             if restart is not None:
-                dists = reg.predict(X,restart)
+                dists = reg.predict(X, restart)
 
             else:
                 dists = reg.predict(X)
 
-
             weights, types, params = dists
             nb_dists = types.shape[1]
             y_dim = []
-            for i in range(len(types)): # Number of timesteps
+            for i in range(len(types)):  # Number of timesteps
                 w = weights[i].ravel()
                 w = w / sum(w)
                 empty_dist = distributions_dispatcher()
@@ -263,5 +262,5 @@ class GenerativeRegressor(object):
                 )
             y_sampled.append(y_dim)
 
-        y_sampled=np.array(y_sampled)[np.argsort(self.order)]
+        y_sampled = np.array(y_sampled)[np.argsort(self.order)]
         return np.array(y_sampled).swapaxes(0, 1)
