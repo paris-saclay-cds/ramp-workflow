@@ -170,49 +170,81 @@ def get_components(curr_idx, y_pred):
     return curr_idx, n_dists, weights, types, dists, paramss
 
 
+def get_likelihoods(y_true, y_pred, min_likelihood):
+    n_instances = np.zeros(y_true.shape[0])
+    # negative log likelihoods of each output dimension and instance  
+    log_lks = np.zeros(y_true.shape)
+    # pointer within the vector representation of mixtures y_pred[i]
+    curr_idx = 0
+    for j_dim, y_true_dim in enumerate(y_true):
+        curr_idx, n_dists, weights, types, dists, paramss =\
+            get_components(curr_idx, y_pred)
+        weighted_probs = np.zeros(len(y_true_dim))
+        for i in range(n_dists):
+            empty_dist_id = distributions_dispatcher().id
+            non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+            probs = dists[i].pdf(
+                y_true_dim[non_empty_mask],
+                paramss[i][non_empty_mask])
+            weighted_probs[non_empty_mask] +=\
+                weights[:, i][non_empty_mask] * probs
+        valid_mask = np.array(weighted_probs > min_likelihood)
+        n_instances[j_dim] = valid_mask.sum()
+        log_lks[j_dim, valid_mask] = -np.log(weighted_probs[valid_mask])
+    return log_lks, n_instances
+
+
 class NegativeLogLikelihoodRegDists(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='logLKGauss', precision=2, output_dim=None,
-                 verbose=False):
+    def __init__(self, name='logLKGauss', precision=2,
+                 min_likelihood=1.4867195147342979e-06,  # 5 sigma
+                 output_dim=None, verbose=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
+        self.min_likelihood = min_likelihood
         self.verbose = verbose
         
     def __call__(self, y_true, y_pred):
-        n_instances = len(y_true)
         y_true = convert_y_true(y_true)  # output dimension first
-        n_dims = len(y_true)
-        log_lk = 0  # negative log likelihood to be returned  
-        # negative log likelihoods of each output dimension and instance  
-        log_lks = np.zeros(y_true.shape)
-        # pointer within the vector representation of mixtures y_pred[i]
-        curr_idx = 0
-        for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types, dists, paramss =\
-                get_components(curr_idx, y_pred)
-            weighted_probs = np.zeros(len(y_true_dim))
-            for i in range(n_dists):
-                empty_dist_id = distributions_dispatcher().id
-                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
-                probs = dists[i].pdf(
-                    y_true_dim[non_empty_mask],
-                    paramss[i][non_empty_mask])
-                weighted_probs[non_empty_mask] +=\
-                    weights[:, i][non_empty_mask] * probs
-            log_lks[j_dim, :] = -np.log(weighted_probs)
-            log_lk += np.sum(log_lks[j_dim, :])
-
+        log_lks, n_instances = get_likelihoods(
+            y_true, y_pred, self.min_likelihood)
         if self.output_dim is None:
             if self.verbose:  
-                return log_lk / n_instances / n_dims, log_lks
+                return log_lks.sum() / n_instances.sum(), log_lks
             else:
-                return log_lk / n_instances / n_dims
+                return log_lks.sum() / n_instances.sum()
         else:
-            return np.sum(log_lks[self.output_dim, :]) / n_instances
+            return np.sum(log_lks[self.output_dim]) /\
+                n_instances[self.output_dim]
+
+
+class MissedPointsErrorRegDists(BaseScoreType):
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = 1.0
+
+    def __init__(self, name='mpe', precision=2,
+                 min_likelihood=1.4867195147342979e-06,  # 5 sigma
+                 output_dim=None, verbose=False):
+        self.name = name
+        self.precision = precision
+        self.output_dim = output_dim
+        self.min_likelihood = min_likelihood
+        self.verbose = verbose
+        
+    def __call__(self, y_true, y_pred):
+        y_true = convert_y_true(y_true)  # output dimension first
+        log_lks, n_instances = get_likelihoods(
+            y_true, y_pred, self.min_likelihood)
+        if self.output_dim is None:
+            return 1 - n_instances.sum() /\
+                (y_true.shape[0] * y_true.shape[1])
+        else:
+            return 1 - n_instances[self.output_dim] / y_true.shape[1]
 
 
 class LikelihoodRatioDists(BaseScoreType):
@@ -220,17 +252,20 @@ class LikelihoodRatioDists(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='ll_ratio', precision=2, output_dim=None,
-                 verbose=False, plot=False):
+    def __init__(self, name='ll_ratio', precision=2,
+                 min_likelihood=1.4867195147342979e-06,  # 5 sigma
+                 output_dim=None, verbose=False, plot=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
+        self.min_likelihood = min_likelihood
         self.verbose = verbose
         self.plot = plot
 
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
         nll_reg_score = NegativeLogLikelihoodRegDists(
+            min_likelihood=self.min_likelihood,
             output_dim=self.output_dim, verbose=self.verbose or self.plot)
         if self.verbose or self.plot:
             nll_reg, log_lks = nll_reg_score(y_true, y_pred)

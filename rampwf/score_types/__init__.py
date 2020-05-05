@@ -13,7 +13,7 @@ from .f1_above import F1Above
 from .generative_regression import (
     NegativeLogLikelihoodReg, LikelihoodRatio,
     NegativeLogLikelihoodRegDists, LikelihoodRatioDists, RMSERegDists,
-    R2RegDists, KSCalibrationRegDists)
+    R2RegDists, KSCalibrationRegDists, MissedPointsErrorRegDists)
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
@@ -46,6 +46,7 @@ __all__ = [
     'MADCenter',
     'MADRadius',
     'MARE',
+    'MissedPointsErrorRegDists',
     'NegativeLogLikelihood',
     'NormalizedGini',
     'NormalizedRMSE',
