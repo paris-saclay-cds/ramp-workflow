@@ -26,7 +26,8 @@ class TSFEGenReg:
                  target_column_action_names,
                  restart_names=['restart'],
                  timestamp_name='time',
-                 workflow_element_names=None, autoregressive =True, full=False):
+                 workflow_element_names=None, autoregressive =True,
+                 full=False):
 
         self.max_dists = max_dists
         self.target_column_observation_names = target_column_observation_names

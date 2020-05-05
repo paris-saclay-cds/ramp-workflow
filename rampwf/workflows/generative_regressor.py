@@ -9,7 +9,8 @@ from ..utils import distributions_dispatcher
 
 
 class GenerativeRegressor(object):
-    def __init__(self, target_column_name, max_dists, check_sizes, check_indexs,
+    def __init__(self, target_column_name, max_dists,
+                 check_sizes=None, check_indexs=None,
                  workflow_element_names=['generative_regressor'],
                  restart_name=None, autoregressive=True,
                  **kwargs):
@@ -178,33 +179,37 @@ class GenerativeRegressor(object):
         return preds_concat
 
     def check_cheat(self, trained_model, X_array):
-        for check_size, check_index in zip(
-                self.check_sizes, self.check_indexs):
-            X_check = X_array.iloc[:check_size].copy()
-            # Adding random noise to future.
-            original_predict = self.predict_submission(trained_model, X_check)
-            X_check.iloc[check_index] += np.random.normal()
-            # Calling predict on changed future.
-            X_check_array = self.predict_submission(trained_model, X_check)
-            X_neq = np.not_equal(
-                original_predict[:check_size], X_check_array[:check_size])
-            x_neq = np.any(X_neq, axis=1)
-            x_neq_nonzero = x_neq.nonzero()
-            if len(x_neq_nonzero[0]) == 0:  # no change anywhere
-                first_modified_index = check_index
-            else:
-                first_modified_index = np.min(x_neq_nonzero)
-            # Normally, the features should not have changed before check_index
-            if first_modified_index < check_index:
-                message = 'The generative_regressor looks into the future by' +\
-                    ' at least {} time steps'.format(
-                        check_index - first_modified_index)
-                raise AssertionError(message)
-        pass
+        if not self.check_sizes is None and not self.check_indexs is None:
+            for check_size, check_index in zip(
+                    self.check_sizes, self.check_indexs):
+                X_check = X_array.iloc[:check_size].copy()
+                # Adding random noise to future.
+                original_predict = self.predict_submission(
+                    trained_model, X_check)
+                X_check.iloc[check_index] += np.random.normal()
+                # Calling predict on changed future.
+                X_check_array = self.predict_submission(
+                    trained_model, X_check)
+                X_neq = np.not_equal(
+                    original_predict[:check_size],
+                    X_check_array[:check_size])
+                x_neq = np.any(X_neq, axis=1)
+                x_neq_nonzero = x_neq.nonzero()
+                if len(x_neq_nonzero[0]) == 0:  # no change anywhere
+                    first_modified_index = check_index
+                else:
+                    first_modified_index = np.min(x_neq_nonzero)
+                # Normally, the features should not have changed before
+                # check_index
+                if first_modified_index < check_index:
+                    message = 'The generative_regressor looks into the' +\
+                        ' future by at least {} time steps'.format(
+                            check_index - first_modified_index)
+                    raise AssertionError(message)
 
     def step(self, trained_model, X_array, random_state=None):
-        """Careful, for now, for every x in the time dimension, we will sample
-        a y. To sample only one y, provide only one X.
+        """Careful, for now, for every x in the time dimension, we will
+        sample a y. To sample only one y, provide only one X.
         If X is not a panda array, the assumed order is the same as
         given in training"""
         rng = check_random_state(random_state)
