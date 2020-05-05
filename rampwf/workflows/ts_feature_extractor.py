@@ -43,8 +43,9 @@ class TimeSeriesFeatureExtractor(object):
     restart_name should be None, or a one item list containing 1 on the timestep
     where time continuity is broken (e.g. a system restart)
     """
-    def __init__(self, check_sizes, check_indexs, workflow_element_names=[
-            'ts_feature_extractor'], restart_name=None ):
+    def __init__(self, check_sizes=None, check_indexs=None,
+                 workflow_element_names=['ts_feature_extractor'],
+                 restart_name=None ):
         self.element_names = workflow_element_names
         self.check_sizes = check_sizes
         self.check_indexs = check_indexs
@@ -104,39 +105,39 @@ class TimeSeriesFeatureExtractor(object):
         # array after index n_burn_in + check_index, and check if the first
         # check_size features have changed
         n_burn_in = X_ds.n_burn_in
-#        """
-        for check_size, check_index in zip(
-                self.check_sizes, self.check_indexs):
-            # We use a short prefix to save time
-            X_check_ds = X_ds.isel(
-                time=slice(0, n_burn_in + check_size)).copy(deep=True)
-            # Adding random noise to future.
-            # Assigning Dataset slices is not yet supported so we need to
-            # iterate over the arrays. To generalize we should maybe check
-            # the types.
-            data_var_names = list(X_check_ds.data_vars.keys())
+        if not self.check_sizes is None and not self.check_indexs is None:
+            for check_size, check_index in zip(
+                    self.check_sizes, self.check_indexs):
+                # We use a short prefix to save time
+                X_check_ds = X_ds.isel(
+                    time=slice(0, n_burn_in + check_size)).copy(deep=True)
+                # Adding random noise to future.
+                # Assigning Dataset slices is not yet supported so we need to
+                # iterate over the arrays. To generalize we should maybe
+                # check the types.
+                data_var_names = list(X_check_ds.data_vars.keys())
 
-            if self.restart_name is not None:
-                data_var_names.remove(self.restart_name[0])
+                if self.restart_name is not None:
+                    data_var_names.remove(self.restart_name[0])
 
-            for data_var_name in data_var_names:
-                X_check_ds[data_var_name][dict(time=slice(
-                    n_burn_in + check_index, None))] += np.random.normal()
-            # Calling transform on changed future.
-            X_check_array = ts_fe.transform(X_check_ds)
-            X_neq = np.not_equal(
-                X_test_array[:check_size], X_check_array[:check_size])
-            x_neq = np.any(X_neq, axis=1)
-            x_neq_nonzero = x_neq.to_numpy().nonzero()
-            if len(x_neq_nonzero[0]) == 0:  # no change anywhere
-                first_modified_index = check_index
-            else:
-                first_modified_index = np.min(x_neq_nonzero)
-            # Normally, the features should not have changed before check_index
-            if first_modified_index < check_index:
-                message = 'The feature extractor looks into the future by' +\
-                    ' at least {} time steps'.format(
-                        check_index - first_modified_index)
-                raise AssertionError(message)
-#        """
+                for data_var_name in data_var_names:
+                    X_check_ds[data_var_name][dict(time=slice(
+                        n_burn_in + check_index, None))] += np.random.normal()
+                # Calling transform on changed future.
+                X_check_array = ts_fe.transform(X_check_ds)
+                X_neq = np.not_equal(
+                    X_test_array[:check_size], X_check_array[:check_size])
+                x_neq = np.any(X_neq, axis=1)
+                x_neq_nonzero = x_neq.to_numpy().nonzero()
+                if len(x_neq_nonzero[0]) == 0:  # no change anywhere
+                    first_modified_index = check_index
+                else:
+                    first_modified_index = np.min(x_neq_nonzero)
+                # Normally, the features should not have changed before
+                # check_index
+                if first_modified_index < check_index:
+                    message = 'The feature extractor looks into the' +\
+                        ' future by at least {} time steps'.format(
+                            check_index - first_modified_index)
+                    raise AssertionError(message)
         return X_test_array
