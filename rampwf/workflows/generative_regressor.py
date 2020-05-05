@@ -242,10 +242,10 @@ class GenerativeRegressor(object):
                 dists = reg.predict(X)
 
             weights, types, params = dists
-            nb_dists = types.shape[1]
+            n_dists = types.shape[1]
             w = weights[0].ravel()
             w = w / sum(w)
-            selected = rng.choice(list(range(nb_dists)), p=w)
+            selected = rng.choice(n_dists, p=w)
             dist = distributions_dispatcher(int(types[0, selected]))
             selected_type = int(types[0, selected])
 
