@@ -257,9 +257,9 @@ class GenerativeRegressor(object):
                     firs_valid = np.where(
                                 ~np.array(types[:, k] == empty_dist)
                                 )[0][0]
-                    sel_id += distributions_dispatcher(firs_valid).nb_params
+                    sel_id += distributions_dispatcher(firs_valid).n_params
                 y_dim.append(
-                    dist.sample(params[i, sel_id:sel_id+dist.nb_params])
+                    dist.sample(params[i, sel_id:sel_id+dist.n_params])
                 )
             y_sampled.append(y_dim)
 
