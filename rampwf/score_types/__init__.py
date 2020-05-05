@@ -11,8 +11,8 @@ from .detection import (
     AverageDetectionPrecision, DetectionAveragePrecision)
 from .f1_above import F1Above
 from .generative_regression import (
-    NegativeLogLikelihoodRegDists, LikelihoodRatioRegDists, RMSERegDists,
-    R2RegDists, KSCalibrationRegDists, OutlierRateRegDists)
+    MDNegativeLogLikelihood, MDLikelihoodRatio, MDRMSE,
+    MDR2, MDKSCalibration, MDOutlierRate)
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
@@ -39,24 +39,24 @@ __all__ = [
     'DetectionRecall',
     'DetectionAveragePrecision',
     'F1Above',
-    'KSCalibrationRegDists',
-    'LikelihoodRatioRegDists',
     'MacroAveragedRecall',
     'MakeCombined',
     'MADCenter',
     'MADRadius',
     'MARE',
+    'MDKSCalibration',
+    'MDLikelihoodRatio',
+    'MDNegativeLogLikelihood',
+    'MDOutlierRate',
+    'MDRMSE',
+    'MDR2',
     'NegativeLogLikelihood',
-    'NegativeLogLikelihoodRegDists',
     'NormalizedGini',
     'NormalizedRMSE',
     'OSPA',
-    'OutlierRateRegDists',
     'RelativeRMSE',
     'RMSE',
-    'RMSERegDists',
     'ROCAUC',
-    'R2RegDists',
     'SCP',
     'SoftAccuracy',
 ]

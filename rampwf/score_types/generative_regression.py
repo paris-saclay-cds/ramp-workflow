@@ -23,7 +23,7 @@ numerical numpy array.
    types (see utils.generative_regression).
 """
 
-# Authors: Gabriel Hurtado <>,
+# Authors: Gabriel Hurtado <gabriel.j.hurtado@gmail.com>,
 #          Balazs Kegl <balazs.kegl@gmail.com>
 # License: BSD 3 clause
 
@@ -90,7 +90,7 @@ def get_likelihoods(y_true, y_pred, min_likelihood):
     return log_lks, n_instances
 
 
-class NegativeLogLikelihoodRegDists(BaseScoreType):
+class MDNegativeLogLikelihood(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
@@ -118,7 +118,7 @@ class NegativeLogLikelihoodRegDists(BaseScoreType):
                 n_instances[self.output_dim]
 
 
-class OutlierRateRegDists(BaseScoreType):
+class MDOutlierRate(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = 1.0
@@ -143,7 +143,7 @@ class OutlierRateRegDists(BaseScoreType):
             return 1 - n_instances[self.output_dim] / y_true.shape[1]
 
 
-class LikelihoodRatioRegDists(BaseScoreType):
+class MDLikelihoodRatio(BaseScoreType):
     is_lower_the_better = False
     minimum = 0.0
     maximum = float('inf')
@@ -160,7 +160,7 @@ class LikelihoodRatioRegDists(BaseScoreType):
 
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
-        nll_reg_score = NegativeLogLikelihoodRegDists(
+        nll_reg_score = MDNegativeLogLikelihood(
             min_likelihood=self.min_likelihood,
             output_dim=self.output_dim, verbose=self.verbose or self.plot)
         if self.verbose or self.plot:
@@ -196,12 +196,12 @@ class LikelihoodRatioRegDists(BaseScoreType):
         return np.exp(-nll_reg - np.sum(baseline_lls) / n_instances / n_dims)
 
 
-class RMSERegDists(BaseScoreType):
+class MDRMSE(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='RMSE', precision=2, output_dim=None):
+    def __init__(self, name='rmse', precision=2, output_dim=None):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
@@ -233,12 +233,12 @@ class RMSERegDists(BaseScoreType):
                 ** 2).sum() / n_instances)
 
 
-class R2RegDists(BaseScoreType):
+class MDR2(BaseScoreType):
     is_lower_the_better = False
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='R2', precision=2, output_dim=None):
+    def __init__(self, name='r2', precision=2, output_dim=None):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
@@ -271,12 +271,12 @@ class R2RegDists(BaseScoreType):
             return r2s[self.output_dim]
 
 
-class KSCalibrationRegDists(BaseScoreType):
+class MDKSCalibration(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='KS', precision=2, output_dim=None, plot=False):
+    def __init__(self, name='ks', precision=2, output_dim=None, plot=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
