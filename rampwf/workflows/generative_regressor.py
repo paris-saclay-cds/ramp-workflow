@@ -210,7 +210,7 @@ class GenerativeRegressor(object):
         If X is not a panda array, the assumed order is the same as
         given in training"""
         rng = check_random_state(random_state)
-        regressors = trained_model, order
+        regressors, order = trained_model
 
         column_names = np.array(self.target_column_name)[self.order]
         X_array, restart = self._check_restart(X_array)
@@ -250,4 +250,5 @@ class GenerativeRegressor(object):
                       selected)
             y_sampled[i] = dist.sample(params[0, sel_id:sel_id+dist.nb_params])
 
+        y_sampled = np.array(y_sampled)[np.argsort(order)]
         return y_sampled[np.newaxis, :]
