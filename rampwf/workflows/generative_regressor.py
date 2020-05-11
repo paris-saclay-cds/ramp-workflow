@@ -59,27 +59,24 @@ class GenerativeRegressor(object):
             sanitize=False
         )
 
-        order_path = os.path.join(
-            module_path, 'order.json')
+        order_path = os.path.join(module_path, 'order.json')
 
         try:
             with open(order_path, "r") as json_file:
                 order = json.load(json_file)
                 # Check if the names in the order and observables are all here
                 if set(order.keys()) == set(self.target_column_name):
-                    # We sort the variables names by userdefined order
-                    order = [k for k,_ in sorted(order.items(),
-                                                 key=lambda item: item[1])]
+                    # We sort the variable names by user-defined order
+                    order = [k for k,_ in sorted(
+                        order.items(), key=lambda item: item[1])]
                     # Map it to original order
-                    self.order = [self.target_column_name.index(i)
-                                  for i in order]
-
-                    y_array = y_array[:, self.order]
+                    order = [self.target_column_name.index(i) for i in order]
+                    y_array = y_array[:, order]
                 else:
                     raise RuntimeError("Order variables are not correct")
         except FileNotFoundError as e:
             print("Using default order")
-            self.order = range(len(self.target_column_name))
+            order = range(len(self.target_column_name))
 
         truths = ["y_" + t for t in self.target_column_name]
         X_array = X_array.copy()
@@ -121,7 +118,7 @@ class GenerativeRegressor(object):
             if self.autoregressive:
                 X_array = np.hstack([X_array, y])
             regressors.append(reg)
-        return regressors
+        return regressors, order
 
     def test_submission(self, trained_model, X_array):
         original_predict = self.predict_submission(trained_model, X_array)
@@ -134,7 +131,7 @@ class GenerativeRegressor(object):
         name self.target_column_name  and a y before (to avoid duplicate names
         in RL setup, where the target is a shifted column form the observation)
         in the same order, is a numpy object is provided. """
-        regressors = trained_model
+        regressors, order = trained_model
         dims = []
         n_columns = X_array.shape[1]
         X_array = X_array.copy()
@@ -151,7 +148,7 @@ class GenerativeRegressor(object):
             y = X_array[truths]
             X_array.drop(columns=truths, inplace=True)
             if self.autoregressive:
-                X_array = np.hstack([X_array.values, y.values[:,self.order]])
+                X_array = np.hstack([X_array.values, y.values[:, order]])
             else:
                 X = X_array.values
 
@@ -173,7 +170,7 @@ class GenerativeRegressor(object):
 
             dims.append(result)
 
-        dims_original_order = np.array(dims)[np.argsort(self.order)]
+        dims_original_order = np.array(dims)[np.argsort(order)]
         preds_concat = np.concatenate(dims_original_order, axis=1)
 
         return preds_concat
@@ -213,7 +210,7 @@ class GenerativeRegressor(object):
         If X is not a panda array, the assumed order is the same as
         given in training"""
         rng = check_random_state(random_state)
-        regressors = trained_model
+        regressors = trained_model, order
 
         column_names = np.array(self.target_column_name)[self.order]
         X_array, restart = self._check_restart(X_array)
