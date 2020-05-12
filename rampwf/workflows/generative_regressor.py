@@ -71,6 +71,7 @@ class GenerativeRegressor(object):
                         order.items(), key=lambda item: item[1])]
                     # Map it to original order
                     order = [self.target_column_name.index(i) for i in order]
+                    print(order)
                     y_array = y_array[:, order]
                 else:
                     raise RuntimeError("Order variables are not correct")
