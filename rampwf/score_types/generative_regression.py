@@ -31,7 +31,7 @@ import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 from .base import BaseScoreType
-from ..utils import distributions_dispatcher
+from ..utils import distributions_dispatcher, get_components
 
 
 def convert_y_true(y_true):
@@ -42,51 +42,55 @@ def convert_y_true(y_true):
         return y_true.swapaxes(0, 1)
 
 
-def get_components(curr_idx, y_pred):
-    n_dists = int(y_pred[0, curr_idx])
-    curr_idx += 1
-    id_params_start = curr_idx + n_dists * 2
-    weights = y_pred[:, curr_idx:curr_idx + n_dists]
-    assert (weights >= 0).all(), "Weights should all be positive."
-    weights /= weights.sum(axis=1)[:, np.newaxis]
-    types = y_pred[:, curr_idx + n_dists:id_params_start]
-    curr_idx = id_params_start
-    dists = []
-    paramss = []
-    for i in range(n_dists):
-        empty_dist_id = distributions_dispatcher().id
-        non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
-        currtype = int(types[:, i][non_empty_mask][0])
-        # TODO: raise exception if type is not consistent
-        dists.append(distributions_dispatcher(currtype))
-        end_params = curr_idx + dists[i].n_params
-        paramss.append(y_pred[:, curr_idx:end_params])
-        curr_idx = end_params
 
-    return curr_idx, n_dists, weights, types, dists, paramss
+def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
 
-
-def get_likelihoods(y_true, y_pred, min_likelihood):
-    n_instances = np.zeros(y_true.shape[0])
-    # negative log likelihoods of each output dimension and instance  
-    log_lks = np.zeros(y_true.shape)
-    # pointer within the vector representation of mixtures y_pred[i]
     curr_idx = 0
-    for j_dim, y_true_dim in enumerate(y_true):
-        curr_idx, n_dists, weights, types, dists, paramss =\
+    if multivar:
+
+        _, n_dists, weights, types, dists, paramss = \
             get_components(curr_idx, y_pred)
-        weighted_probs = np.zeros(len(y_true_dim))
+
+        n_instances = np.zeros(n_dists)
+        # negative log likelihoods of each output dimension and instance
+
+        log_lks = np.zeros((n_dists,y_true.shape[1]))
+        # pointer within the vector representation of mixtures y_pred[i]
+
         for i in range(n_dists):
-            empty_dist_id = distributions_dispatcher().id
-            non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
-            probs = dists[i].pdf(
-                y_true_dim[non_empty_mask],
-                paramss[i][non_empty_mask])
-            weighted_probs[non_empty_mask] +=\
-                weights[:, i][non_empty_mask] * probs
-        valid_mask = np.array(weighted_probs > min_likelihood)
-        n_instances[j_dim] = valid_mask.sum()
-        log_lks[j_dim, valid_mask] = -np.log(weighted_probs[valid_mask])
+            curr_idx = 0
+            weighted_probs = np.zeros(y_true.shape[1])
+            for j_dim, y_true_dim in enumerate(y_true):
+                curr_idx, n_dists, weights, types, dists, paramss = \
+                    get_components(curr_idx, y_pred)
+                empty_dist_id = distributions_dispatcher().id
+                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                probs = dists[i].pdf(
+                    y_true_dim[non_empty_mask],
+                    paramss[i][non_empty_mask])
+                weighted_probs[non_empty_mask] += \
+                    weights[:, i][non_empty_mask] * probs
+            valid_mask = np.array(weighted_probs > min_likelihood)
+            n_instances[i] = valid_mask.sum()
+            log_lks[i, valid_mask] = -np.log(weighted_probs[valid_mask])
+    else:
+        n_instances = np.zeros(y_true.shape[0])
+        log_lks = np.zeros(y_true.shape)
+        for j_dim, y_true_dim in enumerate(y_true):
+            curr_idx, n_dists, weights, types, dists, paramss = \
+                get_components(curr_idx, y_pred)
+            weighted_probs = np.zeros(len(y_true_dim))
+            for i in range(n_dists):
+                empty_dist_id = distributions_dispatcher().id
+                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                probs = dists[i].pdf(
+                    y_true_dim[non_empty_mask],
+                    paramss[i][non_empty_mask])
+                weighted_probs[non_empty_mask] += \
+                    weights[:, i][non_empty_mask] * probs
+            valid_mask = np.array(weighted_probs > min_likelihood)
+            n_instances[j_dim] = valid_mask.sum()
+            log_lks[j_dim, valid_mask] = -np.log(weighted_probs[valid_mask])
     return log_lks, n_instances
 
 
@@ -97,25 +101,33 @@ class MDNegativeLogLikelihood(BaseScoreType):
 
     def __init__(self, name='nll', precision=2,
                  min_likelihood=1.4867195147342979e-06,  # 5 sigma
-                 output_dim=None, verbose=False):
+                 output_dim=None, verbose=False, multivar=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
         self.min_likelihood = min_likelihood
         self.verbose = verbose
+        self.multivar = multivar
         
     def __call__(self, y_true, y_pred):
         y_true = convert_y_true(y_true)  # output dimension first
-        log_lks, n_instances = get_likelihoods(
-            y_true, y_pred, self.min_likelihood)
+        
+        if self.multivar:
+            log_lks, n_instances = get_likelihoods(
+                y_true, y_pred, self.min_likelihood, self.multivar)
+        else:
+            log_lks, n_instances = get_likelihoods(
+                y_true, y_pred, self.min_likelihood)
         if self.output_dim is None:
-            if self.verbose:  
+            if self.verbose:
                 return log_lks.sum() / n_instances.sum(), log_lks
             else:
                 return log_lks.sum() / n_instances.sum()
-        else:
+        elif not self.multivar:
             return np.sum(log_lks[self.output_dim]) /\
                 n_instances[self.output_dim]
+        else:
+            print("Non supported when doin multivariate")
 
 
 class MDOutlierRate(BaseScoreType):
@@ -150,17 +162,18 @@ class MDLikelihoodRatio(BaseScoreType):
 
     def __init__(self, name='lr', precision=2,
                  min_likelihood=1.4867195147342979e-06,  # 5 sigma
-                 output_dim=None, verbose=False, plot=False):
+                 output_dim=None, verbose=False, plot=False, multivar=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
         self.min_likelihood = min_likelihood
         self.verbose = verbose
         self.plot = plot
+        self.multivar = multivar
 
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
-        nll_reg_score = MDNegativeLogLikelihood(
+        nll_reg_score = MDNegativeLogLikelihood( multivar=self.multivar,
             min_likelihood=self.min_likelihood,
             output_dim=self.output_dim, verbose=self.verbose or self.plot)
         if self.verbose or self.plot:

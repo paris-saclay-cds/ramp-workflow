@@ -3,9 +3,12 @@ import json
 import collections
 import os
 from sklearn.utils.validation import check_random_state
+from scipy.stats import norm
+import pandas as pd
 
 from ..utils.importing import import_module_from_source
 from ..utils import distributions_dispatcher
+from ..utils import get_components
 
 
 class GenerativeRegressorFull(object):
@@ -135,11 +138,46 @@ class GenerativeRegressorFull(object):
         nb_dists_curr = types.shape[1]
         assert nb_dists_curr <= self.max_dists
 
-
-
         nb_dists_per_dim = nb_dists_curr//n_targets
 
-        #We assume that every dimesntion is preedicted with the same dists
+        # Normalize the weights if all components are gaussian
+        correct = True
+        if not types.any() and correct:
+            y = y.values
+            l_probs = np.empty((len(types), nb_dists_per_dim, n_targets))
+            weights_s = weights[:,:nb_dists_per_dim]
+            for i in range(n_targets):
+                for j in range(nb_dists_per_dim):
+                    l_probs[:,j,i]= \
+                        norm.logpdf(
+                            y[:,i],
+                            params[:,
+                            i*nb_dists_per_dim+j*2],
+                            params[:,
+                            i*nb_dists_per_dim+j*2+1]
+                        )
+
+            p_excluded = np.empty_like(l_probs)
+            for i in range(n_targets):
+                mask = np.ones(n_targets, dtype=bool)
+                mask[i:]= 0
+                p_excluded[:,:,i] = l_probs[:,:,mask].sum(axis =2)
+
+            diffs = np.empty_like(p_excluded)
+            for i in range(nb_dists_per_dim):
+                inner_diff = []
+                for j in range(nb_dists_per_dim):
+                    inner_diff.append(weights_s[:, j:j+1, np.newaxis]* np.exp(p_excluded[:, i:i+1,:] - p_excluded[:,j:j+1,:]))
+                diffs[:, i:i+1, :]= np.array(inner_diff).sum(axis=0)
+                
+            final_w = weights_s[:,:,np.newaxis] / diffs
+            
+            norm_w = final_w.reshape(len(types),-1, order='F')
+
+            weights = norm_w
+
+
+        #We assume that every dimention is preedicted with the same dists
         sizes = np.full((len(types), n_targets), nb_dists_per_dim)
 
         #result = np.concatenate((sizes, weights, types, params), axis=1)
@@ -191,63 +229,47 @@ class GenerativeRegressorFull(object):
         pass
 
     def step(self, trained_model, X_array, random_state=None):
-        """Careful, for now, for every x in the time dimension, we will sample
-        a y. To sample only one y, provide only one X.
+        """Careful, for now, for every x in the time dimension, we will
+        sample a y. To sample only one y, provide only one X.
         If X is not a panda array, the assumed order is the same as
         given in training"""
         rng = check_random_state(random_state)
-        regressors = trained_model
-        y_sampled = []
+        reg = trained_model
 
-        column_names = np.array(self.target_column_name)[self.order]
-        X_array, restart = self._check_restart(X_array)
+        n_features_init = X_array.shape[1]
 
+        # preallocate array by concatenating with unknown predicted array
+        predicted_array = np.zeros((1, len(self.target_column_name)))
+        X = np.concatenate([X_array.to_numpy(), predicted_array], axis=1)
 
-        X = X_array
-        if type(X_array).__module__ != np.__name__:
-            if len(y_sampled)==1:
-                X["y_" + column_names[0]] = y_sampled[0][0]
-            else:
-                for j, predicted_dim in enumerate(np.array(y_sampled)):
-                    X["y_" + column_names[j]] = predicted_dim
-                X = X.values
-        if X.ndim == 1:
-            X = [X, ]
+        extra_truth = ['y_' + obs for obs in self.target_column_name]
+        new_names = list(X_array.columns) + extra_truth
 
-        if type(X_array).__module__ == np.__name__:
-            sampled_array = np.array(y_sampled).T
-            if sampled_array.ndim == 1:
-                sampled_array = [sampled_array, ]
-            if i > 0:
-                X = np.concatenate((X, sampled_array), axis=1)
+        X = pd.DataFrame(X)
+        X.set_axis(new_names, axis=1, inplace=True)
 
-        if restart is not None:
-            dists = regressors.predict(X,restart)
-        else:
-            dists = regressors.predict(X)
+        y_sampled = np.zeros(len(self.target_column_name))
+        curr_idx = 0
+        for i in range(len(self.target_column_name)):
+            if i >= 1:
+                X.iloc[:, n_features_init + (i-1)] = y_sampled[i-1]
 
-        weights, types, params = dists
-        nb_dists = types.shape[1]
-        y_dim = []
-        for i in range(len(types)): # Number of timesteps
-            w = weights[i].ravel()
+            preds = self.predict_submission(reg,X)
+            curr_idx, n_dists, weights, types, dists, paramss = get_components(curr_idx, preds)
+
+            #weights, types, params = dists
+            n_dists = types.shape[1]
+            w = weights[0].ravel()
             w = w / sum(w)
-            empty_dist = distributions_dispatcher()
-            selected_type = empty_dist
-            while selected_type == empty_dist:
-                selected = rng.choice(list(range(nb_dists)), p=w)
-                dist = distributions_dispatcher(int(types[i, selected]))
-                selected_type = int(types[i, selected])
-            sel_id = 0
-            for k in range(selected):
-                firs_valid = np.where(
-                            ~np.array(types[:, k] == empty_dist)
-                            )[0][0]
-                sel_id += distributions_dispatcher(firs_valid).n_params
-            y_dim.append(
-                dist.sample(params[i, sel_id:sel_id+dist.n_params])
-            )
-        y_sampled.append(y_dim)
+            selected = rng.choice(n_dists, p=w)
+            dist = distributions_dispatcher(int(types[0, selected]))
 
-        y_sampled=np.array(y_sampled)[np.argsort(self.order)]
-        return np.array(y_sampled).swapaxes(0, 1)
+            # find which params to take: this is needed if we have a mixture
+            # of different distributions with different number of parameters
+
+
+            y_sampled[i] = dist.sample(paramss[selected][0])
+
+        y_sampled = np.array(y_sampled)
+        return y_sampled[np.newaxis, :]
+
