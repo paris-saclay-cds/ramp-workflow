@@ -123,6 +123,12 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 training_output_path, data_label)
         if not os.path.exists(training_output_path):
             os.makedirs(training_output_path)
+        if data_label != '':
+            training_output_path = os.path.join(
+                training_output_path, data_label)
+            if not os.path.exists(training_output_path):
+                os.makedirs(training_output_path)
+    print(training_output_path)
 
         print('Training output path: {}'.format(training_output_path))
 
@@ -203,6 +209,9 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         /submissions/<submission>/training_output
     ramp_submission_dir : str, default='./submissions'
         The directory of the submissions.
+    data_label : str, default=''
+        The subdirectory of data in /data and training outputs in
+        /submissions/<submission>/training_output
     save_output : bool, default is False
         Whether to store the blending results.
     min_improvement : float, default is 0.0
