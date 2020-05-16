@@ -143,20 +143,15 @@ class GenerativeRegressorFull(object):
         # Normalize the weights if all components are gaussian
         correct = True
         if not types.any() and correct:
+            mus = params[:, 0::2]
+            sigmas = params[:, 1::2]
             y = y.values
             l_probs = np.empty((len(types), nb_dists_per_dim, n_targets))
             weights_s = weights[:,:nb_dists_per_dim]
             for i in range(n_targets):
                 for j in range(nb_dists_per_dim):
-                    l_probs[:,j,i]= \
-                        norm.logpdf(
-                            y[:,i],
-                            params[:,
-                            i*nb_dists_per_dim+j*2],
-                            params[:,
-                            i*nb_dists_per_dim+j*2+1]
-                        )
-
+                    l_probs[:,j,i]= norm.logpdf(
+                        y[:, i], mus[:, i], sigmas[:, i])
             p_excluded = np.empty_like(l_probs)
             for i in range(n_targets):
                 mask = np.ones(n_targets, dtype=bool)
@@ -175,7 +170,6 @@ class GenerativeRegressorFull(object):
             norm_w = final_w.reshape(len(types),-1, order='F')
 
             weights = norm_w
-
 
         #We assume that every dimention is preedicted with the same dists
         sizes = np.full((len(types), n_targets), nb_dists_per_dim)
