@@ -164,9 +164,9 @@ class GenerativeRegressorFull(object):
                 for j in range(nb_dists_per_dim):
                     inner_diff.append(weights_s[:, j:j+1, np.newaxis]* np.exp(p_excluded[:, i:i+1,:] - p_excluded[:,j:j+1,:]))
                 diffs[:, i:i+1, :]= np.array(inner_diff).sum(axis=0)
-                
+
             final_w = weights_s[:,:,np.newaxis] / diffs
-            
+
             norm_w = final_w.reshape(len(types),-1, order='F')
 
             weights = norm_w
@@ -223,47 +223,35 @@ class GenerativeRegressorFull(object):
         pass
 
     def step(self, trained_model, X_array, random_state=None):
-        """Careful, for now, for every x in the time dimension, we will
-        sample a y. To sample only one y, provide only one X.
-        If X is not a panda array, the assumed order is the same as
-        given in training"""
+        """Sample from the multivariate Gaussian mixture"""
         rng = check_random_state(random_state)
         reg = trained_model
 
-        n_features_init = X_array.shape[1]
+        X_array, restart = self._check_restart(X_array)
+        n_samples = X_array.shape[0]
+        n_targets = len(self.target_column_name)
 
-        # preallocate array by concatenating with unknown predicted array
-        predicted_array = np.zeros((1, len(self.target_column_name)))
-        X = np.concatenate([X_array.to_numpy(), predicted_array], axis=1)
+        if restart is not None:
+            dists = reg.predict(X_array, restart)
+        else:
+            dists = reg.predict(X_array)
 
-        extra_truth = ['y_' + obs for obs in self.target_column_name]
-        new_names = list(X_array.columns) + extra_truth
+        weights, types, params = dists
+        # the weights are all the same for each dimension: we keep only
+        # the ones of the first dimension
+        w_components = weights.reshape(n_targets, -1)[0]
 
-        X = pd.DataFrame(X)
-        X.set_axis(new_names, axis=1, inplace=True)
+        # we convert the params mus and sigmas back to their shape
+        # (n_samples, n_targets, n_components) as it then easier to retrieve
+        # the ones that we need
+        all_mus = params[:, 0::2].reshape(n_samples, n_targets, -1)
+        all_sigmas = params[:, 1::2].reshape(n_samples, n_targets, -1)
 
-        y_sampled = np.zeros(len(self.target_column_name))
-        curr_idx = 0
-        for i in range(len(self.target_column_name)):
-            if i >= 1:
-                X.iloc[:, n_features_init + (i-1)] = y_sampled[i-1]
+        # sample from the gaussian mixture
+        n_components = len(w_components)
+        selected_component = rng.choice(n_components, p=w_components)
+        mus = all_mus[0, :, selected_component]
+        sigmas = all_sigmas[0, :, selected_component]
+        y_sampled = rng.multivariate_normal(mus, np.diag(sigmas))
 
-            preds = self.predict_submission(reg,X)
-            curr_idx, n_dists, weights, types, dists, paramss = get_components(curr_idx, preds)
-
-            #weights, types, params = dists
-            n_dists = types.shape[1]
-            w = weights[0].ravel()
-            w = w / sum(w)
-            selected = rng.choice(n_dists, p=w)
-            dist = distributions_dispatcher(int(types[0, selected]))
-
-            # find which params to take: this is needed if we have a mixture
-            # of different distributions with different number of parameters
-
-
-            y_sampled[i] = dist.sample(paramss[selected][0])
-
-        y_sampled = np.array(y_sampled)
         return y_sampled[np.newaxis, :]
-
