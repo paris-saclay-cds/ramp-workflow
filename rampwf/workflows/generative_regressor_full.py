@@ -252,6 +252,6 @@ class GenerativeRegressorFull(object):
         selected_component = rng.choice(n_components, p=w_components)
         mus = all_mus[0, :, selected_component]
         sigmas = all_sigmas[0, :, selected_component]
-        y_sampled = rng.multivariate_normal(mus, np.diag(sigmas))
+        y_sampled = rng.multivariate_normal(mus, np.diag(sigmas ** 2))
 
         return y_sampled[np.newaxis, :]
