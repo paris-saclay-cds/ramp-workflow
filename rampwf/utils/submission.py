@@ -420,13 +420,22 @@ def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
     trained_workflow : a rampwf.workflow
         either the input workflow or the pickled and reloaded workflow
     """
+    msg = "Warning: model can't be pickled."
+    model_file = os.path.join(fold_output_path, model_name)
     try:
-        model_file = os.path.join(fold_output_path, model_name)
         with open(model_file, 'wb') as pickle_file:
             cloudpickle.dump(trained_workflow, pickle_file)
-        with open(model_file, 'rb') as pickle_file:
-            trained_workflow = cloudpickle.load(pickle_file)
-    except pickle.PickleError as e:
-        print_warning("Warning: model can't be pickled.")
+    except pickle.PicklingError as e:
+        print_warning(msg)
         print_warning(e)
+        return trained_workflow
+    else:
+        # check if dumped trained_workflow can be loaded
+        try:
+            with open(model_file, 'rb') as pickle_file:
+                trained_workflow = cloudpickle.load(pickle_file)
+        except Exception as e:
+            print_warning(msg)
+            print_warning(e)
+
     return trained_workflow
