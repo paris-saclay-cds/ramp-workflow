@@ -4,11 +4,12 @@ Utilities to manage the submissions
 """
 import os
 import time
+import pickle
 from collections.abc import Iterable
 from collections import OrderedDict
 
 import pandas as pd
-import cloudpickle as pickle
+import cloudpickle
 
 from .io import save_y_pred, set_state, print_submission_exception
 from .combine import get_score_cv_bags
@@ -404,7 +405,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
 def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
     """Pickle and reload trained workflow.
 
-    If workflow can't be pickled, print warning and return origina' workflow.
+    If workflow can't be pickled, print warning and return original workflow.
 
     Parameters
     ----------
@@ -419,13 +420,22 @@ def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
     trained_workflow : a rampwf.workflow
         either the input workflow or the pickled and reloaded workflow
     """
+    msg = "Warning: model can't be pickled."
+    model_file = os.path.join(fold_output_path, model_name)
     try:
-        model_file = os.path.join(fold_output_path, model_name)
         with open(model_file, 'wb') as pickle_file:
-            pickle.dump(trained_workflow, pickle_file)
-        with open(model_file, 'r') as pickle_file:
-            trained_workflow = pickle.load(pickle_file)
-    except Exception as e:
-        print_warning("Warning: model can't be pickled.")
+            cloudpickle.dump(trained_workflow, pickle_file)
+    except pickle.PicklingError as e:
+        print_warning(msg)
         print_warning(e)
+        return trained_workflow
+    else:
+        # check if dumped trained_workflow can be loaded
+        try:
+            with open(model_file, 'rb') as pickle_file:
+                trained_workflow = cloudpickle.load(pickle_file)
+        except Exception as e:
+            print_warning(msg)
+            print_warning(e)
+
     return trained_workflow
