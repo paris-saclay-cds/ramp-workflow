@@ -213,31 +213,28 @@ class GenerativeRegressor(object):
         rng = check_random_state(random_state)
         regressors, order = trained_model
 
-        column_names = np.array(self.target_column_name)[self.order]
         X_array, restart = self._check_restart(X_array)
+        n_features_init = X_array.shape[1]
+
+        if self.autoregressive:
+            # preallocate array by concatenating with unknown predicted array
+            predicted_array = np.full((1, len(regressors)), fill_value=np.nan)
+            X = np.concatenate([X_array.to_numpy(), predicted_array], axis=1)
+            X_used = X[:, :n_features_init]
+        else:
+            X_used = X_array.to_numpy()
 
         y_sampled = np.zeros(len(regressors))
         for i, reg in enumerate(regressors):
-            X = X_array
-            if type(X_array).__module__ != np.__name__:
-                if i >= 1:
-                    X["y_" + self.target_column_name[i-1]] = y_sampled[i-1]
-                    X = X.values
-            if X.ndim == 1:
-                X = [X, ]
-
-            if type(X_array).__module__ == np.__name__:
-                sampled_array = np.array(y_sampled).T
-                if sampled_array.ndim == 1:
-                    sampled_array = [sampled_array, ]
-                if i > 0:
-                    X = np.concatenate((X, sampled_array), axis=1)
+            if i >= 1 and self.autoregressive:
+                X[:, n_features_init + (i-1)] = y_sampled[i-1]
+                X_used = X[:, :n_features_init + i]
 
             if restart is not None:
-                dists = reg.predict(X, restart)
+                dists = reg.predict(X_used, restart)
 
             else:
-                dists = reg.predict(X)
+                dists = reg.predict(X_used)
 
             weights, types, params = dists
             n_dists = types.shape[1]
