@@ -9,26 +9,44 @@ from ..utils import distributions_dispatcher
 
 
 class GenerativeRegressor(object):
+    """Build one generative regressor per target dimension.
+
+    By default, this is done in an autoregressive way in which case the target
+    dimension j also uses the value of the target dimension j-1 as inputs.
+    This autoregressive decomposition is based on the chain rule:
+    p(y_1, y_2, ...) = p(y_1) * p(y_2 | y_1) * ...
+
+    The regressors are parametrized as mixture distributions and are expected
+    to return :
+        weights: The importance of each of the distributions.
+            They should sum up to one at each timestep.
+        types: The type of distributions, ordered in the same fashion
+            as params.
+                0 is Gaussian
+                1 is Uniform
+        params: The parameters that describe the distributions.
+            For Gaussians, the order expected is the mean mu and standard
+            deviation sigma.
+            For uniform, the support bounds a and b.
+
+    Parameters
+    ----------
+    autoregressive : bool
+        Whether to build the regressors using an autoregressive scheme. If
+        true, the order to use for the autoregressive decomposition can be
+        specified in an order.json file located in the submission folder. If
+        there is no such file, the default order is used.
+        If autoregressive is set to False, the generative regressor of each
+        target is built without the knowledge of the other target values.
+
+    max_dists: the maximum number of distributions a generative
+        regressor can output for its returned mixture.
+    """
     def __init__(self, target_column_name, max_dists,
                  check_sizes=None, check_indexs=None,
                  workflow_element_names=['generative_regressor'],
                  restart_name=None, autoregressive=True,
                  **kwargs):
-        """
-        The regressors are expected to return :
-            weights: The importance of each of the distributions.
-                    They should sum up to one a each timestep
-            types: The type of distributions, ordered in the same fashion
-                    as params.
-                        0 is Gaussian
-                        1 is Uniform
-             params: The parameters that describe the distributions.
-                    If gaussian, the order expected is mu, sigma
-                    If uniform, it is a and b
-
-        max_dists: the maximum number of distributions a generative
-                    regressor can output
-        """
         self.check_indexs = check_indexs
         self.check_sizes = check_sizes
         self.element_names = workflow_element_names
@@ -209,7 +227,10 @@ class GenerativeRegressor(object):
         """Careful, for now, for every x in the time dimension, we will
         sample a y. To sample only one y, provide only one X.
         If X is not a panda array, the assumed order is the same as
-        given in training"""
+        given in training
+
+        X_array must contain only one timestep.
+        """
         rng = check_random_state(random_state)
         regressors, order = trained_model
 

@@ -12,25 +12,29 @@ from ..utils import get_components
 
 
 class GenerativeRegressorFull(object):
+    """Build a multivariate generative regressor.
+
+    This multivariate generative regressor is a multivariate Gaussian
+    mixture where each Gaussian component has a diagonal covariance matrix.
+    The regressor is parametrized as follows:
+        weights: The importance of each of the mixture component.
+            They should sum up to one at each timestep.
+        types: The type of distributions, ordered in the same fashion
+            as params.
+                0 for Gaussian
+        params: The parameters that describe the distributions.
+            For Gaussians, the order expected is the mean mu and standard
+            deviation sigma for each dimension of each mixture component.
+
+    Parameters
+    ----------
+    max_dists: the maximum number of mixture components a generative
+        regressor can output
+    """
     def __init__(self, target_column_name, max_dists, check_sizes, check_indexs,
                  workflow_element_names=['generative_regressor_full'],
                  restart_name=None,
                  **kwargs):
-        """
-        The regressors are expected to return :
-            weights: The importance of each of the distributions.
-                    They should sum up to one a each timestep
-            types: The type of distributions, ordered in the same fashion
-                    as params.
-                        0 is Gaussian
-                        1 is Uniform
-             params: The parameters that describe the distributions.
-                    If gaussian, the order expected is mu, sigma
-                    If uniform, it is a and b
-
-        max_dists: the maximum number of distributions a generative
-                    regressor can output
-        """
         self.check_indexs = check_indexs
         self.check_sizes = check_sizes
         self.element_names = workflow_element_names
