@@ -60,13 +60,13 @@ The prepare_data script
 ***********************
 
 A ``prepare_data.py`` script should also be stored here. This script should
-perform any data cleaning steps on the original data and split the data into
+perform any data cleaning steps on the raw data and split the data into
 the appropriate subsets as detailed above. It is a good way to document all
 the data cleaning steps. As an example, the Titanic challenge, which has
 a very basic ``prepare_data.py`` file, is shown below::
 
-    # In this case we have a predefined train/test cut so we are not splitting
-    # the data here
+    # In this case the data requires no cleaning and we have a predefined
+    # train/test cut so we are not splitting the data here
     df_train = pd.read_csv(os.path.join('data', 'train.csv'))
     df_test = pd.read_csv(os.path.join('data', 'test.csv'))  # noqa
 
