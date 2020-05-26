@@ -47,6 +47,7 @@ only the ``prepare_data.py`` file is required.
   Titanic challenge as an example.
 * ``README.md`` - a quick summary of how to run ``prepare_data.py``, mostly
   serves as an introduction on GitHub.
+* ``data/`` - directory containing the private training and test data.
 
 Generally, the data files for a RAMP challenge are kept in a repository
 in the `ramp-data <https://github.com/ramp-data>`_ organisation on GitHub. This
@@ -90,10 +91,10 @@ the small size of this dataset. At this stage we have 4 files:
 The public data files should be copied over to the 'ramp kit' directory
 when deploying an event on a RAMP server.
 
-Data files
-==========
+Raw data files
+==============
 
 In the Titanic example, the raw data was stored in the data directory. If your
-data is to be downloaded from elsewhere, you can download the data in
+raw data is to be downloaded from elsewhere, you can download the data in
 the ``prepare_data.py`` file then clean and create the required private and
 public datasets.
