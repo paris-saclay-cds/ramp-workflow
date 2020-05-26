@@ -13,9 +13,15 @@ solutions to your predictive problem. In this section we walk you through what
 you need to do to either use RAMP workflow locally or to launch a RAMP
 challenge on RAMP studio.
 
+Data
+****
+
 First, you will need to prepare your data by cleaning, if necessary, and
 splitting it into the required public and private, test and training sets.
 See :ref:`data` for more details.
+
+Minimal requirements
+********************
 
 Next, to setup your predictive problem to use RAMP workflow, the following
 files/folders are required:
@@ -40,6 +46,9 @@ files/folders are required:
 
     $ python download_data.py
 
+Full starting-kit
+*****************
+
 Once you have the above files, it is quite easy to prepare the additional files
 required for a full RAMP 'starting kit'. These files are not
 required for RAMP workflow to function locally but are useful for participants
@@ -57,9 +66,11 @@ and are required to launch a RAMP challenge on `RAMP Studio`_.
 * ``README.md`` - this is the homepage when the challenge is on GitHub and
   should provide a quick start guide.
 
-The base directory of a full ramp-kit should thus look like::
+The files listed above should be stored in the same RAMP 'starting-kit'
+directory.
+The base directory of a full RAMP starting-kit should thus look like::
 
-    <ramp_kit_name>/    # root ramp-kit directory
+    <starting_kit_name>/    # root starting-kit directory
     ├── README.md
     ├── download_data.py (optional)
     ├── problem.py
@@ -70,6 +81,24 @@ The base directory of a full ramp-kit should thus look like::
         └── <starting_kit>/
 
 If you wish to launch a RAMP challenge on `RAMP Studio`_ you will need to
-upload the full ramp-kit to `ramp-kits <https://github.com/ramp-kits>`_.
+upload the full starting-kit to `ramp-kits <https://github.com/ramp-kits>`_.
+
+.. _directory-structure:
+
+Overall directory structure
+***************************
+
+To deploy a RAMP challenge on a RAMP server, you will need a 'starting kit'
+and a :ref:`'data' <prepare-ramp-data>` directory. These directories are
+generally stored with the following directory structure::
+
+    ├── ramp-kits/
+    |  ├── <starting_kit_one>   # starting kit directories for each challenge
+    |  └── <starting_kit_two>
+    └── ramp-data/
+       ├── <data_for_kit_one>   # data directories for each challenge
+       └── <data_for_kit_two>
+
+Note in the example above, there are two different RAMP challenges.
 
 .. _RAMP Studio: https://ramp.studio/
