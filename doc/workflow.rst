@@ -95,11 +95,11 @@ and a :ref:`'data' <prepare-ramp-data>` directory. These directories are
 generally stored with the following directory structure::
 
     ├── ramp-kits/
-    |  ├── <starting_kit_one>   # root starting-kit directories for each challenge
-    |  └── <starting_kit_two>
+    |   ├── <starting_kit_one>   # root starting-kit directories for each challenge
+    |   └── <starting_kit_two>
     └── ramp-data/
-       ├── <data_for_kit_one>   # root data directories for each challenge
-       └── <data_for_kit_two>
+        ├── <data_for_kit_one>   # root data directories for each challenge
+        └── <data_for_kit_two>
 
 Note in the example above, there are **two different** RAMP challenges, with
 corresponding starting-kit and data directories for each.
