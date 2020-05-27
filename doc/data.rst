@@ -34,9 +34,10 @@ locally. The data directory should be separate from the starting kit directory
 (see :ref:`directory-structure`).
 
 The data directory should consist of the following files, though technically,
-only the ``prepare_data.py`` file is required.
+only the data files are required for deployment.
 
-* ``prepare_data.py`` - script to clean and split the raw data, see
+* ``prepare_data.py`` - script to clean and split the raw data, ensuring that
+  events can be deployed repeated with consistent data. See
   :ref:`prepare_data_script`.
 * ``requirements.txt`` - file listing required packages used in
   ``prepare_data.py``.
@@ -59,11 +60,13 @@ here, if size permits.
 The prepare_data script
 ***********************
 
-A ``prepare_data.py`` script should also be stored here. This script should
-perform any data cleaning steps on the raw data and split the data into
-the appropriate subsets as detailed above. It is a good way to document all
-the data cleaning steps. As an example, the Titanic challenge, which has
-a very basic ``prepare_data.py`` file, is shown below::
+The ``prepare_data.py`` script should perform any data cleaning steps required
+on the raw data and split the data into appropriate subsets as detailed above.
+It is a good way to document all the data cleaning steps and enables you to
+download (if required) and split the raw data easily on the RAMP server. It
+also helps to ensure that same data challenge can be deployed again using
+consistent training and test data subsets. As an example, the Titanic
+challenge, which has a very basic ``prepare_data.py`` file, is shown below::
 
     # In this case the data requires no cleaning and we have a predefined
     # train/test cut so we are not splitting the data here
