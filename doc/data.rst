@@ -48,7 +48,8 @@ only the data files are required for deployment.
   Titanic challenge as an example.
 * ``README.md`` - a quick summary of how to run ``prepare_data.py``, mostly
   serves as an introduction on GitHub.
-* ``data/`` - directory containing the private training and test data.
+* ``data/`` - directory that should ultimately contain the public and private
+  datasets, after running ``prepare_data.py``. See :ref:`prepare_data_script`.
 
 Generally, the data files for a RAMP challenge are kept in a repository
 in the `ramp-data <https://github.com/ramp-data>`_ organisation on GitHub. This
@@ -65,15 +66,24 @@ on the raw data and split the data into appropriate subsets as detailed above.
 It is a good way to document all the data cleaning steps and enables you to
 download (if required) and split the raw data easily on the RAMP server. It
 also helps to ensure that same data challenge can be deployed again using
-consistent training and test data subsets. As an example, the Titanic
-challenge, which has a very basic ``prepare_data.py`` file, is shown below::
+consistent training and test data subsets.
 
-    # In this case the data requires no cleaning and we have a predefined
-    # train/test cut so we are not splitting the data here
+The raw data may be stored in the ``data/`` directory or can be downloaded from
+elsewhere. Ultimately, there should be 4 data files in the ``data/``
+directory, detailed below, after running ``prepare_data.py`` script.
+
+As an example, the ``prepare_data.py`` for Titanic challenge, which stores the
+raw data in ``data/``, is shown below::
+
+    # 1 - read in or download the data.
     df_train = pd.read_csv(os.path.join('data', 'train.csv'))
-    df_test = pd.read_csv(os.path.join('data', 'test.csv'))  # noqa
+    df_test = pd.read_csv(os.path.join('data', 'test.csv'))
 
-    # In this case the private training data was also used as the public data
+    # 2 - Perform any data cleaning and split into private train/test subsets,
+    # if required. Neither steps required in this case.
+
+    # 3 - Split public train/test subsets. In this case the private training
+    # data will be used as the public data
     df_public = df_train
     df_public_train, df_public_test = train_test_split(
         df_public, test_size=0.2, random_state=57)
@@ -82,7 +92,8 @@ challenge, which has a very basic ``prepare_data.py`` file, is shown below::
     df_public_test.to_csv(os.path.join('data', 'public', 'test.csv'), index=False)
 
 Note that the private training data was also used as the public data, due to
-the small size of this dataset. At this stage we have 4 files:
+the small size of this dataset. At this stage we have 4 files in the ``data/``
+directory:
 
 * ``train.csv`` - private training data.
 * ``test.csv`` - private testing data. **This should never be made public.**
@@ -92,12 +103,4 @@ the small size of this dataset. At this stage we have 4 files:
   data ``train.csv``.
 
 The public data files should be copied over to the 'ramp kit' directory
-when deploying an event on a RAMP server.
-
-Raw data files
-==============
-
-In the Titanic example, the raw data was stored in the data directory. If your
-raw data is to be downloaded from elsewhere, you can download the data in
-the ``prepare_data.py`` file then clean and create the required private and
-public datasets.
+on a RAMP server, when deploying an event.
