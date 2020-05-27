@@ -102,5 +102,26 @@ directory:
 * ``public/test.csv`` - in this case, this was a subset of the private training
   data ``train.csv``.
 
-The public data files should be copied over to the 'ramp kit' directory
+The public data files need to be copied over to the starting kit directory
+(``ramp-kits/<starting_kit_name>/data/``, see :ref:`directory-structure`),
 on a RAMP server, when deploying an event.
+
+The data directory should look something like this::
+
+    <starting_kit_name>/    # root data directory
+    ├── README.md
+    ├── requirements.txt
+    ├── .travis.yml
+    ├── prepare_data.py
+    └── data/
+        ├── train.csv     # any data file format acceptable
+        ├── test.csv
+        └── public/
+            ├── train.csv
+            └── test.csv
+
+Strictly, only the ``data/`` directory is required to deploy an event on the
+RAMP server, though it is good practice to include the other files.
+
+See :ref:`directory-structure` for the structure of the data directory
+relative to the starting kit directory.

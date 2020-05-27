@@ -50,11 +50,11 @@ Full starting-kit
 *****************
 
 Once you have the above files, it is quite easy to prepare the additional files
-required for a full RAMP 'starting kit'. These files are not
+required for a full RAMP 'starting-kit'. These files are not
 required for RAMP workflow to function locally but are useful for participants
 and are required to launch a RAMP challenge on `RAMP Studio`_.
 
-* starting kit notebook - this is a jupyter notebook that introduces the
+* starting-kit notebook - this is a jupyter notebook that introduces the
   predictive problem, provides some background information, exploratory
   data analysis and data visualisation, explains the workflow and provides a
   simple example solution. This example solution should generally be the same
@@ -76,7 +76,9 @@ The base directory of a full RAMP starting-kit should thus look like::
     ├── problem.py
     ├── requirements.txt
     ├── <ramp_kit_name>_starting_kit.ipynb
-    ├── data
+    ├── data/
+    |   ├── train.csv     # any data file format acceptable
+    |   └── test.csv
     └── submissions/
         └── <starting_kit>/
 
@@ -88,17 +90,18 @@ upload the full starting-kit to `ramp-kits <https://github.com/ramp-kits>`_.
 Overall directory structure
 ***************************
 
-To deploy a RAMP challenge on a RAMP server, you will need a 'starting kit'
+To deploy a RAMP challenge on a RAMP server, you will need a 'starting-kit'
 and a :ref:`'data' <prepare-ramp-data>` directory. These directories are
 generally stored with the following directory structure::
 
     ├── ramp-kits/
-    |  ├── <starting_kit_one>   # starting kit directories for each challenge
+    |  ├── <starting_kit_one>   # root starting-kit directories for each challenge
     |  └── <starting_kit_two>
     └── ramp-data/
-       ├── <data_for_kit_one>   # data directories for each challenge
+       ├── <data_for_kit_one>   # root data directories for each challenge
        └── <data_for_kit_two>
 
-Note in the example above, there are two different RAMP challenges.
+Note in the example above, there are **two different** RAMP challenges, with
+corresponding starting-kit and data directories for each.
 
 .. _RAMP Studio: https://ramp.studio/
