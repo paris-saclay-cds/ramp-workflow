@@ -44,8 +44,20 @@ Test a submission
 The code file(s) (e.g., `estimator.py`) for each submission needs to be stored
 in their own folder, which then needs to be located within the `submissions`
 folder. The name of the folder containing the code file(s) is the name of
-the submission. For example, the code files for the submission named
-'my_submission' should be located at `submissions/my_submission`.
+the submission. For example, the code file(s) for the submission named
+'my_submission' should be located at `submissions/my_submission`. The file
+structure should look like this::
+
+    <starting_kit_name>/    # root starting-kit directory
+    ├── <various starting kit files>
+    ├── data/
+    |   ├── train.csv     # data for challenge
+    |   └── test.csv
+    └── submissions/
+        ├── <starting_kit>/       # example solution that comes with every kit
+        |   └── <submission_file.py>
+        └── <my_submission>/      # your first submission
+            └── <submission_file.py>
 
 To run a specific submission, you can use the `ramp-test` command line:
 
