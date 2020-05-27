@@ -31,7 +31,7 @@ files/folders are required:
   :ref:`problem`.
 * ``submissions/`` - each solution to be tested should be stored in its own
   directory within ``submissions/``. The name of this new directory will serve
-  as the ID for the submission. If you wish to launch a RAMP chellenge you
+  as the ID for the submission. If you wish to launch a RAMP challenge you
   will need to provide an example solution within ``submissions/starting_kit/``.
   Even if you are not launching a RAMP challenge on `RAMP Studio`_, it is
   useful to have an example submission as it shows which files are required,
@@ -80,7 +80,8 @@ The base directory of a full RAMP starting-kit should thus look like::
     |   ├── train.csv     # any data file format acceptable
     |   └── test.csv
     └── submissions/
-        └── <starting_kit>/
+        └── <starting_kit>/      # example solution
+            └── <submission_file.py>
 
 If you wish to launch a RAMP challenge on `RAMP Studio`_ you will need to
 upload the full starting-kit to `ramp-kits <https://github.com/ramp-kits>`_.
