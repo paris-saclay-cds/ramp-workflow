@@ -2,8 +2,11 @@ import os
 import glob
 import shutil
 
+import cloudpickle
+
 import pytest
 
+from rampwf.utils import import_module_from_source
 from rampwf.utils.testing import (
     assert_submission, assert_notebook, blend_submissions)
 
@@ -81,3 +84,28 @@ def test_blending():
     # cleaning up so next test doesn't try to train "training_output"
     shutil.rmtree(os.path.join(
         PATH, "kits", "iris", "submissions", "training_output"))
+
+
+def test_cloudpickle():
+    """Check cloudpickle works with the way modules are imported from source.
+
+    This only checks that an object that can be pickled with cloudpickle can
+    still be pickled with cloudpickle when imported dynamically using
+    import_module_from_source.
+    """
+    # use iris_old as the object has to be a custom class not an object
+    # from a python package that is in sys.path such as a sklearn object
+    kit = "iris_old"
+    ramp_kit_dir = os.path.join(PATH, "kits", kit)
+    ramp_data_dir = os.path.join(PATH, "kits", kit)
+    ramp_submission = os.path.join(PATH, "kits", kit, "submissions",
+                                   "starting_kit")
+
+    problem_module = import_module_from_source(
+        os.path.join(ramp_kit_dir, 'problem.py'), 'problem')
+    workflow = problem_module.workflow
+    X_train, y_train = problem_module.get_train_data(path=ramp_data_dir)
+    model = workflow.train_submission(ramp_submission, X_train, y_train)
+
+    # test cloudpickle
+    cloudpickle.dumps(model)
