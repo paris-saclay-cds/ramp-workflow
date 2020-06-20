@@ -1,7 +1,6 @@
 import os
 import copy
 
-import xarray as xr
 import pandas as pd
 
 import rampwf as rw
@@ -44,6 +43,7 @@ workflow = rw.workflows.TSFEGenReg(
     target_column_action_names=_target_column_action_names,
     restart_name=_restart_name,
     timestamp_name='time',
+    n_burn_in=_n_burn_in,
 )
 
 
@@ -81,14 +81,14 @@ def _read_data(path, X_name, data_label=''):
 
     Return
     ------
-    X_ds : XXX
+    X_df : pandas DataFrame
         Preprocessed data. Same format as the original data file but with
         targets appended. Each row thus contains a transition
         (past observation, action, new observation). Indeed, as the chaining
         rule is used, when training/testing the model the feature p - 1 of the
         target is needed to predict feature p of the target.
 
-    y_array : numpy array, shape (n_samples,)
+    y_array : numpy array, shape (n_samples, n_targets)
         Targets. The targets are the observations following the action
         contained in each row of the input data file.
     """
@@ -130,7 +130,5 @@ def _read_data(path, X_name, data_label=''):
 
     X_df.set_index(date, inplace=True)
     X_df.dropna(how='any', inplace=True)
-    X_ds = xr.Dataset(X_df)
-    X_ds.attrs['n_burn_in'] = _n_burn_in
 
-    return X_ds, X_df[extra_truth].values
+    return X_df, X_df[extra_truth].values

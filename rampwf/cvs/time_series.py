@@ -102,8 +102,7 @@ class InsideRestart(object):
                 n_splits=3, random_state=None, shuffle=False).split
 
 
-    def get_cv(self, X, y):
-        X_df = X.to_dataframe()
+    def get_cv(self, X_df, y):
         episode_bounds = list(np.where(X_df[self.restart_name])[0])
         if len(episode_bounds) == 0 or episode_bounds[0] != 0:
             episode_bounds.insert(0, 0)
@@ -145,11 +144,9 @@ class PerRestart(object):
     training."""
 
     def __init__(self, restart_name='restart'):
-        """cv_method should typically be rw.cvs.TimeSeries().get_cv"""
         self.restart_name = restart_name
 
-    def get_cv(self, X, y):
-        X_df = X.to_dataframe()
+    def get_cv(self, X_df, y):
         episode_bounds = list(np.where(X_df[self.restart_name])[0])
         if len(episode_bounds) == 0 or episode_bounds[0] != 0:
             episode_bounds.insert(0, 0)
