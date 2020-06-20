@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from .ts_feature_extractor import extend_train_is
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .generative_regressor import GenerativeRegressor
 
@@ -72,6 +73,7 @@ class TSFEGenReg:
         self.restart_name = restart_name
         self.timestamp_name = timestamp_name
         self.n_burn_in = n_burn_in
+        self.n_lookahead = n_lookahead
 
         # columns used for the feature extractor
         self.cols_for_extractor = (
@@ -89,7 +91,7 @@ class TSFEGenReg:
             check_sizes=check_sizes, check_indexs=check_indexs,
             workflow_element_names=[self.element_names[0]],
             restart_name=self.restart_name, n_burn_in=self.n_burn_in,
-            n_lookahead=n_lookahead)
+            n_lookahead=self.n_lookahead)
 
         self.regressor_workflow = GenerativeRegressor(
             target_column_observation_names, self.max_dists,
@@ -134,14 +136,10 @@ class TSFEGenReg:
         fe = self.feature_extractor_workflow.train_submission(
             module_path, X_df_used, y_array, train_is)
 
-        n_burn_in = self.n_burn_in
         # X_df contains burn-in timesteps compared to y_array so we set up
-        # train_is for X_df to contain the burn-in timesteps.
-        # extented_train_is is n_burn_in longer than train_is so that
-        # we have at least n_burn_in X values to predict y.
-        burn_in_range = np.arange(
-            train_is[-1] + 1, train_is[-1] + 1 + n_burn_in)
-        extended_train_is = np.concatenate((train_is, burn_in_range))
+        # train_is for X_df_used_train to contain the burn-in timesteps.
+        extended_train_is = extend_train_is(
+            X_df, train_is, self.n_burn_in, self.restart_name)
 
         # ts_fe.transform should return an array corresponding to time points
         # without burn in, so X_df_tf and y_array[train_is] should now

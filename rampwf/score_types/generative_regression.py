@@ -65,6 +65,10 @@ def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
                 probs = dists[i].pdf(
                     y_true_dim[non_empty_mask],
                     *paramss[i][non_empty_mask].swapaxes(0, 1))
+                # Some continuous scipy distributions (e.g. Gamma) return
+                # infinity at certain singular points (like 0). From our
+                # point of view the likelihood should be 0 at those point
+                probs[np.isinf(probs)] = 0
                 weighted_probs[non_empty_mask] += \
                     weights[:, i][non_empty_mask] * probs
             valid_mask = np.array(weighted_probs > min_likelihood)
@@ -82,6 +86,10 @@ def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
                 probs = dists[i].pdf(
                     y_true_dim[non_empty_mask],
                     *paramss[i][non_empty_mask].swapaxes(0, 1))
+                # Some continuous scipy distributions (e.g. Gamma) return
+                # infinity at certain singular points (like 0). From our
+                # point of view the likelihood should be 0 at those point
+                probs[np.isinf(probs)] = 0
                 weighted_probs[non_empty_mask] += \
                     weights[:, i][non_empty_mask] * probs
             valid_mask = np.array(weighted_probs > min_likelihood)

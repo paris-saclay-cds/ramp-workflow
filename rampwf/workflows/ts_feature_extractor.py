@@ -40,6 +40,43 @@ import xarray as xr
 from ..utils.importing import import_module_from_source
 
 
+def extend_train_is(X, train_is, n_burn_in, restart_name):
+    """Extend train_is to include the burn-in timesteps contained in X.
+
+    The returned array extented_train_is is n_burn_in longer than train_is so
+    that we have at least n_burn_in + 1 X values to predict y.
+    """
+    if n_burn_in == 0:
+        return train_is
+
+    if restart_name is None:
+        burn_in_range = np.arange(
+            train_is[-1] + 1, train_is[-1] + 1 + n_burn_in)
+        return np.concatenate((train_is, burn_in_range))
+    else:  # extend train_is for X taking into account the restart
+        # get the episode bounds in X
+        if isinstance(X, pd.DataFrame):
+            episode_starts_X = np.where(X[restart_name])[0]
+        else:  # X is an xarray Dataset
+            episode_starts_X = np.where(
+                X.to_dataframe()[restart_name])[0]
+        if episode_starts_X[0] != 0:
+            episode_starts_X = np.r_[0, episode_starts_X]
+        # get the episode bounds in y
+        align = np.arange(0, len(episode_starts_X))
+        align *= n_burn_in
+        episode_starts_y = np.r_[0, episode_starts_X[1:] - align[1:]]
+        episode_starts_X = np.r_[episode_starts_X, len(X)]
+
+        extended_train_is = []
+        for b, bound in enumerate(episode_starts_y):
+            if bound in train_is:
+                extended_train_is += list(
+                    range(episode_starts_X[b], episode_starts_X[b+1]))
+
+        return extended_train_is
+
+
 class TimeSeriesFeatureExtractor(object):
     """
     restart_name should be None, or a one item list containing 1 on the timestep
@@ -87,12 +124,14 @@ class TimeSeriesFeatureExtractor(object):
         # the features are digested into a classical tabular format (one row
         # per time step).
         try:
-            burn_in_range = np.arange(
-                train_is[-1] + 1, train_is[-1] + 1 + self.n_burn_in)
-            extended_train_is = np.concatenate((train_is, burn_in_range))
+            # X contains burn-in timesteps compared to y_array so we set up
+            # train_is for X_train to contain the burn-in timesteps.
+            extended_train_is = extend_train_is(
+                X, train_is, self.n_burn_in, self.restart_name)
+
             if isinstance(X, pd.DataFrame):
                 X_train = X.iloc[extended_train_is]
-            elif isinstance(X, xr.Dataset):
+            else:  # X is an xarray Dataset
                 X_train = X.isel(time=extended_train_is)
             y_train = y_array[train_is]
             ts_fe.fit(X_train, y_train)
