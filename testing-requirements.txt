@@ -9,6 +9,6 @@ netCDF4
 xarray
 scikit-image
 joblib
-keras; python_version >= '3.5' or (python_version == '2.7' and sys_platform != 'win32')
+keras<2.4; python_version >= '3.5' or (python_version == '2.7' and sys_platform != 'win32')
 tensorflow == 2.0.1; python_version >= '3.5' or (python_version == '2.7' and sys_platform != 'win32')
 
