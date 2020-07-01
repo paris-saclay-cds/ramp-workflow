@@ -214,10 +214,12 @@ class MDRMSE(BaseScoreType):
     minimum = 0.0
     maximum = float('inf')
 
-    def __init__(self, name='rmse', precision=2, output_dim=None):
+    def __init__(self, name='rmse', precision=2, output_dim=None,
+                 verbose=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
+        self.verbose = verbose
         
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
@@ -238,8 +240,13 @@ class MDRMSE(BaseScoreType):
                     weights[:, i][non_empty_mask] * means
 
         if self.output_dim is None:
-            return np.sqrt(
-                ((y_true - mean_preds) ** 2).sum() / n_instances / n_dims)
+            if self.verbose:
+                errors = y_true - mean_preds
+                return np.sqrt(
+                    (errors ** 2).sum() / n_instances / n_dims), errors
+            else:
+                return np.sqrt(
+                    ((y_true - mean_preds) ** 2).sum() / n_instances / n_dims)
         else:
             return np.sqrt((
                 (y_true[self.output_dim] - mean_preds[self.output_dim])
@@ -289,10 +296,12 @@ class MDKSCalibration(BaseScoreType):
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='ks', precision=2, output_dim=None, plot=False):
+    def __init__(self, name='ks', precision=2, output_dim=None, verbose=False,
+                 plot=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
+        self.verbose = verbose
         self.plot = plot
         
     def __call__(self, y_true, y_pred):
@@ -336,6 +345,9 @@ class MDKSCalibration(BaseScoreType):
                 plt.show()
 
         if self.output_dim is None:
-            return ks_stats.mean()
+            if self.verbose:
+                return ks_stats.mean(), cdfs
+            else:
+                return ks_stats.mean()
         else:
             return ks_stats[self.output_dim]
