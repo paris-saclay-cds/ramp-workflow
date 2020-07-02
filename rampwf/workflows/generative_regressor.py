@@ -6,7 +6,7 @@ from scipy.stats import norm
 from sklearn.utils.validation import check_random_state
 
 from ..utils.importing import import_module_from_source
-from ..utils import distributions_dispatcher, distributions_dict
+from ..utils import distributions_dispatcher, distributions_dict, MixtureYPred
 
 
 class GenerativeRegressor(object):
@@ -389,7 +389,7 @@ class GenerativeRegressor(object):
             else:
                 X = X_df
 
-            dims = []
+            mixture = MixtureYPred()
             for i, reg in enumerate(regressors):
 
                 if decomposition == 'autoregressive':
@@ -401,26 +401,11 @@ class GenerativeRegressor(object):
                     dists = reg.predict(X)
 
                 weights, types, params = dists
-
-                n_dists_curr = len(types)
-                try:
-                    types = [distributions_dict[type_name] for type_name in types]
-                except KeyError:
-                    message = ('One of the type names is not a valid Scipy '
-                               'distribution')
-                    raise AssertionError(message)
-                types = np.array([types, ] * len(weights))
-
+                n_dists_curr = types.shape[1]
                 assert n_dists_curr <= self.max_dists
+                mixture.add(weights, types, params)
 
-                sizes = np.full((len(types), 1), n_dists_curr)
-                mixture_y_pred = np.concatenate(
-                    (sizes, weights, types, params), axis=1)
-
-                dims.append(mixture_y_pred)
-
-            dims_original_order = np.array(dims)[np.argsort(order)]
-            mixture_y_pred = np.concatenate(dims_original_order, axis=1)
+            mixture_y_pred = mixture.finalize(order)
 
         return mixture_y_pred
 

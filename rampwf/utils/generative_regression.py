@@ -180,6 +180,51 @@ def get_n_params(dist):
     return n_params
 
 
+class MixtureYpred:
+    def __init__(self):
+        """
+        Object made to convert outputs of generative regressors to a numpy array
+        representation (y_pred) used in RAMP.
+        Works for autoregressive and independent, not the full case.
+        """
+        self.dims = []
+
+    def add(self, weights, types, params):
+        """
+        Must be called every time we get a prediction, creates the
+        distribution list
+
+        Parameters
+        ----------
+        weights : numpy array (n_timesteps, n_dist_per_dim)
+            the weights of the mixture for current dim
+
+        types : numpy array (n_timesteps, n_dist_per_dim)
+            the types of the mixture for current dim
+
+        params : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist)
+            the params of the mixture for current dim, the order must
+            correspond to the one of types
+        """
+        n_dists_curr = types.shape[1]
+        sizes = np.full((len(types), 1), n_dists_curr)
+        result = np.concatenate(
+            (sizes, weights, types, params), axis=1)
+        self.dims.append(result)
+
+    def finalize(self, order):
+        """
+        Must called be once all the dims were added
+
+        Parameters
+        ----------
+        order : list
+            The order in which the dims should be sorted
+        """
+        dims_original_order = np.array(self.dims)[np.argsort(order)]
+        return np.concatenate(dims_original_order, axis=1)
+
+
 def get_components(curr_idx, y_pred):
     n_dists = int(y_pred[0, curr_idx])
     curr_idx += 1
