@@ -31,7 +31,6 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
             'Missing init argument: y_pred, y_true, or n_samples')
 
 
-# TODO rewrite the combine
 @classmethod
 def _combine(cls, predictions_list, index_list=None):
     if index_list is None:

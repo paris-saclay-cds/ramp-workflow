@@ -1,7 +1,8 @@
-import numpy as np
-import json
-import collections
 import os
+import json
+
+import numpy as np
+from scipy.stats import norm
 from sklearn.utils.validation import check_random_state
 
 from ..utils.importing import import_module_from_source
@@ -9,205 +10,418 @@ from ..utils import distributions_dispatcher
 
 
 class GenerativeRegressor(object):
-    """Build one generative regressor per target dimension.
+    """Generative regressor workflow.
 
-    By default, this is done in an autoregressive way in which case the target
-    dimension j also uses the value of the target dimension j-1 as inputs.
-    This autoregressive decomposition is based on the chain rule:
-    p(y_1, y_2, ...) = p(y_1) * p(y_2 | y_1) * ...
+    The generative regressor submission expected by this workflow can specify a
+    `decomposition` attribute indicating how the conditional joint distribution
+    of the targets is decomposed. This attribute can either be set to None,
+    'autoregressive' or 'independent'. If no attribute is specified the
+    submission is assumed to be an autoregressive one (i.e., similar to
+    decomposition='autoregressive').
 
-    The regressors are parametrized as mixture distributions and are expected
-    to return :
-        weights: The importance of each of the distributions.
-            They should sum up to one at each timestep.
-        types: The type of distributions, ordered in the same fashion
-            as params.
-                0 is Gaussian
-                1 is Uniform
-        params: The parameters that describe the distributions.
-            For Gaussians, the order expected is the mean mu and standard
-            deviation sigma.
-            For uniform, the support bounds a and b.
+        - If None, the submission is expected to return the parameters of a
+        multivariate Gaussian mixture where each Gaussian component has a
+        diagonal covariance matrix.
+
+        - If 'autoregressive', the conditional joint distribution of the
+        targets is decomposed using the chain rule
+        p(y_1, y_2, ...| x) = p(y_1 | x) * p(y_2 | y_1, x) * ... The submission
+        is expected to return the parameters of a 1d mixture, one 1d mixture
+        being learnt for each component of the chain rule decomposition.
+        The parameters of the 1d mixture for the target dimension j are learnt
+        using the values of the previous target dimensions (<j) as additional
+        inputs. The order of the decomposition can be specified in an
+        `order.json` file located in the submission folder. If there is no such
+        file, the default order is used.
+
+        - If 'independent', the conditional joint distribution of the
+        targets is decomposed as if the targets were independent
+        p(y_1, y_2, ...| x) = p(y_1 | x) * p(y_2 | x) * ... The submission
+        is expected to return the parameters of a 1d mixture, one 1d mixture
+        being learnt for each target dimension. Compared to 'autoregressive'
+        each 1d mixture is learnt for y_j without the knowledge of the other
+        target dimensions y_1, ..., y_{j-1}.
+
+        The multivariate Gaussian mixture returned by a multivariate generative
+        regressor submission is assumed to be such that each Gaussian component
+        has a diagonal covariance matrix. The regressor is parametrized as
+        follows:
+        XXX FIXME after refactoring with Mixture object
+            weights: The importance of each of the mixture components.
+                They should sum up to one for each instance.
+            types: The type of distributions, ordered in the same fashion
+                as params.
+                    0 for Gaussian
+            params: The parameters that describe the distributions.
+                For Gaussians, the order expected is the mean mu and standard
+                deviation sigma for each dimension of each mixture component.
+
+        The mixture returned by a 1d generative regressor (decomposition set to
+        'autoregressive' or 'independent') is parameterized as follows:
+        XXX FIXME after refactoring with Mixture object
+            weights: The weights of each of the mixture components.
+                They should sum up to one for each instance.
+            types: The type of distributions, ordered in the same fashion
+                as params.
+                    0 is Gaussian
+                    1 is Uniform
+            params: The parameters that describe the distributions.
+                For Gaussians, the order expected is the mean mu and standard
+                deviation sigma.
+                For uniform, the support bounds a and b.
 
     Parameters
     ----------
-    autoregressive : bool
-        Whether to build the regressors using an autoregressive scheme. If
-        true, the order to use for the autoregressive decomposition can be
-        specified in an order.json file located in the submission folder. If
-        there is no such file, the default order is used.
-        If autoregressive is set to False, the generative regressor of each
-        target is built without the knowledge of the other target values.
+    max_dists : int
+        The maximum number of components a generative regressor can output for
+        its returned mixture.
 
-    max_dists: the maximum number of distributions a generative
-        regressor can output for its returned mixture.
+    target_column_names : list of strings
+        Names of the target columns.
+
+    restart_names : list of strings
+        Names of the restart column.
     """
-    def __init__(self, target_column_name, max_dists,
+
+    def __init__(self, target_column_names, max_dists,
                  check_sizes=None, check_indexs=None,
                  workflow_element_names=['generative_regressor'],
-                 restart_name=None, autoregressive=True,
+                 restart_names=None,
                  **kwargs):
         self.check_indexs = check_indexs
         self.check_sizes = check_sizes
         self.element_names = workflow_element_names
-        self.target_column_name = target_column_name
+        self.target_column_names = target_column_names
         self.max_dists = max_dists
-        self.restart_name = restart_name
+        self.restart_names = restart_names
         self.kwargs = kwargs
-        self.autoregressive = autoregressive
 
-    def _check_restart(self, X_array, train_is=slice(None, None, None)):
+    def _check_restart(self, X_df, train_is=slice(None, None, None)):
         restart = None
-        if self.restart_name is not None:
+        if self.restart_names is not None:
             try:
-                restart = X_array[self.restart_name].values
-                X_array = X_array.drop(columns=self.restart_name)
-                restart = restart[train_is,]
+                restart = X_df[self.restart_names].values
+                X_df = X_df.drop(columns=self.restart_names)
+                restart = restart[train_is]
             except KeyError:
                 restart = None
 
-        return X_array, restart
+        return X_df, restart
 
-    def train_submission(self, module_path, X_array, y_array, train_is=None):
+    def _reorder_targets(self, module_path, y_array):
+        """Find submitted order and reorder the targets."""
+        order_path = os.path.join(module_path, 'order.json')
+        try:
+            with open(order_path, "r") as json_file:
+                order = json.load(json_file)
+                # Check if the names in the order and observables are all here
+                if set(order.keys()) == set(self.target_column_names):
+                    # We sort the variable names by user-defined order
+                    order = [k for k, _ in sorted(
+                        order.items(), key=lambda item: item[1])]
+                    # Map it to original order
+                    order = [self.target_column_names.index(i) for i in order]
+                    print(order)
+                    y_array = y_array[:, order]
+                else:
+                    raise RuntimeError("Order variables are not correct")
+        except FileNotFoundError:
+            print("Using default order")
+            order = range(len(self.target_column_names))
+
+        return y_array, order
+
+    def train_submission(self, module_path, X_df, y_array, train_is=None):
+        """Train submission.
+
+        Parameters
+        ----------
+        module_path : string
+            Path of the submission.
+
+        X_df : pandas DataFrame, shape (n_samples, n_features)
+            Data that will be used as inputs. If the data also contains the
+            true target values (with column names the ones of
+            self.target_column_names prefixed by a `y_`) then they are removed.
+
+        y_array : numpy array, shape (n_samples, n_targets)
+            Targets. Should be a 2D array even if there is only one target
+            dimension.
+
+        Returns
+        -------
+        regressors : list of regressor
+            Fitted generative regressor. If decomposition is None, the list
+            contains only one element. Otherwise, the list contains the
+            regressors for all the target dimensions.
+
+        order : list
+            The order of the target dimensions. Only matters for
+            autoregressive=True.
+        """
+        if y_array.ndim != 2:
+            raise ValueError('y_array should be a 2D array')
         if train_is is None:
             train_is = slice(None, None, None)
-        gen_regressor = import_module_from_source(
+
+        generative_regressor = import_module_from_source(
             os.path.join(module_path, self.element_names[0] + '.py'),
             self.element_names[0],
             sanitize=False
         )
 
-        order_path = os.path.join(module_path, 'order.json')
+        X_df = X_df.copy()
+        X_df, restart = self._check_restart(X_df, train_is)
 
+        # We remove the truth from X_df, if present. When the truth is
+        # needed for autoregression, we take them from y_array. Note that if
+        # this GenerativeRegressor is used within the TSFEGenReg workflow then
+        # the truth is not in the passed X_df.
+        truth_names = ['y_' + t for t in self.target_column_names]
         try:
-            with open(order_path, "r") as json_file:
-                order = json.load(json_file)
-                # Check if the names in the order and observables are all here
-                if set(order.keys()) == set(self.target_column_name):
-                    # We sort the variable names by user-defined order
-                    order = [k for k,_ in sorted(
-                        order.items(), key=lambda item: item[1])]
-                    # Map it to original order
-                    order = [self.target_column_name.index(i) for i in order]
-                    print(order)
-                    y_array = y_array[:, order]
-                else:
-                    raise RuntimeError("Order variables are not correct")
-        except FileNotFoundError as e:
-            print("Using default order")
-            order = range(len(self.target_column_name))
+            X_df.drop(columns=truth_names, inplace=True)
+        except KeyError:
+            pass
+        X_df = X_df.values
+        X_df = X_df[train_is]
+        y_array = y_array[train_is]
 
-        truths = ["y_" + t for t in self.target_column_name]
-        X_array = X_array.copy()
+        reg = generative_regressor.GenerativeRegressor(
+            self.max_dists, 0, **self.kwargs)
 
-        X_array, restart = self._check_restart(X_array, train_is)
+        decomposition = getattr(reg, 'decomposition', 'autoregressive')
+        if decomposition not in [None, 'autoregressive', 'independent']:
+            raise ValueError(
+                'decomposition attribute should be None, autoregressive '
+                'or independent. It is {}'.format(decomposition))
 
-        if type(X_array).__module__ != np.__name__:
-            try:
-                X_array.drop(columns=truths, inplace=True)
-            except KeyError:
-                # We remove the truth from X, if present
-                pass
-            X_array = X_array.values
-        X_array = X_array[train_is,]
-
-        regressors = []
-        for i in range(len(self.target_column_name)):
-            reg = gen_regressor.GenerativeRegressor(
-                self.max_dists, i, **self.kwargs)
-
-            if i == 0 and y_array.shape[1] == 1:
-                y = y_array[train_is]
-            else:
-                y = y_array[train_is, i]
-
-            shape = y.shape
-            if len(shape) == 1:
-                y = y.reshape(-1, 1)
-            elif len(shape) == 2:
-                pass
-            else:
-                raise ValueError("More than two dims for y not supported")
-
+        if decomposition is None:
+            # return order for compatibility with autoregressive
+            order = range(len(self.target_column_names))
             if restart is not None:
-                reg.fit(X_array, y, restart)
+                reg.fit(X_df, y_array, restart)
             else:
-                reg.fit(X_array, y)
+                reg.fit(X_df, y_array)
 
-            if self.autoregressive:
-                X_array = np.hstack([X_array, y])
-            regressors.append(reg)
+            # use a list for compatibility with other decomposition values
+            regressors = [reg]
+        else:
+            # autoregressive or independent decomposition
+            # fit one regressor for each target dimension
+            # reorder targets if order is given in submission
+            y_array, order = self._reorder_targets(module_path, y_array)
+
+            regressors = []
+            for j in range(len(self.target_column_names)):
+                if j != 0:
+                    reg = generative_regressor.GenerativeRegressor(
+                        self.max_dists, j, **self.kwargs)
+
+                y = y_array[:, j].reshape(-1, 1)
+
+                if restart is not None:
+                    reg.fit(X_df, y, restart)
+                else:
+                    reg.fit(X_df, y)
+
+                if decomposition == 'autoregressive':
+                    # add the current target dimension to the inputs used to
+                    # train the next target dimension regressor
+                    X_df = np.hstack([X_df, y])
+                regressors.append(reg)
+
         return regressors, order
 
-    def test_submission(self, trained_model, X_array):
-        original_predict = self.predict_submission(trained_model, X_array)
-        self.check_cheat(trained_model, X_array)
-        return original_predict
+    def test_submission(self, trained_model, X_df):
+        """Test submission.
 
-    def predict_submission(self, trained_model, X_array):
-        """Test submission, here we assume that the last i columns of
-        X_array corespond to the ground truth, labeled with the target
-        name self.target_column_name  and a y before (to avoid duplicate names
-        in RL setup, where the target is a shifted column form the observation)
-        in the same order, is a numpy object is provided. """
+        Note that if decomposition is None, the model is evaluated using the
+        autoregressive decomposition of a multi-d Gaussian mixture.
+
+        Parameters
+        ----------
+        trained_model : pair of lists
+            The trained models and the order returned by train_submission.
+
+        X_df : pandas DataFrame, shape (n_samples, n_features)
+            Data that will be used as inputs. The data also contains the
+            target dimension as they are used for the autoregressive
+            predictions. The target column names are the ones of
+            self.target_column_names prefixed by a `y_`. This is to avoid
+            duplicated names in the context of time series where a target could
+            be the same variable as the input but shifted in time.
+
+        Return
+        ------
+        mixture_y_pred : numpy array
+            Predicted mixtures for the passed inputs.
+        """
+        self.check_cheat(trained_model, X_df)
+        mixture_y_pred = self._predict_submission(trained_model, X_df)
+        return mixture_y_pred
+
+    def _predict_submission(self, trained_model, X_df):
+        """Predict submission.
+
+        Returns the predicted mixtures for passed inputs. See the docstring of
+        test_submission for more details.
+        """
         regressors, order = trained_model
-        dims = []
-        n_columns = X_array.shape[1]
-        X_array = X_array.copy()
+        n_columns = X_df.shape[1]
+        X_df = X_df.copy()
         n_regressors = len(regressors)
+        decomposition = getattr(
+            regressors[0], 'decomposition', 'autoregressive')
+        if decomposition not in [None, 'autoregressive', 'independent']:
+            raise ValueError('decomposition attribute is not valid')
 
-        X_array, restart = self._check_restart(X_array)
+        X_df, restart = self._check_restart(X_df)
 
-        if self.restart_name is not None:
-                n_columns -= len(self.restart_name)
+        if restart is not None:
+            n_columns -= len(self.restart_names)
 
-        truths = ["y_" + t for t in self.target_column_name]
+        # separate the target from the real inputs. the targets
+        # are needed for the autoregressive predictions. note that if
+        # decomposition is None, the model is evaluated using an
+        # autoregressive decomposition.
+        truth_names = ["y_" + t for t in self.target_column_names]
+        y = X_df[truth_names].values
+        X_df.drop(columns=truth_names, inplace=True)
+        X_df = X_df.values
 
-        if type(X_array).__module__ != np.__name__:
-            y = X_array[truths]
-            X_array.drop(columns=truths, inplace=True)
-            if self.autoregressive:
-                X_array = np.hstack([X_array.values, y.values[:, order]])
-            else:
-                X = X_array.values
-
-        for i, reg in enumerate(regressors):
-            if self.autoregressive:
-                X = X_array[:, :n_columns - n_regressors + i]
+        if decomposition is None:
+            # single multi-d Gaussian mixture
+            regressor = regressors[0]
+            n_targets = len(self.target_column_names)
+            X = X_df
             if restart is not None:
-                dists = reg.predict(X, restart)
+                dists = regressor.predict(X, restart)
             else:
-                dists = reg.predict(X)
+                dists = regressor.predict(X)
 
             weights, types, params = dists
 
-            nb_dists_curr = types.shape[1]
-            assert nb_dists_curr <= self.max_dists
+            n_dists_curr = types.shape[1]
+            assert n_dists_curr <= self.max_dists
 
-            sizes = np.full((len(types), 1), nb_dists_curr)
-            result = np.concatenate((sizes, weights, types, params), axis=1)
+            n_dists_per_dim = n_dists_curr // n_targets
 
-            dims.append(result)
+            # We convert the multi-d Gaussian mixture into its chain rule
+            # decomposition so that we can use the same evaluation
+            # implementation as for the autoregressive mode. This is done
+            # thanks to known formula for Gaussian mixture, see
+            # https://stats.stackexchange.com/q/348941. As only diagonal
+            # covariance matrices are considered for the components of the
+            # multi-d Gaussian mixture, most of the work consists in computing
+            # the weights of each 1d conditional Gaussian mixture,
+            if not types.any():
+                mus = params[:, 0::2]
+                sigmas = params[:, 1::2]
+                l_probs = np.empty((len(types), n_dists_per_dim, n_targets))
+                weights_s = weights[:, :n_dists_per_dim]
 
-        dims_original_order = np.array(dims)[np.argsort(order)]
-        preds_concat = np.concatenate(dims_original_order, axis=1)
+                # We get the logpdf of every component for every point
+                for i in range(n_targets):
+                    for j in range(n_dists_per_dim):
+                        l_probs[:, j, i] = norm.logpdf(
+                            y[:, i], mus[:, i], sigmas[:, i])
 
-        return preds_concat
+                # We use a mask to do autoregression
+                p_excluded = np.empty_like(l_probs)
+                for i in range(n_targets):
+                    mask = np.ones(n_targets, dtype=bool)
+                    mask[i:] = 0
+                    p_excluded[:, :, i] = l_probs[:, :, mask].sum(axis=2)
 
-    def check_cheat(self, trained_model, X_array):
-        if not self.check_sizes is None and not self.check_indexs is None:
+                # We finish computing the different parts of the formula,
+                # and convert from log space
+                diffs = np.empty_like(p_excluded)
+                for i in range(n_dists_per_dim):
+                    inner_diff = []
+                    for j in range(n_dists_per_dim):
+                        inner_diff.append(
+                            weights_s[:, j:j + 1, np.newaxis] *
+                            np.exp(p_excluded[:, i:i + 1, :] -
+                                   p_excluded[:, j:j + 1, :]))
+                    diffs[:, i:i + 1, :] = np.array(inner_diff).sum(axis=0)
+
+                final_w = weights_s[:, :, np.newaxis] / diffs
+
+                # Finally, we put the weights in place
+                weights = final_w.reshape(len(types), -1, order='F')
+
+            # We assume that every dimension is predicted with the same dists
+            sizes = np.full((len(types), n_targets), n_dists_per_dim)
+            size_concatenated = (
+                weights.shape[1] + n_dists_curr + params.shape[1])
+            step = (size_concatenated + n_targets) // n_targets
+            mixture_y_pred = np.empty(
+                (len(types), n_targets + size_concatenated))
+
+            mixture_y_pred[:, 0::step] = sizes
+
+            offset = 1
+            for i in range(offset, n_dists_per_dim + offset):
+                mixture_y_pred[:, i::step] =\
+                    weights[:, i - offset::n_dists_per_dim]
+
+            offset += n_dists_per_dim
+            for i in range(offset, n_dists_per_dim + offset):
+                mixture_y_pred[:, i::step] =\
+                    types[:, i - offset::n_dists_per_dim]
+
+            offset += n_dists_per_dim
+            for i in range(offset, params.shape[1] // n_targets + offset):
+                mixture_y_pred[:, i::step] =\
+                    params[:, i - offset::params.shape[1] // n_targets]
+
+        else:  # autoregressive or independent decomposition.
+            if decomposition == 'autoregressive':
+                X_df = np.hstack([X_df, y[:, order]])
+            else:
+                X = X_df
+
+            dims = []
+            for i, reg in enumerate(regressors):
+
+                if decomposition == 'autoregressive':
+                    X = X_df[:, :n_columns - n_regressors + i]
+
+                if restart is not None:
+                    dists = reg.predict(X, restart)
+                else:
+                    dists = reg.predict(X)
+
+                weights, types, params = dists
+
+                n_dists_curr = types.shape[1]
+                assert n_dists_curr <= self.max_dists
+
+                sizes = np.full((len(types), 1), n_dists_curr)
+                mixture_y_pred = np.concatenate(
+                    (sizes, weights, types, params), axis=1)
+
+                dims.append(mixture_y_pred)
+
+            dims_original_order = np.array(dims)[np.argsort(order)]
+            mixture_y_pred = np.concatenate(dims_original_order, axis=1)
+
+        return mixture_y_pred
+
+    def check_cheat(self, trained_model, X_df):
+        if self.check_sizes is not None and self.check_indexs is not None:
             for check_size, check_index in zip(
                     self.check_sizes, self.check_indexs):
-                X_check = X_array.iloc[:check_size].copy()
+                X_check = X_df.iloc[:check_size].copy()
                 # Adding random noise to future.
-                original_predict = self.predict_submission(
+                mixture_y_pred = self._predict_submission(
                     trained_model, X_check)
                 X_check.iloc[check_index] += np.random.normal()
                 # Calling predict on changed future.
-                X_check_array = self.predict_submission(
+                X_check_array = self._predict_submission(
                     trained_model, X_check)
                 X_neq = np.not_equal(
-                    original_predict[:check_size],
+                    mixture_y_pred[:check_size],
                     X_check_array[:check_size])
                 x_neq = np.any(X_neq, axis=1)
                 x_neq_nonzero = x_neq.nonzero()
@@ -218,56 +432,112 @@ class GenerativeRegressor(object):
                 # Normally, the features should not have changed before
                 # check_index
                 if first_modified_index < check_index:
-                    message = 'The generative_regressor looks into the' +\
-                        ' future by at least {} time steps'.format(
-                            check_index - first_modified_index)
+                    message = 'The generative_regressor looks into the' + \
+                              ' future by at least {} time steps'.format(
+                                  check_index - first_modified_index)
                     raise AssertionError(message)
 
-    def step(self, trained_model, X_array, random_state=None):
-        """Careful, for now, for every x in the time dimension, we will
-        sample a y. To sample only one y, provide only one X.
-        If X is not a panda array, the assumed order is the same as
-        given in training
+    def step(self, trained_model, X_df, random_state=None):
+        """Sample the targets for the sample in X_df.
 
-        X_array must contain only one timestep.
+        X_df is assumed to contain only one sample and only one array of
+        shape (1, n_targets) is sampled.
+
+        Parameters
+        ----------
+        trained_model : list
+            The list of trained models returned by train_submission.
+
+        X_df : pandas DataFrame, shape (1, n_features)
+            Inputs. Note that compared test_submission
+            the targets are not in this array as this is what we want to
+            sample.
+
+        random_state : Random state object
+            The RNG or the state of the RNG to be used when sampling.
+
+        Returns
+        -------
+        y_sampled : numpy array, shape (1, n_targets)
+            The sampled targets.
         """
         rng = check_random_state(random_state)
         regressors, order = trained_model
+        decomposition = getattr(
+            regressors[0], 'decomposition', 'autoregressive')
 
-        X_array, restart = self._check_restart(X_array)
-        n_features_init = X_array.shape[1]
+        X_df, restart = self._check_restart(X_df)
 
-        if self.autoregressive:
-            # preallocate array by concatenating with unknown predicted array
-            predicted_array = np.full((1, len(regressors)), fill_value=np.nan)
-            X = np.concatenate([X_array.to_numpy(), predicted_array], axis=1)
-            X_used = X[:, :n_features_init]
-        else:
-            X_used = X_array.to_numpy()
-
-        y_sampled = np.zeros(len(regressors))
-        for i, reg in enumerate(regressors):
-            if i >= 1 and self.autoregressive:
-                X[:, n_features_init + (i-1)] = y_sampled[i-1]
-                X_used = X[:, :n_features_init + i]
-
+        if decomposition is None:
+            # sample from the mutli-d Gaussian mixture
+            n_targets = len(self.target_column_names)
+            reg = regressors[0]
             if restart is not None:
-                dists = reg.predict(X_used, restart)
-
+                dists = reg.predict(X_df, restart)
             else:
-                dists = reg.predict(X_used)
+                dists = reg.predict(X_df)
 
             weights, types, params = dists
-            n_dists = types.shape[1]
-            w = weights[0].ravel()
-            w = w / sum(w)
-            selected = rng.choice(n_dists, p=w)
-            dist = distributions_dispatcher(int(types[0, selected]))
-            selected_type = int(types[0, selected])
+            # the weights are all the same for each dimension: we keep only
+            # the ones of the first dimension
+            w_components = weights.reshape(n_targets, -1)[0]
 
-            sel_id = (distributions_dispatcher(selected_type).nb_params *
-                      selected)
-            y_sampled[i] = dist.sample(params[0, sel_id:sel_id+dist.nb_params])
+            # we convert the params mus and sigmas back to their shape
+            # (n_samples, n_targets, n_components) as it is then easier to
+            # retrieve the ones that we need.
+            all_mus = params[:, 0::2].reshape(1, n_targets, -1)
+            all_sigmas = params[:, 1::2].reshape(1, n_targets, -1)
 
-        y_sampled = np.array(y_sampled)[np.argsort(order)]
-        return y_sampled[np.newaxis, :]
+            # sample from the gaussian mixture
+            n_components = len(w_components)
+            selected_component = rng.choice(n_components, p=w_components)
+            mus = all_mus[0, :, selected_component]
+            sigmas = all_sigmas[0, :, selected_component]
+            y_sampled = rng.multivariate_normal(mus, np.diag(sigmas ** 2))
+            return y_sampled[np.newaxis, :]
+
+        else:  # autoregressive or independent decomposition.
+            n_features_init = X_df.shape[1]
+
+            if decomposition == 'autoregressive':
+                # preallocate array by concatenating with unknown predicted
+                # array
+                predicted_array = np.full(
+                    (1, len(regressors)), fill_value=np.nan)
+                X = np.concatenate(
+                    [X_df.values, predicted_array], axis=1)
+                X_used = X[:, :n_features_init]
+            else:
+                X_used = X_df.values
+
+            y_sampled = np.zeros(len(regressors))
+            for j, reg in enumerate(regressors):
+                if j >= 1 and decomposition == 'autoregressive':
+                    X[:, n_features_init + (j - 1)] = y_sampled[j - 1]
+                    X_used = X[:, :n_features_init + j]
+
+                if restart is not None:
+                    dists = reg.predict(X_used, restart)
+                else:
+                    dists = reg.predict(X_used)
+
+                weights, types, params = dists
+                n_dists = types.shape[1]
+                w = weights[0].ravel()
+                w = w / sum(w)
+                selected = rng.choice(n_dists, p=w)
+                dist = distributions_dispatcher(int(types[0, selected]))
+
+                # find which params to take: this is needed if we have a
+                # mixture of different distributions with different number of
+                # parameters
+                sel_id = 0
+                for k in range(selected):
+                    sel_id += (distributions_dispatcher(int(types[0, k]))
+                               .n_params)
+
+                y_sampled[j] = dist.sample(
+                    params[0, sel_id:sel_id + dist.n_params])
+
+            y_sampled = np.array(y_sampled)[np.argsort(order)]
+            return y_sampled[np.newaxis, :]
