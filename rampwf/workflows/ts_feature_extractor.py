@@ -45,7 +45,7 @@ class TimeSeriesFeatureExtractor(object):
     """
     def __init__(self, check_sizes=None, check_indexs=None,
                  workflow_element_names=['ts_feature_extractor'],
-                 restart_name=None ):
+                 restart_name=None):
         self.element_names = workflow_element_names
         self.check_sizes = check_sizes
         self.check_indexs = check_indexs

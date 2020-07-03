@@ -24,7 +24,7 @@ class TSFEGenReg:
                  check_sizes, check_indexs, max_dists,
                  target_column_observation_names,
                  target_column_action_names,
-                 restart_names=['restart'],
+                 restart_names=None,
                  timestamp_name='time',
                  workflow_element_names=None):
 
@@ -33,6 +33,13 @@ class TSFEGenReg:
         self.target_column_action_names = target_column_action_names
         self.restart_names = restart_names
         self.timestamp_name = timestamp_name
+
+        # columns used for the feature extractor
+        self.cols_for_extractor = (
+            self.target_column_observation_names +
+            self.target_column_action_names)
+        if self.restart_names is not None:
+            self.cols_for_extractor += self.restart_names
 
         if workflow_element_names is None:
             workflow_element_names = ['ts_feature_extractor',
@@ -76,10 +83,7 @@ class TSFEGenReg:
         fe, reg : tuple
             Trained feature extractor and generative regressor.
         """
-        cols_for_extractor = (
-            self.target_column_observation_names +
-            self.target_column_action_names + self.restart_names)
-        X_df_used = X_df[cols_for_extractor]
+        X_df_used = X_df[self.cols_for_extractor]
         fe = self.feature_extractor_workflow.train_submission(
             module_path, X_df_used, y_array, train_is)
         if train_is is None:
@@ -115,12 +119,8 @@ class TSFEGenReg:
         fe, reg = trained_model
 
         # pass only the inputs without the targets to the feature extractor
-        cols_for_extractor = (
-            self.target_column_observation_names +
-            self.target_column_action_names + self.restart_names)
-
         X_df_tf = self.feature_extractor_workflow.test_submission(
-            fe, X_df[cols_for_extractor])
+            fe, X_df[self.cols_for_extractor])
 
         # append the targets to X_df_tf as they are needed for the generative
         # regressor predictions
@@ -172,12 +172,8 @@ class TSFEGenReg:
 
         fe, reg = trained_model
 
-        cols_for_extractor = (self.target_column_observation_names +
-                              self.target_column_action_names +
-                              self.restart_names)
-
         X_df_tf = self.feature_extractor_workflow.test_submission(
-            fe, X_df[cols_for_extractor])
+            fe, X_df[self.cols_for_extractor])
 
         # depending on the feature extractor, more than one extracted state can
         # be returned in X_df_tf. here we only sample for the next
