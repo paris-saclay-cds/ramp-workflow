@@ -180,7 +180,7 @@ def get_n_params(dist):
     return n_params
 
 
-class MixtureYpred:
+class MixtureYPred:
     def __init__(self):
         """
         Object made to convert outputs of generative regressors to a numpy array
