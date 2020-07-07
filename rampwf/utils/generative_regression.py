@@ -226,6 +226,39 @@ class MixtureYPred:
 
 
 def get_components(curr_idx, y_pred):
+    """
+    Extracts dimentions from the whole y_pred array to use them elsewhere
+    (e.g. to compute the pdf).
+    It is meant to be called like so:
+
+    curr_idx=0
+    for dim in dims:
+        curr_idx, ... = currget_components(curr_idx, y_pred)
+
+    Parameters
+    ----------
+    curr_idx : int
+        The current index in the whole y_pred.
+    y_pred : numpy array
+        Should be built using MixtureYPred "add" and "finalize".
+
+    Return
+    ------
+    curr_idx : int
+        The current index in the whole y_pred after recovering the current
+        dimension
+    n_dists : int
+        The number of components in the mixture for the current dim
+    weights : numpy array (n_timesteps, n_dist_per_dim)
+        The weights of the mixture for current dim
+    types : numpy array (n_timesteps, n_dist_per_dim)
+        The types of the mixture for current dim
+    dists : list of objects extending AbstractDists
+        A list of distributions to be used for current dim
+    paramss : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist)
+        The params of the mixture for current dim, that allign with the
+        other returned values
+    """
     n_dists = int(y_pred[0, curr_idx])
     curr_idx += 1
     id_params_start = curr_idx + n_dists * 2
