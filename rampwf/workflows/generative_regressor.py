@@ -46,29 +46,29 @@ class GenerativeRegressor(object):
         regressor submission is assumed to be such that each Gaussian component
         has a diagonal covariance matrix. The regressor is parametrized as
         follows:
-        XXX FIXME after refactoring with Mixture object
-            weights: The importance of each of the mixture components.
+            weights : numpy array (n_timesteps, n_dist_per_dim*n_dims)
+                The weights of the mixtures.
                 They should sum up to one for each instance.
-            types: The type of distributions, ordered in the same fashion
-                as params.
-                    0 for Gaussian
-            params: The parameters that describe the distributions.
-                For Gaussians, the order expected is the mean mu and standard
-                deviation sigma for each dimension of each mixture component.
+            types : numpy array (n_timesteps, n_dist_per_dim*n_dims)
+                The types of the mixtures.
+                Only gaussian is supported in this case.
+                For more info look at rampwf.utils.distributions_dict.
+            params : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist
+                                                *n_dims)
+                The params of the mixture for current dim, the order must
+                correspond to the one of types
 
         The mixture returned by a 1d generative regressor (decomposition set to
         'autoregressive' or 'independent') is parameterized as follows:
-        XXX FIXME after refactoring with Mixture object
-            weights: The weights of each of the mixture components.
+            weights : numpy array (n_timesteps, n_dist_per_dim)
+                The weights of the mixture for current dim.
                 They should sum up to one for each instance.
-            types: The type of distributions, ordered in the same fashion
-                as params.
-                    0 is Gaussian
-                    1 is Uniform
-            params: The parameters that describe the distributions.
-                For Gaussians, the order expected is the mean mu and standard
-                deviation sigma.
-                For uniform, the support bounds a and b.
+            types : numpy array (n_timesteps, n_dist_per_dim)
+                The types of the mixture for current dim
+                For more info look at rampwf.utils.distributions_dict
+            params : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist)
+                the params of the mixture for current dim, the order must
+                correspond to the one of types
 
     Parameters
     ----------
