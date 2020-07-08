@@ -24,22 +24,22 @@ class TSFEGenReg:
                  check_sizes, check_indexs, max_dists,
                  target_column_observation_names,
                  target_column_action_names,
-                 restart_names=None,
+                 restart_name=None,
                  timestamp_name='time',
                  workflow_element_names=None):
 
         self.max_dists = max_dists
         self.target_column_observation_names = target_column_observation_names
         self.target_column_action_names = target_column_action_names
-        self.restart_names = restart_names
+        self.restart_name = restart_name
         self.timestamp_name = timestamp_name
 
         # columns used for the feature extractor
         self.cols_for_extractor = (
             self.target_column_observation_names +
             self.target_column_action_names)
-        if self.restart_names is not None:
-            self.cols_for_extractor += self.restart_names
+        if self.restart_name is not None:
+            self.cols_for_extractor += [self.restart_name]
 
         if workflow_element_names is None:
             workflow_element_names = ['ts_feature_extractor',
@@ -49,12 +49,12 @@ class TSFEGenReg:
         self.feature_extractor_workflow = TimeSeriesFeatureExtractor(
             check_sizes=check_sizes, check_indexs=check_indexs,
             workflow_element_names=[self.element_names[0]],
-            restart_name=self.restart_names)
+            restart_name=self.restart_name)
 
         self.regressor_workflow = GenerativeRegressor(
             target_column_observation_names, self.max_dists,
             workflow_element_names=[self.element_names[1]],
-            restart_names=restart_names,
+            restart_name=restart_name,
             check_sizes=check_sizes, check_indexs=check_indexs)
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
@@ -71,7 +71,7 @@ class TSFEGenReg:
         X_df : pandas dataframe
             Training data. Each sample contains the data of a given timestep.
             Only the columns target_column_observation_names,
-            target_column_action_names and restart_names are used. X_df
+            target_column_action_names and restart_name are used. X_df
             must contain these columns.
 
         y_array : numpy array, shape (n_samples, n_targets)

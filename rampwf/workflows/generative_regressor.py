@@ -79,29 +79,29 @@ class GenerativeRegressor(object):
     target_column_names : list of strings
         Names of the target columns.
 
-    restart_names : list of strings
-        Names of the restart column.
+    restart_name : string
+        Name of the restart column.
     """
 
     def __init__(self, target_column_names, max_dists,
                  check_sizes=None, check_indexs=None,
                  workflow_element_names=['generative_regressor'],
-                 restart_names=None,
+                 restart_name=None,
                  **kwargs):
         self.check_indexs = check_indexs
         self.check_sizes = check_sizes
         self.element_names = workflow_element_names
         self.target_column_names = target_column_names
         self.max_dists = max_dists
-        self.restart_names = restart_names
+        self.restart_name = restart_name
         self.kwargs = kwargs
 
     def _check_restart(self, X_df, train_is=slice(None, None, None)):
         restart = None
-        if self.restart_names is not None:
+        if self.restart_name is not None:
             try:
-                restart = X_df[self.restart_names].values
-                X_df = X_df.drop(columns=self.restart_names)
+                restart = X_df[self.restart_name].values
+                X_df = X_df.drop(columns=self.restart_name)
                 restart = restart[train_is]
             except KeyError:
                 restart = None
@@ -278,7 +278,7 @@ class GenerativeRegressor(object):
         X_df, restart = self._check_restart(X_df)
 
         if restart is not None:
-            n_columns -= len(self.restart_names)
+            n_columns -= 1
 
         # separate the target from the real inputs. the targets
         # are needed for the autoregressive predictions. note that if

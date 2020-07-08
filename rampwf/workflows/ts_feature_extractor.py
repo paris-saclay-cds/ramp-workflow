@@ -118,7 +118,7 @@ class TimeSeriesFeatureExtractor(object):
                 data_var_names = list(X_check_ds.data_vars.keys())
 
                 if self.restart_name is not None:
-                    data_var_names.remove(self.restart_name[0])
+                    data_var_names.remove(self.restart_name)
 
                 for data_var_name in data_var_names:
                     X_check_ds[data_var_name][dict(time=slice(

@@ -12,7 +12,7 @@ _max_dists = 100  # max number of mixture components in generative regressors
 _target_column_observation_names = [
     'theta_1', 'theta_2', 'theta_dot_1', 'theta_dot_2']
 _target_column_action_names = ['torque']
-_restart_names = ['is_done']
+_restart_name = 'is_done'
 # number of guaranteed steps in time series history
 _n_burn_in = 0
 timestamp_name = 'fake_ts'
@@ -35,14 +35,14 @@ for o_i, o in enumerate(_target_column_observation_names):
         score_type.output_dim = o_i
     score_types += dim_score_types
 
-cv = rw.cvs.PerRestart(restart_name=_restart_names[0])
+cv = rw.cvs.PerRestart(restart_name=_restart_name)
 get_cv = cv.get_cv
 
 workflow = rw.workflows.TSFEGenReg(
     check_sizes=[137], check_indexs=[13], max_dists=_max_dists,
     target_column_observation_names=_target_column_observation_names,
     target_column_action_names=_target_column_action_names,
-    restart_names=_restart_names,
+    restart_name=_restart_name,
     timestamp_name='time',
 )
 
@@ -100,12 +100,12 @@ def _read_data(path, X_name, data_label=''):
     X_df = X_df.set_index('time', drop=True)
     # make sure that we have float for action because of check_ds...
     X_df = X_df.astype({_target_column_action_names[0]: 'float'})
-    X_df = X_df.astype({_restart_names[0]: 'int64'})
+    X_df = X_df.astype({_restart_name: 'int64'})
 
     # reorder columns according to _target_column_observation_names
     X_df = X_df.reindex(
         columns=_target_column_observation_names +
-        _target_column_action_names + _restart_names)
+        _target_column_action_names + [_restart_name])
     # Target for observation
     y_df = X_df[_target_column_observation_names][1:]
     y_df.reset_index(drop=True, inplace=True)
