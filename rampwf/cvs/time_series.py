@@ -144,10 +144,6 @@ class PerRestart(object):
     """We do K-fold CV, each time one of the episodes is test, the rest is
     training."""
 
-    def __init__(self,  restart_name='restart'):
-        self.restart_name = restart_name
-
-
     def __init__(self, restart_name='restart'):
         """cv_method should typically be rw.cvs.TimeSeries().get_cv"""
         self.restart_name = restart_name
