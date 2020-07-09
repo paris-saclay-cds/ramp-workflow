@@ -1,17 +1,3 @@
-"""A time series feature extractor followed by a generative regressor.
-
-Train and test a time series feature extractor followed by a generative
-regressor.
-
-The input object is an `xarray` `Dataset`, containing possibly several
-`DataArrays` corresponding to the input sequence. It contains a special burn
-in period in the beginning (carried by X_ds.n_burn_in) for which we do not
-give ground truth and we do not require the user to provide predictions.
-The ground truth sequence `y_array` in train and the output of the user
-submission `ts_fe.transform` are thus `n_burn_in` shorter than the input
-sequence `X_ds`, making the training and testing slightly complicated.
-"""
-
 # Author: Gabriel Hurtado <gabriel.j.hurtado@gmail.com>
 # License: BSD 3 clause
 import pandas as pd
@@ -20,6 +6,54 @@ from .generative_regressor import GenerativeRegressor
 
 
 class TSFEGenReg:
+    """Time Series Feature extractor + Generative regressor workflow.
+
+    Train and test a time series feature extractor followed by a generative
+    regressor.
+
+    Parameters
+    ----------
+    check_sizes : lists of indices
+        makes it possible to make a shorter copy of the full sequence during
+        cheat checking to save time. Obviously each `check_size` should
+         be bigger than the corresponding `check_index`.
+
+    check_indexs : lists of indices
+        The input `X_ds` that the *test* receives may contain information about
+        the (future) labels, so it is technically possible to cheat.
+        We developed a randomized technique to safeguard against this.
+        The idea is that we first run `transform` on the original `X_ds`,
+        obtaining the feature matrix `X_array`. Then we randomly change elements
+        of `X_ds` after`n_burn_in + check_index`, and then check if the
+        features in the new`X_check_array` change *before*
+        `n_burn_in + check_index` wrt `X_array`.
+        If they do, the submission is illegal.
+        If they don't, it is possible that the user carefully avoided looking
+        ahead at this particular index, so we may test at another index, to be
+        added to the list `check_indexs`.
+
+    max_dists : int
+        The maximum number of distribution components for a given dimension
+
+    target_column_observation_names : list of strings
+        The names of the columns that we want to predict in the generative
+        regressor
+
+    target_column_action_names : list of strings
+        The names of the columns that we do not want to predict in the
+        generative regressor, but still use them as features
+
+    restart_name : string
+        The name of the column containing information about discontinuity
+        in the observed system time.
+
+    timestamp_name : string
+        The name of the column containing time information
+
+    workflow_element_names : list of two string
+        The names to give to respectively to the time series feature extractor
+        and to the generative regressor
+    """
     def __init__(self,
                  check_sizes, check_indexs, max_dists,
                  target_column_observation_names,
