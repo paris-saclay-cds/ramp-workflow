@@ -69,7 +69,7 @@ class GenerativeRegressor(BaseEstimator):
         params : np.array of float tuples
             parameters for each component in the mixture
         """
-        types = np.array([[0], ] * len(X_array))  # Gaussian type = 0
+        types = ["norm"]
         y_pred = self.reg.predict(X_array)  # means
         sigmas = np.array([self.sigma] * len(X_array))  # constant sigma
         sigmas = sigmas[:, np.newaxis]

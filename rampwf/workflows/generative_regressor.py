@@ -6,7 +6,7 @@ from scipy.stats import norm
 from sklearn.utils.validation import check_random_state
 
 from ..utils.importing import import_module_from_source
-from ..utils import distributions_dispatcher
+from ..utils import distributions_dispatcher, distributions_dict
 
 
 class GenerativeRegressor(object):
@@ -301,7 +301,15 @@ class GenerativeRegressor(object):
 
             weights, types, params = dists
 
-            n_dists_curr = types.shape[1]
+            n_dists_curr = len(types)
+            try:
+                types = [distributions_dict[type_name] for type_name in types]
+            except KeyError:
+                message = f'One of the type names is not a valid Scipy ' \
+                    f'distribution'
+                raise AssertionError(message)
+            types = np.array([types, ] * len(weights))
+
             assert n_dists_curr <= self.max_dists
 
             n_dists_per_dim = n_dists_curr // n_targets
@@ -394,7 +402,15 @@ class GenerativeRegressor(object):
 
                 weights, types, params = dists
 
-                n_dists_curr = types.shape[1]
+                n_dists_curr = len(types)
+                try:
+                    types = [distributions_dict[type_name] for type_name in types]
+                except KeyError:
+                    message = f'One of the type names is not a valid Scipy ' \
+                        f'distribution'
+                    raise AssertionError(message)
+                types = np.array([types, ] * len(weights))
+
                 assert n_dists_curr <= self.max_dists
 
                 sizes = np.full((len(types), 1), n_dists_curr)

@@ -1,6 +1,6 @@
 """Score types (metrics) for generative regression.
 
-`y_true` is either n x d dimensional where n is the number of data points and 
+`y_true` is either n x d dimensional where n is the number of data points and
 d is the number of (output) dimensions, or n dimensional if d=1. `y_pred` is
 nxD dimensional where
 D = sum_j(1 + 2 * n_dists_j + sum_ell(n_params_{j, ell})). The
@@ -31,7 +31,7 @@ import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 from .base import BaseScoreType
-from ..utils import distributions_dispatcher, get_components
+from ..utils import distributions_dispatcher, get_components, EMPTY_DIST
 
 
 def convert_y_true(y_true):
@@ -42,9 +42,7 @@ def convert_y_true(y_true):
         return y_true.swapaxes(0, 1)
 
 
-
 def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
-
     curr_idx = 0
     if multivar:
 
@@ -54,7 +52,7 @@ def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
         n_instances = np.zeros(n_dists)
         # negative log likelihoods of each output dimension and instance
 
-        log_lks = np.zeros((n_dists,y_true.shape[1]))
+        log_lks = np.zeros((n_dists, y_true.shape[1]))
         # pointer within the vector representation of mixtures y_pred[i]
 
         for i in range(n_dists):
@@ -63,11 +61,10 @@ def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
             for j_dim, y_true_dim in enumerate(y_true):
                 curr_idx, n_dists, weights, types, dists, paramss = \
                     get_components(curr_idx, y_pred)
-                empty_dist_id = distributions_dispatcher().id
-                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
                 probs = dists[i].pdf(
                     y_true_dim[non_empty_mask],
-                    paramss[i][non_empty_mask])
+                    *paramss[i][non_empty_mask].swapaxes(0, 1))
                 weighted_probs[non_empty_mask] += \
                     weights[:, i][non_empty_mask] * probs
             valid_mask = np.array(weighted_probs > min_likelihood)
@@ -81,11 +78,10 @@ def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
                 get_components(curr_idx, y_pred)
             weighted_probs = np.zeros(len(y_true_dim))
             for i in range(n_dists):
-                empty_dist_id = distributions_dispatcher().id
-                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
                 probs = dists[i].pdf(
                     y_true_dim[non_empty_mask],
-                    paramss[i][non_empty_mask])
+                    *paramss[i][non_empty_mask].swapaxes(0, 1))
                 weighted_probs[non_empty_mask] += \
                     weights[:, i][non_empty_mask] * probs
             valid_mask = np.array(weighted_probs > min_likelihood)
@@ -108,10 +104,10 @@ class MDNegativeLogLikelihood(BaseScoreType):
         self.min_likelihood = min_likelihood
         self.verbose = verbose
         self.multivar = multivar
-        
+
     def __call__(self, y_true, y_pred):
         y_true = convert_y_true(y_true)  # output dimension first
-        
+
         if self.multivar:
             log_lks, n_instances = get_likelihoods(
                 y_true, y_pred, self.min_likelihood, self.multivar)
@@ -124,8 +120,8 @@ class MDNegativeLogLikelihood(BaseScoreType):
             else:
                 return log_lks.sum() / n_instances.sum()
         elif not self.multivar:
-            return np.sum(log_lks[self.output_dim]) /\
-                n_instances[self.output_dim]
+            return np.sum(log_lks[self.output_dim]) / \
+                   n_instances[self.output_dim]
         else:
             print("Non supported when doin multivariate")
 
@@ -143,14 +139,14 @@ class MDOutlierRate(BaseScoreType):
         self.output_dim = output_dim
         self.min_likelihood = min_likelihood
         self.verbose = verbose
-        
+
     def __call__(self, y_true, y_pred):
         y_true = convert_y_true(y_true)  # output dimension first
         log_lks, n_instances = get_likelihoods(
             y_true, y_pred, self.min_likelihood)
         if self.output_dim is None:
-            return 1 - n_instances.sum() /\
-                (y_true.shape[0] * y_true.shape[1])
+            return 1 - n_instances.sum() / \
+                   (y_true.shape[0] * y_true.shape[1])
         else:
             return 1 - n_instances[self.output_dim] / y_true.shape[1]
 
@@ -173,16 +169,17 @@ class MDLikelihoodRatio(BaseScoreType):
 
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
-        nll_reg_score = MDNegativeLogLikelihood( multivar=self.multivar,
-            min_likelihood=self.min_likelihood,
-            output_dim=self.output_dim, verbose=self.verbose or self.plot)
+        nll_reg_score = MDNegativeLogLikelihood(multivar=self.multivar,
+                                                min_likelihood=self.min_likelihood,
+                                                output_dim=self.output_dim,
+                                                verbose=self.verbose or self.plot)
         if self.verbose or self.plot:
             nll_reg, log_lks = nll_reg_score(y_true, y_pred)
         else:
             nll_reg = nll_reg_score(y_true, y_pred)
         y_true = convert_y_true(y_true)
         n_dims = len(y_true)
-        
+
         means = np.mean(y_true, axis=1)
         stds = np.std(y_true, axis=1)
         if self.output_dim is None:
@@ -199,7 +196,7 @@ class MDLikelihoodRatio(BaseScoreType):
         if self.verbose:
             print(
                 np.exp(np.sum(-log_lks, axis=1) / n_instances -
-                np.sum(baseline_lls, axis = 1) / n_instances))
+                       np.sum(baseline_lls, axis=1) / n_instances))
         if self.plot:
             ratio_by_point = np.exp(-log_lks - baseline_lls)
             for i, ratio in enumerate(ratio_by_point):
@@ -220,23 +217,23 @@ class MDRMSE(BaseScoreType):
         self.precision = precision
         self.output_dim = output_dim
         self.verbose = verbose
-        
+
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
         y_true = convert_y_true(y_true)  # output dimension first
         n_dims = len(y_true)
         mean_preds = np.zeros(y_true.shape)
-        rmse = 0  # rmse to be returned  
+        rmse = 0  # rmse to be returned
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types, dists, paramss =\
+            curr_idx, n_dists, weights, types, dists, paramss = \
                 get_components(curr_idx, y_pred)
             for i in range(n_dists):
-                empty_dist_id = distributions_dispatcher().id
-                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
-                means = dists[i].mean(paramss[i][non_empty_mask])
-                mean_preds[j_dim, non_empty_mask] +=\
+                non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
+                means = dists[i].mean(
+                    *paramss[i][non_empty_mask].swapaxes(0, 1))
+                mean_preds[j_dim, non_empty_mask] += \
                     weights[:, i][non_empty_mask] * means
 
         if self.output_dim is None:
@@ -249,8 +246,8 @@ class MDRMSE(BaseScoreType):
                     ((y_true - mean_preds) ** 2).sum() / n_instances / n_dims)
         else:
             return np.sqrt((
-                (y_true[self.output_dim] - mean_preds[self.output_dim])
-                ** 2).sum() / n_instances)
+                                   (y_true[self.output_dim] - mean_preds[self.output_dim])
+                                   ** 2).sum() / n_instances)
 
 
 class MDR2(BaseScoreType):
@@ -262,24 +259,24 @@ class MDR2(BaseScoreType):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
-        
+
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
         y_true = convert_y_true(y_true)  # output dimension first
         n_dims = len(y_true)
         stds = np.std(y_true, axis=1)
         mean_preds = np.zeros(y_true.shape)
-        rmse = 0  # rmse to be returned  
+        rmse = 0  # rmse to be returned
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types, dists, paramss =\
+            curr_idx, n_dists, weights, types, dists, paramss = \
                 get_components(curr_idx, y_pred)
             for i in range(n_dists):
-                empty_dist_id = distributions_dispatcher().id
-                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
-                means = dists[i].mean(paramss[i][non_empty_mask])
-                mean_preds[j_dim, non_empty_mask] +=\
+                non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
+                means = dists[i].mean(
+                    *paramss[i][non_empty_mask].swapaxes(0, 1))
+                mean_preds[j_dim, non_empty_mask] += \
                     weights[:, i][non_empty_mask] * means
         r2s = ((y_true - mean_preds) ** 2).mean(axis=1)
         r2s /= stds ** 2
@@ -303,7 +300,7 @@ class MDKSCalibration(BaseScoreType):
         self.output_dim = output_dim
         self.verbose = verbose
         self.plot = plot
-        
+
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
         y_true = convert_y_true(y_true)  # output dimension first
@@ -312,21 +309,20 @@ class MDKSCalibration(BaseScoreType):
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types, dists, paramss =\
+            curr_idx, n_dists, weights, types, dists, paramss = \
                 get_components(curr_idx, y_pred)
             for i in range(n_dists):
-                empty_dist_id = distributions_dispatcher().id
-                non_empty_mask = ~np.array(types[:, i] == empty_dist_id)
+                non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
                 cdfss = dists[i].cdf(
                     y_true_dim[non_empty_mask],
-                    paramss[i][non_empty_mask])
-                cdfs[j_dim, non_empty_mask] +=\
+                    *paramss[i][non_empty_mask].swapaxes(0, 1))
+                cdfs[j_dim, non_empty_mask] += \
                     weights[:, i][non_empty_mask] * cdfss
         ks_stats = np.zeros(n_dims)
         for j_dim in range(n_dims):
             ks_stats[j_dim] = np.max(np.abs(
                 np.sort(cdfs[j_dim]) - np.arange(n_instances) / n_instances))
- 
+
         if self.plot:
             if self.output_dim is None:
                 for j_dim in range(n_dims):

@@ -1,6 +1,6 @@
 import numpy as np
 from .base import BasePrediction
-from ..utils import MAX_MDN_PARAMS, distributions_dispatcher
+from ..utils import MAX_MDN_PARAMS, distributions_dispatcher, get_n_params
 import warnings
 import itertools
 
@@ -80,7 +80,7 @@ def _combine(cls, predictions_list, index_list=None):
             for k in range(curr_size):
                 active_type = int(active_types[k])
                 dist = distributions_dispatcher(active_type)
-                end_single_genreg += dist.n_params
+                end_single_genreg += get_n_params(dist)
 
             curr_params.append(
                 curr_pred[:, curr_indicies[i]:end_single_genreg])
