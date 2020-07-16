@@ -305,8 +305,8 @@ class GenerativeRegressor(object):
             try:
                 types = [distributions_dict[type_name] for type_name in types]
             except KeyError:
-                message = f'One of the type names is not a valid Scipy ' \
-                    f'distribution'
+                message = ('One of the type names is not a valid Scipy '
+                           'distribution')
                 raise AssertionError(message)
             types = np.array([types, ] * len(weights))
 
@@ -361,7 +361,7 @@ class GenerativeRegressor(object):
             # We assume that every dimension is predicted with the same dists
             sizes = np.full((len(types), n_targets), n_dists_per_dim)
             size_concatenated = (
-                weights.shape[1] + n_dists_curr + params.shape[1])
+                    weights.shape[1] + n_dists_curr + params.shape[1])
             step = (size_concatenated + n_targets) // n_targets
             mixture_y_pred = np.empty(
                 (len(types), n_targets + size_concatenated))
@@ -370,17 +370,17 @@ class GenerativeRegressor(object):
 
             offset = 1
             for i in range(offset, n_dists_per_dim + offset):
-                mixture_y_pred[:, i::step] =\
+                mixture_y_pred[:, i::step] = \
                     weights[:, i - offset::n_dists_per_dim]
 
             offset += n_dists_per_dim
             for i in range(offset, n_dists_per_dim + offset):
-                mixture_y_pred[:, i::step] =\
+                mixture_y_pred[:, i::step] = \
                     types[:, i - offset::n_dists_per_dim]
 
             offset += n_dists_per_dim
             for i in range(offset, params.shape[1] // n_targets + offset):
-                mixture_y_pred[:, i::step] =\
+                mixture_y_pred[:, i::step] = \
                     params[:, i - offset::params.shape[1] // n_targets]
 
         else:  # autoregressive or independent decomposition.
@@ -406,8 +406,8 @@ class GenerativeRegressor(object):
                 try:
                     types = [distributions_dict[type_name] for type_name in types]
                 except KeyError:
-                    message = f'One of the type names is not a valid Scipy ' \
-                        f'distribution'
+                    message = ('One of the type names is not a valid Scipy '
+                               'distribution')
                     raise AssertionError(message)
                 types = np.array([types, ] * len(weights))
 
