@@ -211,8 +211,9 @@ class MixtureYPred:
         result = np.concatenate(
             (sizes, weights, types, params), axis=1)
         self.dims.append(result)
+        return self
 
-    def finalize(self, order):
+    def finalize(self, order=None):
         """
         Must called be once all the dims were added
 
@@ -221,7 +222,9 @@ class MixtureYPred:
         order : list
             The order in which the dims should be sorted
         """
-        dims_original_order = np.array(self.dims)[np.argsort(order)]
+        dims_original_order = np.array(self.dims)
+        if order is not None:
+            dims_original_order = dims_original_order[np.argsort(order)]
         return np.concatenate(dims_original_order, axis=1)
 
 

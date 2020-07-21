@@ -5,71 +5,44 @@ import numpy as np
 from rampwf.score_types.generative_regression import (
     MDNegativeLogLikelihood, MDLikelihoodRatio, MDRMSE,
     MDR2, MDKSCalibration, MDOutlierRate)
-
+from rampwf.utils import MixtureYPred
 import pytest
 
-y_result_1 = np.array([[1, 1, 0, 0.5, 0.5]*2])
-y_result_2 = np.array([[1, 1, 0, 0.1, 0.5]*2])
+weights = np.array([[1.0], ] * 2)
+
+types = np.array([[0.0], ] * 2)
+params_1 = np.array([[0.55, 0.1], ] * 2)
+params_2 = np.array([[0.0, 0.1], ] * 2)
+y_pred_1 = MixtureYPred().add(weights, types, params_1).finalize()
+y_pred_2 = MixtureYPred().add(weights, types, params_2).finalize()
+
+types_uni = np.array([[1.0], ] * 2)
+params_uni_1 = np.array([[0.49, 0.52], ] * 2)
+y_pred_uni_1 = MixtureYPred().add(weights, types_uni, params_uni_1).finalize()
+params_uni_2 = np.array([[0.45, 0.5], ] * 2)
+y_pred_uni_2 = MixtureYPred().add(weights, types_uni, params_uni_2).finalize()
 y_truth_1 = np.array([[0.5], [0.51]])
-
-y_result_3 = np.array([[[0, 1.1, 2, 0.9, 0.1]]])
-y_result_4 = np.array([[[0, 1.9, 2, 0.1, 0.9]]])
-y_truth_2 = np.array([1.6])
-
-y_result_5 = np.array([[[0, 1, 2, 0.1, 0.9],
-                        [0, 1, 2, 0.9, 0.1]]])
-
-y_result_6 = np.array([[[0, 1, 2, 0.9, 0.1],
-                        [0, 1, 2, 0.1, 0.9]]])
-y_truth_2 = np.array([[1.5, 1.5]])
-
-y_result_out = np.array([[[0, 1, 2, 0.1, 0.9]]])
-y_truth_out_1 = np.array([2.5])
-y_truth_out_2 = np.array([-2.5])
-y_truth_out_3 = np.array([-0.5])
-
-y_truth_fake = np.array([0.5])
-
-y_result_wrong_bins = np.array([[[0, -1, 2, 0.1, 0.9]]])
-y_result_wrong_bins_2 = np.array([[[0, 0, 2, 0.1, 0.9]]])
-y_result_wrong_proba = np.array([[[0, 1, 2, 0.2, 0.2]]])
-y_result_corrected_proba = np.array([[[0, 1, 2, 0.5, 0.5]]])
-y_truth_wrong = np.array([0.5])
 
 
 def test_likelihood():
-    score = MDLikelihoodRatio()
-    assert score(y_truth_1, y_result_1) > score(y_truth_1, y_result_2)
+    n_log = MDNegativeLogLikelihood()
+    assert n_log(y_truth_1, y_pred_1) < n_log(y_truth_1, y_pred_2)
+    assert n_log(y_truth_1, y_pred_2) == pytest.approx(11.3688534, 10e-5)
+    assert n_log(y_truth_1, y_pred_uni_1) == pytest.approx(-3.506557, 10e-5)
 
-    val = np.exp(-1) - 10e-6
-    y_custom = np.array([[[0, 1, 2, 1 - val, val]]])
-    assert score(y_truth_1, y_custom) == pytest.approx(1.0, 10e-5)
-
-    val = np.exp(-0.1) - 10e-6
-    y_custom = np.array([[[0, 1, 2, 1 - val, val]]])
-    assert score(y_truth_1, y_custom) == pytest.approx(0.1, 10e-5)
-
-    # We have a confidence of .1 on the truth interval in both cases, but is it smaller in the first example
-    assert score(y_truth_2, y_result_3) < score(y_truth_2, y_result_4)
-
-    assert score(y_truth_2, y_result_5) == score(y_truth_2, y_result_6)
+    n_log_ratio = MDLikelihoodRatio()
+    assert n_log_ratio(y_truth_1, y_pred_1) > n_log_ratio(y_truth_1, y_pred_2)
 
 
-def test_binned_likelihood_outside():
-    score = NegativeLogLikelihoodReg(n_bins=NBINS)
-    # outside
-    assert score(y_truth_out_1, y_result_out) == score(y_truth_out_2, y_result_out)
+def test_metrics():
+    rmse = MDRMSE()
+    assert rmse(y_truth_1, y_pred_uni_1) == pytest.approx(0.005, 10e-5)
 
-    # Completely wrong
-    y_custom = np.array([[[0, 1, 2, 0, 1]]])
+    mdr = MDR2()
+    assert mdr(y_truth_1, y_pred_1) == pytest.approx(-81, 10e-5)
 
-    assert score(y_truth_fake, y_custom) == score(y_truth_out_3, y_result_out)
+    mdks = MDKSCalibration()
+    assert mdks(y_truth_1, y_pred_uni_1) == pytest.approx(1/3, 10e-5)
 
-
-def test_wrong_proba_wrong_bins():
-    score = NegativeLogLikelihoodReg(n_bins=NBINS)
-    with pytest.raises(Exception):
-        assert score(y_truth_wrong, y_result_wrong_bins)
-    with pytest.raises(Exception):
-        assert score(y_truth_wrong, y_result_wrong_bins_2)
-    assert score(y_truth_wrong, y_result_wrong_proba) == score(y_truth_wrong, y_result_corrected_proba)
+    mdout = MDOutlierRate()
+    assert mdout(y_truth_1, y_pred_uni_2) == pytest.approx(0.5, 10e-5)
