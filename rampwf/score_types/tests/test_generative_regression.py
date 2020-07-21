@@ -2,14 +2,15 @@ from __future__ import division
 
 import numpy as np
 
-from rampwf.score_types.generative_regression import MDNegativeLogLikelihood
+from rampwf.score_types.generative_regression import (
+    MDNegativeLogLikelihood, MDLikelihoodRatio, MDRMSE,
+    MDR2, MDKSCalibration, MDOutlierRate)
+
 import pytest
 
-NBINS = 2
-
-y_result_1 = np.array([[[0, 1, 2, 0.5, 0.5]]])
-y_result_2 = np.array([[[0, 1, 2, 0.1, 0.9]]])
-y_truth_1 = np.array([1.5])
+y_result_1 = np.array([[1, 1, 0, 0.5, 0.5]*2])
+y_result_2 = np.array([[1, 1, 0, 0.1, 0.5]*2])
+y_truth_1 = np.array([[0.5], [0.51]])
 
 y_result_3 = np.array([[[0, 1.1, 2, 0.9, 0.1]]])
 y_result_4 = np.array([[[0, 1.9, 2, 0.1, 0.9]]])
@@ -36,8 +37,8 @@ y_result_corrected_proba = np.array([[[0, 1, 2, 0.5, 0.5]]])
 y_truth_wrong = np.array([0.5])
 
 
-def test_binned_likelihood():
-    score = NegativeLogLikelihoodReg(n_bins=NBINS)
+def test_likelihood():
+    score = MDLikelihoodRatio()
     assert score(y_truth_1, y_result_1) > score(y_truth_1, y_result_2)
 
     val = np.exp(-1) - 10e-6

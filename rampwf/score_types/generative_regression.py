@@ -178,7 +178,6 @@ class MDLikelihoodRatio(BaseScoreType):
         else:
             nll_reg = nll_reg_score(y_true, y_pred)
         y_true = convert_y_true(y_true)
-        n_dims = len(y_true)
 
         means = np.mean(y_true, axis=1)
         stds = np.std(y_true, axis=1)
@@ -223,7 +222,6 @@ class MDRMSE(BaseScoreType):
         y_true = convert_y_true(y_true)  # output dimension first
         n_dims = len(y_true)
         mean_preds = np.zeros(y_true.shape)
-        rmse = 0  # rmse to be returned
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
@@ -261,12 +259,9 @@ class MDR2(BaseScoreType):
         self.output_dim = output_dim
 
     def __call__(self, y_true, y_pred):
-        n_instances = len(y_true)
         y_true = convert_y_true(y_true)  # output dimension first
-        n_dims = len(y_true)
         stds = np.std(y_true, axis=1)
         mean_preds = np.zeros(y_true.shape)
-        rmse = 0  # rmse to be returned
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
