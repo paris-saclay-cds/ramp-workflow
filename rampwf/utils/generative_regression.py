@@ -7,6 +7,9 @@ import scipy.stats
 MAX_MDN_PARAMS = 6
 EMPTY_DIST = -1
 
+# We explcitly enumerate all scipy distributions here so their codes
+# do not change even if scipy adds new distributions. We considered but
+# discarded using a hash code.
 distributions_dict = {
  'norm': 0,
  'uniform': 1,
