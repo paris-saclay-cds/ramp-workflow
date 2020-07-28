@@ -6,7 +6,8 @@ from scipy.stats import norm
 from sklearn.utils.validation import check_random_state
 
 from ..utils.importing import import_module_from_source
-from ..utils import distributions_dispatcher, distributions_dict, MixtureYPred
+from ..utils import distributions_dispatcher, MixtureYPred, distributions_dict
+from .. utils import get_n_params
 
 
 class GenerativeRegressor(object):
@@ -523,7 +524,16 @@ class GenerativeRegressor(object):
                     dists = reg.predict(X_used)
 
                 weights, types, params = dists
-                n_dists = types.shape[1]
+
+                n_dists = len(types)
+                try:
+                    types = [distributions_dict[type_name] for type_name in types]
+                except KeyError:
+                    message = ('One of the type names is not a valid Scipy '
+                               'distribution')
+                    raise AssertionError(message)
+                types = np.array([types, ] * len(weights))
+
                 w = weights[0].ravel()
                 w = w / sum(w)
                 selected = rng.choice(n_dists, p=w)
@@ -534,11 +544,10 @@ class GenerativeRegressor(object):
                 # parameters
                 sel_id = 0
                 for k in range(selected):
-                    sel_id += (distributions_dispatcher(int(types[0, k]))
-                               .n_params)
-
-                y_sampled[j] = dist.sample(
-                    params[0, sel_id:sel_id + dist.n_params])
+                    curr_type = distributions_dispatcher(int(types[0, k]))
+                    sel_id += get_n_params(curr_type)
+                y_sampled[j] = dist.rvs(
+                    *params[0, sel_id:sel_id + get_n_params(dist)])
 
             y_sampled = np.array(y_sampled)[np.argsort(order)]
             return y_sampled[np.newaxis, :]

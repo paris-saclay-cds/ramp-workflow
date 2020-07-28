@@ -61,7 +61,7 @@ class GenerativeRegressor(BaseEstimator):
             parameters for each component in the mixture
         """
 
-        types = ["norm", "norm"]
+        types = ['norm', 'norm']
         y_pred = self.reg.predict(X_array)  # means
         sigmas = np.array([self.sigmas] * len(X_array))  # constant sigma
         params = np.empty((len(y_pred), y_pred.shape[1] * 2))
