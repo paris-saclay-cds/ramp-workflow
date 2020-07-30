@@ -27,6 +27,10 @@ def import_module_from_source(source, name, sanitize=False):
         with open(source, 'rt') as fh:
             _sanitize_input(fh.read())
 
+    # import the module from the source file following the instructions given
+    # in the importlib doc https://docs.python.org/3/library/importlib.html.
+    # we do not add the module to sys.modules to make cloudpickle work.
+    # see issue #232.
     spec = importlib.util.spec_from_file_location(name, source)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
