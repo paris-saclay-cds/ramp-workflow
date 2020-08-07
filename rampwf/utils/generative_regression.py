@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats
+import inspect
 
 # The maximum numbers of parameters a distribution would need
 # Only matters for bagging mixture models in
@@ -141,11 +142,7 @@ def distributions_dispatcher(d_type=-1):
 
 
 def get_n_params(dist):
-    shapes = dist.shapes
-    n_params = 2
-    if shapes is not None:
-        n_params += len(dist.shapes)
-    return n_params
+    return len(inspect.signature(dist._parse_args).parameters)
 
 
 class MixtureYPred:
