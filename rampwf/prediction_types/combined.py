@@ -57,6 +57,15 @@ def _set_valid_in_train(self, predictions, test_is):
         to_predictions.y_pred[test_is] = from_predictions.y_pred
 
 
+def _set_slice(self, valid_indexes):
+    """Collapsing y_pred to a cross-validation slice.
+
+    So scores do not need to deal with masks.
+    """
+    for predictions in self.predictions_list:
+        predictions.set_slice(valid_indexes)
+
+
 @property
 def _y_pred(self):
     return np.concatenate(
@@ -72,6 +81,7 @@ def make_combined(Predictions_list):
          'Predictions_list': Predictions_list,
          '__init__': _combined_init,
          'set_valid_in_train': _set_valid_in_train,
+         'set_slice': _set_slice,
          'y_pred': _y_pred,
          })
     return Predictions

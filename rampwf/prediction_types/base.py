@@ -5,19 +5,20 @@ Functionalities:
   dimensions, semantics of columns).
 - Providing a numpy array view through ``y_pred``. The ``y_pred`` view is
   used in ``rampwf.score``s as input, and in the default implementation
-  of combining
-- Handling cross-validation slices through ``set_valid_in_train``.
-- Handling nan's in CV bagging by ``valid_indexes``.
+  of combining.
+- Handling cross-validation slices through ``set_valid_in_train`` and 
+  ``set_slice``.
+- Handling NaN's in CV bagging by ``valid_indexes``.
 - Combining ``Prediction``s (for CV bagging and ensembling). The default is
   to take the (nan)mean of the ``y_pred``s, but it can be overridden in
   derived classes.
-Derived classes should all implement ``Prediction`` because we implement
-polymorphism through importing ``Prediction`` from the particular file.
-``Prediction``s can be asymmetric: ground truth (``y_true``) and predictions
+Derived classes should all implement ``Predictions`` because we implement
+polymorphism through importing ``Predictions`` from the particular file.
+``Predictions``s can be asymmetric: ground truth (``y_true``) and predictions
 are all stored in these classes. All ``rampwf.score_type``s accept
 ground truth as the first argument and prediction as the second.
-When constructors are called with a shape, they make an empty ``Prediction``.
-This is to store combined ``Prediction``s, so the shape should be the same
+When constructors are called with a shape, they make an empty ``Predictions``.
+This is to store combined ``Predictions``s, so the shape should be the same
 as predictions' shape (in case of asymmetric ground truth/prediction).
 """
 
@@ -34,7 +35,13 @@ class BasePrediction(object):
 
     @property
     def valid_indexes(self):
-        """Return valid indices (e.g., a cross-validation slice)."""
+        """Return valid indices (e.g., a cross-validation slice).
+
+        When combining Predictions on different cross validation slices,
+        we start with an empty y_pred. Each time a fold is added, some
+        entries become valid. Invalid entries are those that are not
+        predicted by any folds, i.e., those that remain NaN.
+        """
         if len(self.y_pred.shape) == 1:
             return ~np.isnan(self.y_pred)
         elif len(self.y_pred.shape) == 2:
@@ -45,6 +52,13 @@ class BasePrediction(object):
     def set_valid_in_train(self, predictions, test_is):
         """Set a cross-validation slice."""
         self.y_pred[test_is] = predictions.y_pred
+
+    def set_slice(self, valid_indexes):
+        """Collapsing y_pred to a cross-validation slice.
+
+        So scores do not need to deal with masks.
+        """
+        self.y_pred = self.y_pred[valid_indexes]
 
     def check_y_pred_dimensions(self):
         if self.n_columns == 0 and len(self.y_pred.shape) != 1:
@@ -70,7 +84,7 @@ class BasePrediction(object):
         predictions, and for classification it is the probability array (which
         should be calibrated if we want the best performance). Called both for
         combining one submission on cv folds (a single model that is trained on
-        different folds) and several models on a single fold.
+        different folds) and several models on a single fold (blending).
 
         Parameters
         ----------
