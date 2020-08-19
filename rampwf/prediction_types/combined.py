@@ -11,9 +11,12 @@ import numpy as np
 from .base import BasePrediction
 
 
-def _combined_init(self, y_pred=None, y_true=None, n_samples=None):
+def _combined_init(self, y_pred=None, y_true=None, n_samples=None,
+                   fold_is=None):
     self.predictions_list = []
     if y_pred is not None:
+        if fold_is is not None:
+            y_pred = y_pred[fold_is]
         start = 0
         for Predictions in self.Predictions_list:
             end = start + Predictions.n_columns
@@ -21,6 +24,8 @@ def _combined_init(self, y_pred=None, y_true=None, n_samples=None):
             self.predictions_list.append(predictions)
             start += Predictions.n_columns
     elif y_true is not None:
+        if fold_is is not None:
+            y_true = y_true[fold_is]
         start = 0
         for Predictions in self.Predictions_list:
             n_columns = 1

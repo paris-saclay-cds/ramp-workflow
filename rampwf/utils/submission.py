@@ -201,13 +201,13 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
     train_time, valid_time, test_time = timing
 
     predictions_train_train = problem.Predictions(
-        y_pred=y_pred_train[train_is])
+        y_pred=y_pred_train, fold_is=train_is)
     ground_truth_train_train = problem.Predictions(
-        y_true=y_train[train_is])
+        y_true=y_train, fold_is=train_is)
     predictions_train_valid = problem.Predictions(
-        y_pred=y_pred_train[valid_is])
+        y_pred=y_pred_train, fold_is=valid_is)
     ground_truth_train_valid = problem.Predictions(
-        y_true=y_train[valid_is])
+        y_true=y_train, fold_is=valid_is)
     if y_test is not None:
         predictions_test = problem.Predictions(y_pred=y_pred_test)
         ground_truth_test = problem.Predictions(y_true=y_test)

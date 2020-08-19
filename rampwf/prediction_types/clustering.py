@@ -21,10 +21,15 @@ import numpy as np
 from .base import BasePrediction
 
 
-def _clustering_init(self, y_pred=None, y_true=None, n_samples=None):
+def _clustering_init(self, y_pred=None, y_true=None, n_samples=None,
+                     fold_is=None):
     if y_pred is not None:
+        if fold_is is not None:
+            y_pred = y_pred[fold_is]
         self.y_pred = np.array(y_pred)
     elif y_true is not None:
+        if fold_is is not None:
+            y_true = y_true[fold_is]
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
         self.y_pred = np.empty((n_samples, 2), dtype=float)
@@ -39,8 +44,6 @@ def _clustering_init(self, y_pred=None, y_true=None, n_samples=None):
 def _valid_indexes(self):
     """Return valid indices (e.g., a cross-validation slice)."""
     return ~np.isnan(self.y_pred[:, 1])
-
-    return ~np.isnan(self.y_pred[:, 0])
 
 
 def make_clustering():
