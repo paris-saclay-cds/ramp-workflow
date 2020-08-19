@@ -21,11 +21,9 @@ class NormalizedGini(ClassifierBaseScoreType):
         self.name = name
         self.precision = precision
 
-    def score_function(self, ground_truths, predictions, valid_indexes=None):
-        if valid_indexes is None:
-            valid_indexes = slice(None, None, None)
-        y_proba = predictions.y_pred[valid_indexes][:, 1]
-        y_true_proba = ground_truths.y_pred_label_index[valid_indexes]
+    def score_function(self, ground_truths, predictions):
+        y_proba = predictions.y_pred[:, 1]
+        y_true_proba = ground_truths.y_pred_label_index
         self.check_y_pred_dimensions(y_true_proba, y_proba)
         return self.__call__(y_true_proba, y_proba)
 

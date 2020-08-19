@@ -11,12 +11,10 @@ class MakeCombined(BaseScoreType):
         self.precision = score_type.precision
         self.index = index
 
-    def score_function(self, ground_truths_combined, predictions_combined,
-                       valid_indexes=None):
+    def score_function(self, ground_truths_combined, predictions_combined):
         return self.score_type.score_function(
             ground_truths_combined.predictions_list[self.index],
-            predictions_combined.predictions_list[self.index],
-            valid_indexes)
+            predictions_combined.predictions_list[self.index])
 
     def __call__(self, y_true, y_pred):
         raise ValueError('MakeCombined score has no deep score function.')
