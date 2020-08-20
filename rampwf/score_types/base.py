@@ -18,4 +18,3 @@ class BaseScoreType(object):
         y_pred = predictions.y_pred
         self.check_y_pred_dimensions(y_true, y_pred)
         return self.__call__(y_true, y_pred)
-

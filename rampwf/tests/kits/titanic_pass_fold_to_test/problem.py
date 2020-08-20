@@ -13,7 +13,8 @@ _prediction_label_names = [0, 1]
 Predictions = rw.prediction_types.make_multiclass(
     label_names=_prediction_label_names)
 
-# A class adding fold to the signiture of test_submission
+
+# A class adding fold to the signature of test_submission
 class Estimator(rw.workflows.Estimator):
     def __init__(self):
         super().__init__()

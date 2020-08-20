@@ -6,7 +6,7 @@ Functionalities:
 - Providing a numpy array view through ``y_pred``. The ``y_pred`` view is
   used in ``rampwf.score``s as input, and in the default implementation
   of combining.
-- Handling cross-validation slices through ``set_valid_in_train`` and 
+- Handling cross-validation slices through ``set_valid_in_train`` and
   ``set_slice``.
 - Handling NaN's in CV bagging by ``valid_indexes``.
 - Combining ``Prediction``s (for CV bagging and ensembling). The default is

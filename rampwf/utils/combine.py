@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 
+
 def combine_predictions(Predictions, predictions_list, index_list):
     """Combine predictions predictions_list[index_list].
 
