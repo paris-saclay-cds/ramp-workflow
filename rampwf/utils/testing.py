@@ -37,18 +37,31 @@ def assert_title(ramp_kit_dir='.'):
     print_title('Testing {}'.format(problem.problem_title))
 
 
-def assert_data(ramp_kit_dir='.', ramp_data_dir='.'):
+def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=''):
     problem = assert_read_problem(ramp_kit_dir)
-    print_title('Reading train and test files from {}/data ...'.format(
-        ramp_data_dir))
-    X_train, y_train = problem.get_train_data(path=ramp_data_dir)
-    X_test, y_test = problem.get_test_data(path=ramp_data_dir)
+    if data_label == '':
+        print_title('Reading train and test files from {}/data/ ...'.format(
+            ramp_data_dir))
+        X_train, y_train = problem.get_train_data(path=ramp_data_dir)
+        X_test, y_test = problem.get_test_data(path=ramp_data_dir)
+    else:
+        print_title(
+            'Reading train and test files from {}/data/{}/ ...'.format(
+                ramp_data_dir, data_label))
+        X_train, y_train = problem.get_train_data(
+            path=ramp_data_dir, data_label=data_label)
+        X_test, y_test = problem.get_test_data(
+            path=ramp_data_dir, data_label=data_label)
     return X_train, y_train, X_test, y_test
 
 
-def assert_cv(ramp_kit_dir='.', ramp_data_dir='.'):
+def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label='.'):
     problem = assert_read_problem(ramp_kit_dir)
-    X_train, y_train = problem.get_train_data(path=ramp_data_dir)
+    if data_label == '':
+        X_train, y_train = problem.get_train_data(path=ramp_data_dir)
+    else:
+        X_train, y_train = problem.get_train_data(
+            path=ramp_data_dir, data_label=data_label)        
     print_title('Reading cv ...')
     cv = list(problem.get_cv(X_train, y_train))
     return cv
@@ -61,7 +74,7 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      ramp_submission_dir='submissions',
+                      ramp_submission_dir='submissions', data_label='',
                       submission='starting_kit', is_pickle=False,
                       save_output=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
@@ -74,6 +87,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         The directory of the data.
     ramp_submission_dir : str, default='./submissions'
         The directory of the submissions.
+    data_label : str, default=''
+        The subdirectory of data in /data and training outputs in
+        /submissions/<submission>/training_output
     submission : str, default='starting_kit'
         The name of the submission to be tested.
     is_pickle : bool, default is False
@@ -86,8 +102,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     """
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
-    X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
-    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
+    X_train, y_train, X_test, y_test = assert_data(
+        ramp_kit_dir, ramp_data_dir, data_label)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
     score_types = assert_score_types(ramp_kit_dir)
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
@@ -97,9 +114,16 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     training_output_path = ''
     if is_pickle or save_output:
         # creating <submission_path>/<submission>/training_output dir
-        training_output_path = os.path.join(submission_path, 'training_output')
+        training_output_path = os.path.join(
+            submission_path, 'training_output')
         if not os.path.exists(training_output_path):
             os.makedirs(training_output_path)
+        if data_label != '':
+            training_output_path = os.path.join(
+                training_output_path, data_label)
+            if not os.path.exists(training_output_path):
+                os.makedirs(training_output_path)         
+        print('Training output path: {}'.format(training_output_path))
 
     # saving predictions for CV bagging after the CV loop
     predictions_valid_list = []
@@ -155,8 +179,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
-                      ramp_submission_dir='.', save_output=False,
-                      min_improvement=0.0):
+                      ramp_submission_dir='.', data_label='',
+                      save_output=False, min_improvement=0.0):
     """Blending submissions in a ramp-kit and compute contributivities.
 
     If save_output is True, we create three files:
@@ -172,6 +196,9 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         The directory of the ramp-kit to be blended.
     ramp_data_dir : str, default='.'
         The directory of the data.
+    data_label : str, default=''
+        The subdirectory of data in /data and training outputs in
+        /submissions/<submission>/training_output
     ramp_submission_dir : str, default='./submissions'
         The directory of the submissions.
     save_output : bool, default is False
@@ -181,8 +208,9 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     """
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
-    X_train, y_train, X_test, y_test = assert_data(ramp_kit_dir, ramp_data_dir)
-    cv = assert_cv(ramp_kit_dir, ramp_data_dir)
+    X_train, y_train, X_test, y_test = assert_data(
+        ramp_kit_dir, ramp_data_dir, data_label)
+    cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     score_types = assert_score_types(ramp_kit_dir)
     n_folds = len(valid_is_list)
@@ -199,7 +227,11 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         predictions_test_list = []
         for submission in submissions:
             module_path = os.path.join(ramp_submission_dir, submission)
-            training_output_path = os.path.join(module_path, 'training_output')
+            training_output_path = os.path.join(
+                module_path, 'training_output')
+            if data_label != '':
+                training_output_path = os.path.join(
+                    training_output_path, data_label)
             fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
             y_pred_train = load_y_pred(
@@ -255,6 +287,11 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             ramp_submission_dir, 'training_output')
         if not os.path.exists(training_output_path):
             os.mkdir(training_output_path)
+        if data_label != '':
+            training_output_path = os.path.join(
+                training_output_path, data_label)
+            if not os.path.exists(training_output_path):
+                os.makedirs(training_output_path)         
         contributivitys_df.to_csv(os.path.join(
             training_output_path, 'contributivities.csv'), index=False)
 
