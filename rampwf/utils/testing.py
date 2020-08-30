@@ -61,7 +61,7 @@ def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label='.'):
         X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     else:
         X_train, y_train = problem.get_train_data(
-            path=ramp_data_dir, data_label=data_label)        
+            path=ramp_data_dir, data_label=data_label)
     print_title('Reading cv ...')
     cv = list(problem.get_cv(X_train, y_train))
     return cv
@@ -122,7 +122,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             training_output_path = os.path.join(
                 training_output_path, data_label)
             if not os.path.exists(training_output_path):
-                os.makedirs(training_output_path)         
+                os.makedirs(training_output_path)
         print('Training output path: {}'.format(training_output_path))
 
     # saving predictions for CV bagging after the CV loop
@@ -291,7 +291,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             training_output_path = os.path.join(
                 training_output_path, data_label)
             if not os.path.exists(training_output_path):
-                os.makedirs(training_output_path)         
+                os.makedirs(training_output_path)
         contributivitys_df.to_csv(os.path.join(
             training_output_path, 'contributivities.csv'), index=False)
 
