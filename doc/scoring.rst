@@ -89,4 +89,79 @@ This flowchart shows what happens when ``ramp-test`` is executed. You can see ho
 5. Six ``workflow.Predictions`` objects are created (per fold), three on the ground truth and three on the predictions. The training and validation predictions are both created from ``y_pred_train`` and ``y_train`` in ``workflow.Predictions.__init__`` using the training and validation indices.
 6. The corresponding pairs of ground truth and predictions are passed to each ``problem.score_types[i].score_function`` which returns a scalar score.
 
+Testing manually
+----------------
+
+Sometimes it is useful to execute elements of RAMP manually, for example to obtain predictions or the trained model interactively in a notebook. The following sequence can be run on any RAMP, line by line. It does not use the cross validation so it can be used to debug the workflow once the 
+following elements are defined in problem.py::
+
+    get_train_data
+    get_test_data
+    Predictions
+    workflow
+    score_types
+
+The sequence to execute (assuming you are in the same folder with `problem.py`)::
+
+    from rampwf.utils import assert_read_problem
+    problem = assert_read_problem()
+    
+    X_train, y_train = problem.get_train_data()
+    X_test, y_test = problem.get_test_data()
+    
+    trained_workflow = problem.workflow.train_submission(
+        'submissions/starting_kit', X_train, y_train)
+    y_pred_test = problem.workflow.test_submission(
+        trained_workflow, X_test)
+    test_predictions = problem.Predictions(y_pred=y_pred_test)
+    test_ground_truth = problem.Predictions(y_true=y_test)
+    for score_type in problem.score_types:
+        score = score_type.score_function(
+            test_ground_truth, test_predictions)
+        print(f'{score_type.name} = {score}')
+
+On titanic, it should produce::
+
+    auc = 0.8628342245989303
+    acc = 0.8539325842696629
+    nll = 0.43442182924613426
+
+Once `problem.get_cv` is defined, the following sequence implements the full data flow (modulo formatting, saving, and modularizing, it is identical to `ramp-test`) ::
+
+    from rampwf.utils import assert_read_problem
+    problem = assert_read_problem()
+
+    X_train, y_train = problem.get_train_data()
+    X_test, y_test = problem.get_test_data()
+    cv = problem.get_cv(X_train, y_train)
+
+    for fold_i, (train_is, valid_is) in enumerate(cv):
+        print(f'fold {fold_i}:')
+        trained_workflow = problem.workflow.train_submission(
+            'submissions/starting_kit', X_train, y_train, train_is)
+        y_pred_train = problem.workflow.test_submission(
+            trained_workflow, X_train)
+        y_pred_test = problem.workflow.test_submission(
+            trained_workflow, X_test)
+        train_predictions = problem.Predictions(
+            y_pred=y_pred_train, fold_is=train_is)
+        valid_predictions = problem.Predictions(
+            y_pred=y_pred_train, fold_is=valid_is)
+        test_predictions = problem.Predictions(y_pred=y_pred_test)
+        train_ground_truth = problem.Predictions(
+            y_true=y_train, fold_is=train_is)
+        valid_ground_truth = problem.Predictions(
+            y_true=y_train,fold_is=valid_is)
+        test_ground_truth = problem.Predictions(y_true=y_test)
+        for score_type in problem.score_types:
+            train_score = score_type.score_function(
+                train_ground_truth, train_predictions)
+            valid_score = score_type.score_function(
+                valid_ground_truth, valid_predictions)
+            test_score = score_type.score_function(
+                test_ground_truth, test_predictions)
+            print(f'\ttrain {score_type.name} = {train_score}')
+            print(f'\tvalid {score_type.name} = {valid_score}')
+            print(f'\ttest {score_type.name} = {test_score}')
+
 .. _RAMP Studio: https://ramp.studio/
