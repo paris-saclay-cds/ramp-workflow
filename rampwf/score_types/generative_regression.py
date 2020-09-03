@@ -243,9 +243,9 @@ class MDRMSE(BaseScoreType):
                 return np.sqrt(
                     ((y_true - mean_preds) ** 2).sum() / n_instances / n_dims)
         else:
-            return np.sqrt((
-                                   (y_true[self.output_dim] - mean_preds[self.output_dim])
-                                   ** 2).sum() / n_instances)
+            return np.sqrt(
+                ((y_true[self.output_dim] - mean_preds[self.output_dim])
+                 ** 2).sum() / n_instances)
 
 
 class MDR2(BaseScoreType):
