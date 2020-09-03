@@ -53,7 +53,7 @@ def save_submissions(problem, y_pred, data_path='.', output_path='.',
 def train_test_submission(problem, module_path, X_train, y_train, X_test,
                           is_pickle, save_output, output_path,
                           model_name, fold):
-    """Train and test submission, on cv fold if train_is not none.
+    """Train and test submission, on cv fold if fold is not none.
 
     Parameters
     ----------
