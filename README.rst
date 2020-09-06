@@ -13,7 +13,7 @@ Since ramp-board_ depends on ramp-workflow, any time that there is a PR in ramp-
  2. If the tests are green, the PR'd branch of ramp-workflow can be accepted.
  3. If it is not, ramp-board_ should be fixed:
     
-    1. Start a new branch there, preferably of the same name as the PR'd branch of ramp-workflow, on top of rampwf_test_.
+    1. Start a new branch in ramp-board_, preferably of the same name as the PR'd branch of ramp-workflow, on top of rampwf_test_.
     2. Fix the error on the new branch, make sure that the tests are green when pulling from ramp-workflow from the PR'd branch in environment.yml_ and environment_iris_kit.yml_.
     3. Accept the PR'd branch on ramp-workflow and update pypi.
     4. Modify environment.yml_ and environment_iris_kit.yml_ to pip install ramp-workflow from pypi and check again that the test are green.
