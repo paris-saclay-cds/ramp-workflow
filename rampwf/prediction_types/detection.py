@@ -17,11 +17,16 @@ class Predictions(BasePrediction):
 
     iou_threshold = 0.5
 
-    def __init__(self, y_pred=None, y_true=None, n_samples=None):
+    def __init__(self, y_pred=None, y_true=None, n_samples=None,
+                 fold_is=None):
         if y_pred is not None:
-            self.y_pred = y_pred
+            if fold_is is not None:
+                y_pred = y_pred[fold_is]
+            self.y_pred = np.array(y_pred)
         elif y_true is not None:
-            self.y_pred = y_true
+            if fold_is is not None:
+                y_true = y_true[fold_is]
+            self.y_pred = np.array(y_true)
         elif n_samples is not None:
             self.y_pred = np.empty(n_samples, dtype=object)
         else:

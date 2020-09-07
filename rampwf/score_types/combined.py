@@ -20,15 +20,14 @@ class Combined(BaseScoreType):
             self.minimum += weight * score_type.minimum
             self.maximum += weight * score_type.maximum
 
-    def score_function(self, ground_truths_combined, predictions_combined,
-                       valid_indexes=None):
+    def score_function(self, ground_truths_combined, predictions_combined):
         score = 0.0
         for weight, score_type, ground_truths, predictions in zip(
                 self.weights, self.score_types,
                 ground_truths_combined.predictions_list,
                 predictions_combined.predictions_list):
             score += weight * score_type.score_function(
-                ground_truths, predictions, valid_indexes)
+                ground_truths, predictions)
         return score
 
     def __call__(self, y_true, y_pred):
