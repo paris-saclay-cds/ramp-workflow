@@ -10,10 +10,35 @@ import numpy as np
 from .base import BasePrediction
 
 
-def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
+def _regression_init(self, y_pred=None, y_true=None, n_samples=None,
+                     fold_is=None):
+    """Initialize a regression prediction type.
+
+    The input is either y_pred, or y_true, or n_samples.
+
+    Parameters
+    ----------
+    y_pred : a numpy array
+        representing the predictions returned by
+        problem.workflow.test_submission; 1D (single target regression)
+        or 2D (multi-target regression)
+    y_true : a numpy array
+        representing the ground truth returned by problem.get_train_data
+        and problem.get_test_data; 1D (single target regression)
+        or 2D (multi-target regression)
+    n_samples : int
+        to initialize an empty container, for the combined predictions
+    fold_is : a list of integers
+        either the training indices, validation indices, or None when we
+        use the (full) test data.
+    """
     if y_pred is not None:
+        if fold_is is not None:
+            y_pred = y_pred[fold_is]
         self.y_pred = np.array(y_pred)
     elif y_true is not None:
+        if fold_is is not None:
+            y_true = y_true[fold_is]
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
         if self.n_columns == 0:
