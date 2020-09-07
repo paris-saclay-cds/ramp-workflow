@@ -1,6 +1,8 @@
 RAMP workflow
 =============
 
+The advanced branch contains advanced features and may be less stable than the master. It works with the advanced branch of ramp-board_.
+
 RAMP workflow allows to define and run machine learning pipeline, documentations available here_.
 
 .. _here: https://paris-saclay-cds.github.io/ramp-docs/ramp-workflow/stable/
@@ -19,7 +21,7 @@ Since ramp-board_ depends on ramp-workflow, any time that there is a PR in ramp-
     4. Modify environment.yml_ and environment_iris_kit.yml_ to pip install ramp-workflow from pypi and check again that the test are green.
     5. Accept the PR on ramp-board_.
  
-.. _ramp-board: https://github.com/paris-saclay-cds/ramp-board
+.. _ramp-board: https://github.com/paris-saclay-cds/ramp-board/tree/advanced
 .. _environment.yml: https://github.com/paris-saclay-cds/ramp-board/blob/rampwf_test/environment.yml
 .. _environment_iris_kit.yml: https://github.com/paris-saclay-cds/ramp-board/blob/rampwf_test/ci_tools/environment_iris_kit.yml
 .. _rampwf_test: https://github.com/paris-saclay-cds/ramp-board/blob/rampwf_test
