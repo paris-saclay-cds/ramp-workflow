@@ -28,6 +28,8 @@ def _generate_grid_path_kits():
         if 'digits' in path_kit:
             grid.append(pytest.param(os.path.abspath(path_kit),
                                      marks=skip_no_tensorflow()))
+        elif 'data_label' in path_kit:
+            pass
         else:
             grid.append(os.path.abspath(path_kit))
     return grid
@@ -84,6 +86,36 @@ def test_blending():
     # cleaning up so next test doesn't try to train "training_output"
     shutil.rmtree(os.path.join(
         PATH, "kits", "iris", "submissions", "training_output"))
+
+
+def test_data_label():
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        data_label='data_label',
+        ramp_submission_dir=os.path.join(
+            PATH, "kits", "iris_data_label", "submissions"),
+        submission='starting_kit', is_pickle=True,
+        save_output=True, retrain=True)
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        data_label='data_label',
+        ramp_submission_dir=os.path.join(
+            PATH, "kits", "iris_data_label", "submissions"),
+        submission='random_forest_10_10', is_pickle=True,
+        save_output=True, retrain=True)
+    blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        data_label='data_label',
+        ramp_submission_dir=os.path.join(
+            PATH, "kits", "iris_data_label", "submissions"),
+        save_output=True)
+    # cleaning up so next test doesn't try to train "training_output"
+    shutil.rmtree(os.path.join(
+        PATH, "kits", "iris_data_label", "submissions", "training_output"))
 
 
 def test_cloudpickle():
