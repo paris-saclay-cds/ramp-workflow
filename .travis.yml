@@ -4,7 +4,6 @@ cache: pip
 branches:
   only:
   - master
-  - advanced
 env:
   - PYTHON_VERSION=3.6
   - PYTHON_VERSION=3.7
