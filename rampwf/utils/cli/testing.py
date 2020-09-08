@@ -19,6 +19,16 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--ramp-data-dir', default='.', show_default=True,
               help='Directory containing the data. This directory should '
               'contain a "data" folder.')
+@click.option('--data-label', default=None, show_default=True,
+              help='A label specifying the data in case the same submissions '
+              'are executed on multiple datasets. If specified, '
+              'problem.get_train_data and problem.get_test_data should '
+              'accept a data_label argument. Typically they can deal with '
+              'multiple datasets containing the data within the directory '
+              'specified by --ramp-data-dir (default: ./data), for example '
+              'using subdirectories ./data/<data_label>/. It is also '
+              'the subdirectory of submissions/<submission>/training_output '
+              'where results are saved if --save-output is used.')
 @click.option('--ramp-submission-dir', default='submissions',
               show_default=True,
               help='Directory where the submissions are stored. It is the '
@@ -40,8 +50,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               'training set after the CV loop.')
 @click.option('--ignore-warning', is_flag=True,
               help='Will filters all warning and avoid to print them.')
-def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
-         notebook, quick_test, pickle, save_output, retrain, ignore_warning):
+def main(submission, ramp_kit_dir, ramp_data_dir, data_label,
+         ramp_submission_dir, notebook, quick_test, pickle, save_output,
+         retrain, ignore_warning):
     """Test a submission and/or a notebook before to submit on RAMP studio."""
     if quick_test:
         os.environ['RAMP_TEST_MODE'] = '1'
@@ -62,6 +73,7 @@ def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
     for sub in submission:
         assert_submission(ramp_kit_dir=ramp_kit_dir,
                           ramp_data_dir=ramp_data_dir,
+                          data_label=data_label,
                           ramp_submission_dir=ramp_submission_dir,
                           submission=sub,
                           is_pickle=pickle,
