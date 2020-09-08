@@ -19,7 +19,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--ramp-data-dir', default='.', show_default=True,
               help='Directory containing the data. This directory should '
               'contain a "data" folder.')
-@click.option('--data-label', default='', show_default=True,
+@click.option('--data-label', default=None, show_default=True,
               help='A label specifying the data in case the same submissions '
               'are executed on multiple datasets. If specified, '
               'problem.get_train_data and problem.get_test_data should '

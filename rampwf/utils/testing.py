@@ -37,9 +37,9 @@ def assert_title(ramp_kit_dir='.'):
     print_title('Testing {}'.format(problem.problem_title))
 
 
-def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=''):
+def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=None):
     problem = assert_read_problem(ramp_kit_dir)
-    if data_label == '':
+    if data_label is None:
         print_title('Reading train and test files from {}/data/ ...'.format(
             ramp_data_dir))
         X_train, y_train = problem.get_train_data(path=ramp_data_dir)
@@ -55,9 +55,9 @@ def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=''):
     return X_train, y_train, X_test, y_test
 
 
-def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label=''):
+def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label=None):
     problem = assert_read_problem(ramp_kit_dir)
-    if data_label == '':
+    if data_label is None:
         X_train, y_train = problem.get_train_data(path=ramp_data_dir)
     else:
         X_train, y_train = problem.get_train_data(
@@ -74,7 +74,7 @@ def assert_score_types(ramp_kit_dir='.'):
 
 
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      ramp_submission_dir='submissions', data_label='',
+                      ramp_submission_dir='submissions', data_label=None,
                       submission='starting_kit', is_pickle=False,
                       save_output=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
@@ -87,7 +87,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         The directory of the data.
     ramp_submission_dir : str, default='./submissions'
         The directory of the submissions.
-    data_label : str, default=''
+    data_label : str, default=None
         The subdirectory of data in /data and training outputs in
         /submissions/<submission>/training_output
     submission : str, default='starting_kit'
@@ -114,23 +114,16 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     training_output_path = ''
     if is_pickle or save_output:
         # creating <submission_path>/<submission>/training_output dir
+        # optionally
+        # <submission_path>/<submission>/training_output/<data_label>
         training_output_path = os.path.join(
             submission_path, 'training_output')
-        if data_label != '':
+        if data_label is not None:
             training_output_path = os.path.join(
                 training_output_path, data_label)
         if not os.path.exists(training_output_path):
             os.makedirs(training_output_path)
 
-        # training_output_path = os.path.join(
-        #     submission_path, 'training_output')
-        # if not os.path.exists(training_output_path):
-        #     os.makedirs(training_output_path)
-        # if data_label != '':
-        #     training_output_path = os.path.join(
-        #         training_output_path, data_label)
-        #     if not os.path.exists(training_output_path):
-        #         os.makedirs(training_output_path)
         print('Training output path: {}'.format(training_output_path))
 
     # saving predictions for CV bagging after the CV loop
@@ -187,7 +180,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
-                      ramp_submission_dir='.', data_label='',
+                      ramp_submission_dir='.', data_label=None,
                       save_output=False, min_improvement=0.0):
     """Blending submissions in a ramp-kit and compute contributivities.
 
@@ -204,7 +197,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         The directory of the ramp-kit to be blended.
     ramp_data_dir : str, default='.'
         The directory of the data.
-    data_label : str, default=''
+    data_label : str, default=None
         The subdirectory of data in /data and training outputs in
         /submissions/<submission>/training_output
     ramp_submission_dir : str, default='./submissions'
@@ -237,7 +230,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             module_path = os.path.join(ramp_submission_dir, submission)
             training_output_path = os.path.join(
                 module_path, 'training_output')
-            if data_label != '':
+            if data_label is not None:
                 training_output_path = os.path.join(
                     training_output_path, data_label)
             fold_output_path = os.path.join(
@@ -295,7 +288,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             ramp_submission_dir, 'training_output')
         if not os.path.exists(training_output_path):
             os.mkdir(training_output_path)
-        if data_label != '':
+        if data_label is not None:
             training_output_path = os.path.join(
                 training_output_path, data_label)
             if not os.path.exists(training_output_path):
