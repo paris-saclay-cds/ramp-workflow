@@ -27,7 +27,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               'multiple datasets containing the data within the directory '
               'specified by --ramp-data-dir (default: ./data), for example '
               'using subdirectories ./data/<data_label>/. It is also '
-              'the subdirectory of submissions/<submission>/training_data '
+              'the subdirectory of submissions/<submission>/training_output '
               'where results are saved if --save-output is used.')
 @click.option('--ramp-submission-dir', default='submissions',
               show_default=True,

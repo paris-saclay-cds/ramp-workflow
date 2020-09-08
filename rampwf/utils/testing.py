@@ -55,7 +55,7 @@ def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=''):
     return X_train, y_train, X_test, y_test
 
 
-def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label='.'):
+def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label=''):
     problem = assert_read_problem(ramp_kit_dir)
     if data_label == '':
         X_train, y_train = problem.get_train_data(path=ramp_data_dir)
@@ -116,13 +116,21 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         # creating <submission_path>/<submission>/training_output dir
         training_output_path = os.path.join(
             submission_path, 'training_output')
-        if not os.path.exists(training_output_path):
-            os.makedirs(training_output_path)
         if data_label != '':
             training_output_path = os.path.join(
                 training_output_path, data_label)
-            if not os.path.exists(training_output_path):
-                os.makedirs(training_output_path)
+        if not os.path.exists(training_output_path):
+            os.makedirs(training_output_path)
+
+        # training_output_path = os.path.join(
+        #     submission_path, 'training_output')
+        # if not os.path.exists(training_output_path):
+        #     os.makedirs(training_output_path)
+        # if data_label != '':
+        #     training_output_path = os.path.join(
+        #         training_output_path, data_label)
+        #     if not os.path.exists(training_output_path):
+        #         os.makedirs(training_output_path)
         print('Training output path: {}'.format(training_output_path))
 
     # saving predictions for CV bagging after the CV loop
