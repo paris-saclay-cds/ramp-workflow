@@ -11,11 +11,16 @@ def _valid_indexes(self):
     return self.__valid_indexes
 
 
-def _regression_init(self, y_pred=None, y_true=None, n_samples=None):
+def _regression_init(self, y_pred=None, y_true=None, n_samples=None,
+                     fold_is=None):
     self.__valid_indexes = None
     if y_pred is not None:
+        if fold_is is not None:
+            y_pred = y_pred[fold_is]
         self.y_pred = y_pred
     elif y_true is not None:
+        if fold_is is not None:
+            y_true = y_true[fold_is]
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
         # for each dim, 1 for the nb of dists (which is max self.max_dists),
