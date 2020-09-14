@@ -471,13 +471,14 @@ class GenerativeRegressor(object):
         X_df, restart = self._check_restart(X_df)
 
         if decomposition is None:
+            X = X_df.values
             # sample from the mutli-d Gaussian mixture
             n_targets = len(self.target_column_names)
             reg = regressors[0]
             if restart is not None:
-                dists = reg.predict(X_df, restart)
+                dists = reg.predict(X, restart)
             else:
-                dists = reg.predict(X_df)
+                dists = reg.predict(X)
 
             weights, types, params = dists
             # the weights are all the same for each dimension: we keep only
