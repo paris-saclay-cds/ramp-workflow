@@ -18,9 +18,14 @@ class PythonLiteralOption(click.Option):
             raise click.BadParameter(value)
 
 
-def _load_score_submission(submission_path, metric, step):
+def _load_score_submission(submission_path, metric, step, data_label):
     """Load the score for a single submission."""
-    training_output_path = os.path.join(submission_path, 'training_output')
+    if data_label is None:
+        training_output_path = os.path.join(
+            submission_path, 'training_output')
+    else:
+        training_output_path = os.path.join(
+            submission_path, 'training_output', data_label)
     if not os.path.isdir(training_output_path):
         return None
     folds_path = [
@@ -43,13 +48,17 @@ def _load_score_submission(submission_path, metric, step):
     return df.loc[(slice(None), step), metric]
 
 
-def _bagged_table_and_headers(all_submissions):
+def _bagged_table_and_headers(all_submissions, data_label):
     subs = []
     valid_scores = []
     test_scores = []
     for sub, path in all_submissions.items():
-        bagged_scores_path = os.path.join(
-            path, 'training_output', 'bagged_scores.csv')
+        if data_label is None:
+            bagged_scores_path = os.path.join(
+                path, 'training_output', 'bagged_scores.csv')
+        else:
+            bagged_scores_path = os.path.join(
+                path, 'training_output', data_label, 'bagged_scores.csv')
         if not os.path.isfile(bagged_scores_path):
             continue
         bagged_scores_df = pd.read_csv(bagged_scores_path)
@@ -66,10 +75,10 @@ def _bagged_table_and_headers(all_submissions):
     return df, headers
 
 
-def _mean_table_and_headers(all_submissions, metric, step):
+def _mean_table_and_headers(all_submissions, metric, step, data_label):
     data = {}
     for sub_name, sub_path in all_submissions.items():
-        scores = _load_score_submission(sub_path, metric, step)
+        scores = _load_score_submission(sub_path, metric, step, data_label)
         if scores is None:
             continue
         data[sub_name] = scores
@@ -98,13 +107,21 @@ def main():
 @click.option("--ramp-kit-dir", default='.', show_default=True,
               help='Root directory of the ramp-kit to retrieved the train '
               'submission.')
+@click.option('--data-label', default=None, show_default=True,
+              help='A label specifying the data in case the same submissions '
+              'are executed on multiple datasets. If specified, '
+              'it is the subdirectory of '
+              'submissions/<submission>/training_output '
+              'where results are searched for to be summarized.')
 @click.option("--metric", cls=PythonLiteralOption, default="[]",
               show_default=True,
-              help='A list of the metric to report')
+              help='A list of the metric to report. Example: '
+              "--metric ['rmse']")
 @click.option("--step", cls=PythonLiteralOption, default="[]",
               show_default=True,
               help='A list of the processing to report. Choices are '
-              '{"train" , "valid", "test"}')
+              '{"train" , "valid", "test"}. Example: '
+              "--step ['valid','test']")
 @click.option("--sort-by", cls=PythonLiteralOption, default="[]",
               show_default=True,
               help='Give the metric, step, and stat to use for sorting.')
@@ -114,8 +131,8 @@ def main():
               help='The precision for the different metrics reported.')
 @click.option("--bagged/--mean", default=True, show_default=True,
               help='Bagged or mean scores.')
-def leaderboard(ramp_kit_dir, metric, step, sort_by, ascending, precision,
-                bagged):
+def leaderboard(ramp_kit_dir, data_label, metric, step, sort_by, ascending,
+                precision, bagged):
     """Display the leaderboard for all the local submissions."""
     path_submissions = os.path.join(ramp_kit_dir, 'submissions')
     all_submissions = {
@@ -124,9 +141,10 @@ def leaderboard(ramp_kit_dir, metric, step, sort_by, ascending, precision,
         if os.path.isdir(os.path.join(path_submissions, sub))
     }
     if bagged:  # bagged scores
-        df, headers = _bagged_table_and_headers(all_submissions)
+        df, headers = _bagged_table_and_headers(all_submissions, data_label)
     else:  # mean scores with std
-        df, headers = _mean_table_and_headers(all_submissions, metric, step)
+        df, headers = _mean_table_and_headers(
+            all_submissions, metric, step, data_label)
 
     df = df.round(precision)
     if sort_by:
