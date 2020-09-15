@@ -48,7 +48,7 @@ def _load_score_submission(submission_path, metric, step, data_label):
     return df.loc[(slice(None), step), metric]
 
 
-def _bagged_table_and_headers(all_submissions, data_label):
+def _bagged_table_and_headers(all_submissions, metric, data_label):
     subs = []
     valid_scores = []
     test_scores = []
@@ -64,9 +64,8 @@ def _bagged_table_and_headers(all_submissions, data_label):
         bagged_scores_df = pd.read_csv(bagged_scores_path)
         n_folds = len(bagged_scores_df) // 2
         subs.append(sub)
-        valid_scores.append(bagged_scores_df.iloc[n_folds - 1, 2])
-        test_scores.append(bagged_scores_df.iloc[2 * n_folds - 1, 2])
-        metric = bagged_scores_df.columns[2]
+        valid_scores.append(bagged_scores_df[metric].iloc[n_folds - 1])
+        test_scores.append(bagged_scores_df[metric].iloc[2 * n_folds - 1])
     df = pd.DataFrame()
     df['submission'] = subs
     df['valid {}'.format(metric)] = valid_scores
@@ -115,16 +114,30 @@ def main():
               'where results are searched for to be summarized.')
 @click.option("--metric", cls=PythonLiteralOption, default="[]",
               show_default=True,
-              help='A list of the metric to report. Example: '
-              "--metric ['rmse']")
+              help="""
+              \bA list of the metric to report. Example:
+              
+              \b--metric ['rmse']
+              """)
 @click.option("--step", cls=PythonLiteralOption, default="[]",
               show_default=True,
-              help='A list of the processing to report. Choices are '
-              '{"train" , "valid", "test"}. Example: '
-              "--step ['valid','test']")
+              help="""
+              A list of the processing to report. Choices are 
+              \b{"train" , "valid", "test"}. Example:
+              
+              \b--step ['valid','test']
+              """)
 @click.option("--sort-by", cls=PythonLiteralOption, default="[]",
               show_default=True,
-              help='Give the metric, step, and stat to use for sorting.')
+              help="""
+              Give the metric, step, and stat to use for sorting.
+              \bUse tuples, for example:
+
+              \b--mean --sort-by ('rmse','test','mean')
+              
+              \b--bagged --sort-by "('test rmse')"
+
+              """)
 @click.option("--ascending/--descending", default=True, show_default=True,
               help='Sort in ascending or descending order.')
 @click.option("--precision", default=2, show_default=True,
@@ -141,7 +154,8 @@ def leaderboard(ramp_kit_dir, data_label, metric, step, sort_by, ascending,
         if os.path.isdir(os.path.join(path_submissions, sub))
     }
     if bagged:  # bagged scores
-        df, headers = _bagged_table_and_headers(all_submissions, data_label)
+        df, headers = _bagged_table_and_headers(
+            all_submissions, metric, data_label)
     else:  # mean scores with std
         df, headers = _mean_table_and_headers(
             all_submissions, metric, step, data_label)
