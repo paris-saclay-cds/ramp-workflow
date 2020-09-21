@@ -54,7 +54,7 @@ def print_df_scores(df_scores, indent=''):
     indent : str, default=''
         indentation if needed
     """
-    with option_context("display.width", 160):
+    with option_context("display.width", None):
         df_repr = repr(df_scores)
     df_repr_out = []
     for line, color_key in zip(df_repr.splitlines(),
