@@ -198,6 +198,8 @@ class TimeSeriesFeatureExtractor(object):
                 X_neq = np.not_equal(
                     X_test_tf[:check_size], X_check_array_tf[:check_size])
                 x_neq = np.any(X_neq, axis=1)
+                if isinstance(x_neq, pd.Series):
+                    x_neq = x_neq.to_numpy()
                 x_neq_nonzero = x_neq.nonzero()
                 if len(x_neq_nonzero[0]) == 0:  # no change anywhere
                     first_modified_index = check_index
