@@ -116,15 +116,15 @@ def main():
               show_default=True,
               help="""
               \bA list of the metric to report. Example:
-              
+
               \b--metric ['rmse']
               """)
 @click.option("--step", cls=PythonLiteralOption, default="[]",
               show_default=True,
               help="""
-              A list of the processing to report. Choices are 
+              A list of the processing to report. Choices are
               \b{"train" , "valid", "test"}. Example:
-              
+
               \b--step ['valid','test']
               """)
 @click.option("--sort-by", cls=PythonLiteralOption, default="[]",
@@ -134,7 +134,7 @@ def main():
               \bUse tuples, for example:
 
               \b--mean --sort-by ('rmse','test','mean')
-              
+
               \b--bagged --sort-by "('test rmse')"
 
               """)

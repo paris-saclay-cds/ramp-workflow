@@ -38,7 +38,7 @@ class PythonLiteralOption(click.Option):
               show_default=True,
               help="""
               \bA list of the submissions to blend. Example:
-              
+
               \b--submissions ['starting_kit','linear']
               """)
 @click.option('--save-output', is_flag=True,
