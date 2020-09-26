@@ -18,7 +18,7 @@ def test_bagged_table_and_headers():
         for sub in os.listdir(path_submissions)
         if os.path.isdir(os.path.join(path_submissions, sub))
     }
-    df1, headers1 = _bagged_table_and_headers(all_submissions)
+    df1, headers1 = _bagged_table_and_headers(all_submissions, metric='acc')
 
     subs = []
     valid_scores = []

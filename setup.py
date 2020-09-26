@@ -61,6 +61,7 @@ setup(
         'console_scripts': [
             'ramp-test = rampwf.utils.cli.testing:start',
             'ramp-show = rampwf.utils.cli.show:start',
+            'ramp-blend = rampwf.utils.cli.blend:start',
             'ramp-hyperopt = rampwf.hyperopt.cli.hyperopt:start',
             'ramp_test_submission='
             'rampwf.utils.command_line:ramp_test_submission',

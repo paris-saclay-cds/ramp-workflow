@@ -18,7 +18,7 @@ class PythonLiteralOption(click.Option):
             raise click.BadParameter(value)
 
 
-def _load_score_submission(submission_path, metric, step, data_label):
+def _load_score_submission(submission_path, metric, step, data_label=None):
     """Load the score for a single submission."""
     if data_label is None:
         training_output_path = os.path.join(
@@ -48,7 +48,7 @@ def _load_score_submission(submission_path, metric, step, data_label):
     return df.loc[(slice(None), step), metric]
 
 
-def _bagged_table_and_headers(all_submissions, metric, data_label):
+def _bagged_table_and_headers(all_submissions, metric, data_label=None):
     subs = []
     valid_scores = []
     test_scores = []
@@ -74,7 +74,7 @@ def _bagged_table_and_headers(all_submissions, metric, data_label):
     return df, headers
 
 
-def _mean_table_and_headers(all_submissions, metric, step, data_label):
+def _mean_table_and_headers(all_submissions, metric, step, data_label=None):
     data = {}
     for sub_name, sub_path in all_submissions.items():
         scores = _load_score_submission(sub_path, metric, step, data_label)

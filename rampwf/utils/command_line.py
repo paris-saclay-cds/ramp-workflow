@@ -149,6 +149,10 @@ def create_ramp_blend_submissions_parser():
                         type=str,
                         help='Directory where the submissions are stored. It '
                         'should contain a "submissions" directory.')
+    parser.add_argument('--data-label',
+                        default=None,
+                        type=str,
+                        help='')
     parser.add_argument('--submissions',
                         default='ALL',
                         type=str,
@@ -187,9 +191,11 @@ def ramp_blend_submissions():
     blend_submissions(ramp_kit_dir=args.ramp_kit_dir,
                       ramp_data_dir=args.ramp_data_dir,
                       ramp_submission_dir=args.ramp_submission_dir,
+                      data_label=args.data_label,
                       submissions=submissions,
                       save_output=save_output,
-                      min_improvement=float(args.min_improvement))
+                      min_improvement=float(args.min_improvement),
+                      score_type_index=1)
 
 
 def create_ramp_leaderboard_parser():
