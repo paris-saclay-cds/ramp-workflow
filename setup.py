@@ -61,15 +61,6 @@ setup(
         'console_scripts': [
             'ramp-test = rampwf.utils.cli.testing:start',
             'ramp-show = rampwf.utils.cli.show:start',
+            'ramp-blend = rampwf.utils.cli.blend:start',
             'ramp-hyperopt = rampwf.hyperopt.cli.hyperopt:start',
-            'ramp_test_submission='
-            'rampwf.utils.command_line:ramp_test_submission',
-            'ramp_test_notebook='
-            'rampwf.utils.command_line:ramp_test_notebook',
-            'ramp_convert_notebook='
-            'rampwf.utils.command_line:ramp_convert_notebook',
-            'ramp_blend_submissions='
-            'rampwf.utils.command_line:ramp_blend_submissions',
-            'ramp_leaderboard='
-            'rampwf.utils.command_line:ramp_leaderboard',
         ]})
