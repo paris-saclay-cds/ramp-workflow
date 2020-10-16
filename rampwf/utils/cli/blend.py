@@ -47,10 +47,17 @@ class PythonLiteralOption(click.Option):
 @click.option('--min-improvement', default=0.0, show_default=True,
               help='The minimum score improvement when adding'
               ' submissions to the ensemble.')
+@click.option('--min-improvement', default=0.0, show_default=True,
+              help='The minimum score improvement when adding'
+              ' submissions to the ensemble.')
+@click.option('--score-type-index', default=0, show_default=True,
+              help='The index of the score type (from problem.py) on '
+              'which the blending will be done.')
 @click.option('--ignore-warning', is_flag=True,
               help='Will filters all warning and avoid to print them.')
 def main(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
-         submissions, save_output, min_improvement, ignore_warning):
+         submissions, save_output, min_improvement, score_type_index,
+         ignore_warning):
     """Blend submissions."""
 
     if ignore_warning:
@@ -74,7 +81,7 @@ def main(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
                       submissions=submissions,
                       save_output=save_output,
                       min_improvement=float(min_improvement),
-                      score_type_index=1)
+                      score_type_index=score_type_index)
 
 
 def start():
