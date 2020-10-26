@@ -47,11 +47,12 @@ then
     doc_clone_commit
     git push origin $DOC_BRANCH
     echo "Push complete"
-elif [ "$CIRCLE_BRANCH" = "advanced" ]
+elif [ "$CIRCLE_BRANCH" = "pull/254" ]
 then
     # Changes are made to advanced/ directory
     DIR="ramp-workflow/advanced"
     doc_clone_commit
+    echo $USERNAME
     git push origin $DOC_BRANCH
     echo "Push complete"
 elif [[ "$CIRCLE_BRANCH" =~ ^[0-9]+\.[0-9]+\.X$ ]]
