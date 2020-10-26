@@ -9,7 +9,7 @@ import sys
 
 
 def delete_line_from_file(f_name, line_to_delete):
-    with open(f_name, "r+") as f:
+    with open(f_name, "r+", encoding='utf-8') as f:
         lines = f.readlines()
         f.seek(0)
         for line in lines:
