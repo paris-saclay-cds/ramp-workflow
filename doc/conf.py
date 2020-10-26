@@ -325,3 +325,27 @@ def setup(app):
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
+
+try:
+    html_context
+except NameError:
+    html_context = dict()
+html_context['display_lower_left'] = True
+
+CIRCLE_BRANCH = os.environ['CIRCLE_BRANCH']
+
+if CIRCLE_BRANCH == 'master':
+    current_version = 'dev'
+elif CIRCLE_BRANCH == 'advanced':
+    current_version = 'advanced'
+else:
+    current_version = None
+
+html_context['current_version'] = current_version
+html_context['version'] = current_version
+
+html_context['versions'] = list()
+versions = ['stable', 'advanced']
+for version in versions:
+    html_context['versions'].append(
+        (version, '/' + version + '/'))
