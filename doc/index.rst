@@ -19,9 +19,9 @@ and `prediction types <https://github.com/paris-saclay-cds/ramp-workflow/tree/ma
 Installation
 ************
 
-Ramp-workflow is available on PyPI and can be installed via `pip`::
+The advanced branch of ramp-workflow can be installed via `pip`::
 
-    $ pip install ramp-workflow
+    $ pip install git+https://github.com/paris-saclay-cds/ramp-workflow.git@advanced
 
 .. toctree::
    :maxdepth: 2
