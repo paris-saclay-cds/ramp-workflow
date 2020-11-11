@@ -1,10 +1,10 @@
-"""Testing for generative regression predictions """
+"""Tests for generative regression predictions """
 
-
-from rampwf.prediction_types import make_generative_regression
 import numpy as np
 from numpy.testing import assert_array_equal
-from ...utils import MAX_MDN_PARAMS
+
+from rampwf.prediction_types import make_generative_regression
+from rampwf.utils import MAX_MDN_PARAMS
 
 
 def test_init_empty():
