@@ -1,8 +1,9 @@
-import numpy as np
-from .base import BasePrediction
-from ..utils import MAX_MDN_PARAMS, distributions_dispatcher, get_n_params
 import warnings
-import itertools
+
+import numpy as np
+
+from .base import BasePrediction
+from ..utils import MAX_MIXTURE_PARAMS, distributions_dispatcher, get_n_params
 
 
 @property
@@ -23,12 +24,12 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None,
             y_true = y_true[fold_is]
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
-        # for each dim, 1 for the nb of dists (which is max self.max_dists),
+        # for each dim, 1 for the nb of dists (which is max self.max_n_components),
         # then nb_dists for weights, nb of dists for types
         # and lastly nb of dists*2 for dist parameters
         shape = (
             n_samples,
-            self.n_columns * (1 + (2 + MAX_MDN_PARAMS) * self.max_dists))
+            self.n_columns * (1 + (2 + MAX_MIXTURE_PARAMS) * self.max_n_components))
         self.y_pred = np.empty(shape, dtype=float)
         self.y_pred.fill(np.nan)
     else:
@@ -40,7 +41,7 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None,
 def _combine(cls, predictions_list, index_list=None):
     if index_list is None:
         index_list = range(len(predictions_list))
-    curr_indicies = np.zeros(len(index_list)).astype(int)
+    curr_indices = np.zeros(len(index_list)).astype(int)
     dims = []
     idx_curr_dim = 0
     while idx_curr_dim < cls.n_columns:
@@ -50,7 +51,7 @@ def _combine(cls, predictions_list, index_list=None):
         curr_params = []
         for i in range(len(index_list)):
             curr_pred = predictions_list[index_list[i]].y_pred
-            dim_sizes = curr_pred[:, curr_indicies[i]]
+            dim_sizes = curr_pred[:, curr_indices[i]]
             selected = np.isfinite(dim_sizes)
             curr_sizes = dim_sizes[selected]
             if curr_sizes.size != 0:
@@ -60,16 +61,16 @@ def _combine(cls, predictions_list, index_list=None):
 
             combined_size += curr_size
 
-            temp_weights = curr_pred[:, curr_indicies[i] + 1:
-                                     curr_indicies[i] + 1 + curr_size]
+            temp_weights = curr_pred[:, curr_indices[i] + 1:
+                                     curr_indices[i] + 1 + curr_size]
 
             temp_weights[~selected] = 0
 
             curr_weights.append(
                 temp_weights)
 
-            temp_types = curr_pred[:, curr_indicies[i] + 1 + curr_size:
-                                      curr_indicies[i] + 1 + 2 * curr_size]
+            temp_types = curr_pred[:, curr_indices[i] + 1 + curr_size:
+                                   curr_indices[i] + 1 + 2 * curr_size]
 
             temp_types[~selected] = -1
 
@@ -78,9 +79,9 @@ def _combine(cls, predictions_list, index_list=None):
             curr_types.append(
                 temp_types)
 
-            curr_indicies[i] += 1 + curr_size * 2
+            curr_indices[i] += 1 + curr_size * 2
 
-            end_single_genreg = curr_indicies[i]
+            end_single_genreg = curr_indices[i]
             # Recover the right number of params for each distribution
             for k in range(curr_size):
                 active_type = int(active_types[k])
@@ -88,9 +89,9 @@ def _combine(cls, predictions_list, index_list=None):
                 end_single_genreg += get_n_params(dist)
 
             curr_params.append(
-                curr_pred[:, curr_indicies[i]:end_single_genreg])
+                curr_pred[:, curr_indices[i]:end_single_genreg])
 
-            curr_indicies[i] = end_single_genreg
+            curr_indices[i] = end_single_genreg
 
         weights = np.concatenate(curr_weights, axis=1)
         with warnings.catch_warnings():
@@ -130,12 +131,14 @@ def set_valid_in_train(self, predictions, test_is):
     self.y_pred[test_is, :predictions.y_pred.shape[1]] = predictions.y_pred
 
 
-def make_generative_regression(max_dists, label_names=[]):
+def make_generative_regression(max_n_components, label_names=None):
+    if label_names is None:
+        label_names = []
     Predictions = type(
         'GenerativeRegressionGaussian',
         (BasePrediction,),
         {'label_names'       : label_names,
-         'max_dists'         : max_dists,
+         'max_n_components'  : max_n_components,
          'n_columns'         : len(label_names),
          'n_columns_true'    : len(label_names),
          '__init__'          : _regression_init,

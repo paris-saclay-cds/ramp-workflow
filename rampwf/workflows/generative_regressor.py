@@ -73,7 +73,7 @@ class GenerativeRegressor(object):
 
     Parameters
     ----------
-    max_dists : int
+    max_n_components : int
         The maximum number of components a generative regressor can output for
         its returned mixture.
 
@@ -84,16 +84,18 @@ class GenerativeRegressor(object):
         Name of the restart column.
     """
 
-    def __init__(self, target_column_names, max_dists,
+    def __init__(self, target_column_names, max_n_components,
                  check_sizes=None, check_indexs=None,
-                 workflow_element_names=['generative_regressor'],
+                 workflow_element_names=None,
                  restart_name=None,
                  **kwargs):
+        if workflow_element_names is None:
+            workflow_element_names = ['generative_regressor']
         self.check_indexs = check_indexs
         self.check_sizes = check_sizes
         self.element_names = workflow_element_names
         self.target_column_names = target_column_names
-        self.max_dists = max_dists
+        self.max_n_components = max_n_components
         self.restart_name = restart_name
         self.kwargs = kwargs
 
@@ -149,6 +151,9 @@ class GenerativeRegressor(object):
             Targets. Should be a 2D array even if there is only one target
             dimension.
 
+        train_is : numpy array, shape (n_training_points)
+            The training indices.
+
         Returns
         -------
         regressors : list of regressor
@@ -188,7 +193,7 @@ class GenerativeRegressor(object):
         y_array = y_array[train_is]
 
         reg = generative_regressor.GenerativeRegressor(
-            self.max_dists, 0, **self.kwargs)
+            self.max_n_components, 0, **self.kwargs)
 
         decomposition = getattr(reg, 'decomposition', 'autoregressive')
         if decomposition not in [None, 'autoregressive', 'independent']:
@@ -216,7 +221,7 @@ class GenerativeRegressor(object):
             for j in range(len(self.target_column_names)):
                 if j != 0:
                     reg = generative_regressor.GenerativeRegressor(
-                        self.max_dists, j, **self.kwargs)
+                        self.max_n_components, j, **self.kwargs)
 
                 y = y_array[:, j].reshape(-1, 1)
 
@@ -311,7 +316,7 @@ class GenerativeRegressor(object):
                 raise AssertionError(message)
             types = np.array([types, ] * len(weights))
 
-            assert n_dists_curr <= self.max_dists
+            assert n_dists_curr <= self.max_n_components
 
             n_dists_per_dim = n_dists_curr // n_targets
 
@@ -402,8 +407,15 @@ class GenerativeRegressor(object):
                     dists = reg.predict(X)
 
                 weights, types, params = dists
-                n_dists_curr = types.shape[1]
-                assert n_dists_curr <= self.max_dists
+                n_dists_curr = len(types)
+                try:
+                    types = [distributions_dict[type_name] for type_name in types]
+                except KeyError:
+                    message = ('One of the type names is not a valid Scipy '
+                               'distribution')
+                    raise AssertionError(message)
+                types = np.array([types, ] * len(weights))
+                assert n_dists_curr <= self.max_n_components
                 mixture.add(weights, types, params)
 
             mixture_y_pred = mixture.finalize(order)

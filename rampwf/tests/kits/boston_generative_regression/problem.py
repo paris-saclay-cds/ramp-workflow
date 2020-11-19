@@ -8,10 +8,10 @@ from sklearn.model_selection import ShuffleSplit
 problem_title = 'Boston housing price generative regression'
 _target_column_names = ['lstat', 'medv']
 
-MAX_DISTS = 10
+MAX_COMPONENTS = 10
 
 Predictions = rw.prediction_types.make_generative_regression(
-    MAX_DISTS, label_names=_target_column_names)
+    MAX_COMPONENTS, label_names=_target_column_names)
 
 score_types = [
     rw.score_types.MDLikelihoodRatio(),
@@ -29,7 +29,8 @@ for o_i, o in enumerate(_target_column_names):
     score_types += dim_score_types
 
 workflow = rw.workflows.GenerativeRegressor(
-    _target_column_names, MAX_DISTS, check_sizes=[132], check_indexs=[13])
+    _target_column_names, MAX_COMPONENTS, check_sizes=[132], check_indexs=[13])
+
 
 def get_cv(X, y):
     cv = ShuffleSplit(n_splits=4, test_size=0.2, random_state=57)

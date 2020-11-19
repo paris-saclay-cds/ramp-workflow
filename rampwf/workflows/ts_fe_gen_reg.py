@@ -36,7 +36,7 @@ class TSFEGenReg:
         ahead at this particular index, so we may test at another index, to be
         added to the list `check_indexs`.
 
-    max_dists : int
+    max_n_components : int
         The maximum number of distribution components for a given dimension
 
     target_column_observation_names : list of strings
@@ -59,7 +59,7 @@ class TSFEGenReg:
         and to the generative regressor
     """
     def __init__(self,
-                 check_sizes, check_indexs, max_dists,
+                 check_sizes, check_indexs, max_n_components,
                  target_column_observation_names,
                  target_column_action_names,
                  restart_name=None,
@@ -67,7 +67,7 @@ class TSFEGenReg:
                  workflow_element_names=None,
                  n_burn_in=0, n_lookahead=1):
 
-        self.max_dists = max_dists
+        self.max_n_components = max_n_components
         self.target_column_observation_names = target_column_observation_names
         self.target_column_action_names = target_column_action_names
         self.restart_name = restart_name
@@ -94,7 +94,7 @@ class TSFEGenReg:
             n_lookahead=self.n_lookahead)
 
         self.regressor_workflow = GenerativeRegressor(
-            target_column_observation_names, self.max_dists,
+            target_column_observation_names, self.max_n_components,
             workflow_element_names=[self.element_names[1]],
             restart_name=restart_name,
             check_sizes=check_sizes, check_indexs=check_indexs)
@@ -203,10 +203,10 @@ class TSFEGenReg:
             reg, X_test_df)
 
         nb_dists = y_pred_mixture[0, 0]
-        if nb_dists > self.max_dists:
+        if nb_dists > self.max_n_components:
             raise ValueError(
                 'The maximum number of distributions allowed is '
-                f'{self.max_dists} but you use {nb_dists}.')
+                f'{self.max_n_components} but you use {nb_dists}.')
 
         return y_pred_mixture
 

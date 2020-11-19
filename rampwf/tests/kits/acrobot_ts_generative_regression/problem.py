@@ -6,7 +6,7 @@ import pandas as pd
 import rampwf as rw
 
 problem_title = 'Acrobot system identification'
-_max_dists = 100  # max number of mixture components in generative regressors
+_max_components = 100  # max number of mixture components in generative regressors
 
 _target_column_observation_names = [
     'theta_1', 'theta_2', 'theta_dot_1', 'theta_dot_2']
@@ -17,7 +17,7 @@ _n_burn_in = 0
 timestamp_name = 'fake_ts'
 
 Predictions = rw.prediction_types.make_generative_regression(
-    _max_dists, label_names=_target_column_observation_names)
+    _max_components, label_names=_target_column_observation_names)
 
 score_types = [
     rw.score_types.MDLikelihoodRatio('lr', precision=2),
@@ -38,7 +38,7 @@ cv = rw.cvs.PerRestart(restart_name=_restart_name)
 get_cv = cv.get_cv
 
 workflow = rw.workflows.TSFEGenReg(
-    check_sizes=[137], check_indexs=[13], max_dists=_max_dists,
+    check_sizes=[137], check_indexs=[13], max_n_components=_max_components,
     target_column_observation_names=_target_column_observation_names,
     target_column_action_names=_target_column_action_names,
     restart_name=_restart_name,

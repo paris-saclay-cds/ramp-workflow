@@ -5,7 +5,7 @@ import inspect
 # The maximum numbers of parameters a distribution would need
 # Only matters for bagging mixture models in
 # prediction_types.generative_regression
-MAX_MDN_PARAMS = 6
+MAX_MIXTURE_PARAMS = 6
 EMPTY_DIST = -1
 
 # We explcitly enumerate all scipy distributions here so their codes
@@ -146,12 +146,13 @@ def get_n_params(dist):
 
 
 class MixtureYPred:
+    """
+    Object made to convert outputs of generative regressors to a numpy array
+    representation (y_pred) used in RAMP.
+    Works for autoregressive and independent, not the full case.
+    """
+
     def __init__(self):
-        """
-        Object made to convert outputs of generative regressors to a numpy array
-        representation (y_pred) used in RAMP.
-        Works for autoregressive and independent, not the full case.
-        """
         self.dims = []
 
     def add(self, weights, types, params):
@@ -195,20 +196,20 @@ class MixtureYPred:
 
 def get_components(curr_idx, y_pred):
     """
-    Extracts dimentions from the whole y_pred array to use them elsewhere
+    Extracts dimensions from the whole y_pred array to use them elsewhere
     (e.g. to compute the pdf).
     It is meant to be called like so:
 
     curr_idx=0
     for dim in dims:
-        curr_idx, ... = currget_components(curr_idx, y_pred)
+        curr_idx, ... = get_components(curr_idx, y_pred)
 
     Parameters
     ----------
     curr_idx : int
         The current index in the whole y_pred.
     y_pred : numpy array
-        Should be built using MixtureYPred "add" and "finalize".
+        A matrix built using MixtureYPred "add" and "finalize".
 
     Return
     ------
@@ -224,7 +225,7 @@ def get_components(curr_idx, y_pred):
     dists : list of objects extending AbstractDists
         A list of distributions to be used for current dim
     paramss : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist)
-        The params of the mixture for current dim, that allign with the
+        The params of the mixture for current dim, that align with the
         other returned values
     """
     n_dists = int(y_pred[0, curr_idx])
@@ -239,9 +240,10 @@ def get_components(curr_idx, y_pred):
     paramss = []
     for i in range(n_dists):
         non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
-        currtype = int(types[:, i][non_empty_mask][0])
-        # TODO: raise exception if type is not consistent
-        dists.append(distributions_dispatcher(currtype))
+        curr_types = types[:, i][non_empty_mask]
+        curr_type = curr_types[0]
+        assert np.all(curr_type == curr_types), "Components types must be fixed"
+        dists.append(distributions_dispatcher(curr_type))
         end_params = curr_idx + get_n_params(dists[i])
         paramss.append(y_pred[:, curr_idx:end_params])
         curr_idx = end_params

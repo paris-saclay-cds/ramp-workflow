@@ -29,9 +29,15 @@ numerical numpy array.
 
 import numpy as np
 from scipy.stats import norm
-import matplotlib.pyplot as plt
+
 from .base import BaseScoreType
-from ..utils import distributions_dispatcher, get_components, EMPTY_DIST
+from ..utils import get_components, EMPTY_DIST
+
+try:
+    import matplotlib.pyplot as plt
+    HAS_PLT = True
+except ImportError:
+    HAS_PLT = False
 
 
 def convert_y_true(y_true):
@@ -205,11 +211,14 @@ class MDLikelihoodRatio(BaseScoreType):
                 np.exp(np.sum(-log_lks, axis=1) / n_instances -
                        np.sum(baseline_lls, axis=1) / n_instances))
         if self.plot:
-            ratio_by_point = np.exp(-log_lks - baseline_lls)
-            for i, ratio in enumerate(ratio_by_point):
-                plt.plot(ratio)
-                plt.title(i)
-                plt.show()
+            if HAS_PLT:
+                ratio_by_point = np.exp(-log_lks - baseline_lls)
+                for i, ratio in enumerate(ratio_by_point):
+                    plt.plot(ratio)
+                    plt.title(i)
+                    plt.show()
+            else:
+                raise Warning("You must install matplotlib to be able to plot.")
         return np.exp(-nll_reg - np.sum(baseline_lls) / n_instances / n_dims)
 
 
@@ -327,21 +336,24 @@ class MDKSCalibration(BaseScoreType):
                 np.sort(cdfs[j_dim]) - np.arange(n_instances) / n_instances))
 
         if self.plot:
-            if self.output_dim is None:
-                for j_dim in range(n_dims):
-                    plt.hist(cdfs[j_dim])
-                    plt.title(j_dim)
-                    plt.show()
-                    plt.plot(
-                        np.sort(cdfs[j_dim]),
-                        np.arange(n_instances) / n_instances)
-                    plt.plot([0, 1], [0, 1])
-                    plt.title(j_dim)
+            if HAS_PLT:
+                if self.output_dim is None:
+                    for j_dim in range(n_dims):
+                        plt.hist(cdfs[j_dim])
+                        plt.title(j_dim)
+                        plt.show()
+                        plt.plot(
+                            np.sort(cdfs[j_dim]),
+                            np.arange(n_instances) / n_instances)
+                        plt.plot([0, 1], [0, 1])
+                        plt.title(j_dim)
+                        plt.show()
+                else:
+                    plt.hist(cdfs[self.output_dim])
+                    plt.title(self.output_dim)
                     plt.show()
             else:
-                plt.hist(cdfs[self.output_dim])
-                plt.title(self.output_dim)
-                plt.show()
+                raise Warning("You must install matplotlib to be able to plot.")
 
         if self.output_dim is None:
             if self.verbose:

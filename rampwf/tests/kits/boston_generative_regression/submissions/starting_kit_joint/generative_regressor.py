@@ -4,11 +4,11 @@ from sklearn.linear_model import LinearRegression
 
 
 class GenerativeRegressor(BaseEstimator):
-    def __init__(self, max_dists, target_dim):
+    def __init__(self, max_n_components, target_dim):
         """
         Parameters
         ----------
-        max_dists : int
+        max_n_components : int
             The maximum number of distributions (kernels) in the mixture.
         target_dim : int
             The index of the target column to be predicted.
