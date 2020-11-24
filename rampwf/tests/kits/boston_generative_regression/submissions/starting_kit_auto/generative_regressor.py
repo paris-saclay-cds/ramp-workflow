@@ -60,12 +60,11 @@ class GenerativeRegressor(BaseEstimator):
 
         Return
         ------
-        XXX FIXME with mixture object
         weights : np.array of float
             discrete probabilities of each component of the mixture
-        types : np.array of int
-            integer codes referring to component types
-            see rampwf.utils.distributions_dict
+        types : list of strings
+            scipy names referring to component of the mixture types.
+            see https://docs.scipy.org/doc/scipy/reference/stats.html
         params : np.array of float tuples
             parameters for each component in the mixture
         """
