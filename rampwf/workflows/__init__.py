@@ -26,7 +26,6 @@ __all__ = [
     'FeatureExtractorClassifier',
     'FeatureExtractorRegressor',
     'GenerativeRegressor',
-    'GridFeatureExtractorClassifier',
     'ImageClassifier',
     'SimplifiedImageClassifier',
     'ObjectDetector',
