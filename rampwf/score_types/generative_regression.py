@@ -3,24 +3,24 @@
 `y_true` is either n x d dimensional where n is the number of data points and
 d is the number of (output) dimensions, or n dimensional if d=1. `y_pred` is
 nxD dimensional where
-D = sum_j(1 + 2 * n_dists_j + sum_ell(n_params_{j, ell})). The
+D = sum_j(1 + 2 * n_components_j + sum_ell(n_params_{j, ell})). The
 following scheme was designed to be able to store the full y_pred as a
 numerical numpy array.
  - y_pred[i] contains d variable-size blocks, one for each output dimension
    j = 1, ..., d.
- - The first element of the block is n_dists_j, the number of mixture
+ - The first element of the block is n_components_j, the number of mixture
    components in dimension j, decided by the submitters. Its maximum is
    determined by the organizer in problem.py.
- - This followed by n_dists_j integers representing mixture component types
-   (see utils.generative_regression). A submitter can mix different types of
-   components but the type sequence must be the same for all instances (to
+ - This is followed by n_components_j integers representing mixture component
+   types (see utils.generative_regression). A submitter can mix different types
+   of components but the type sequence must be the same for all instances (to
    make y_pred[i] having the same length for all i). The only exception is
    that we can have instances with EmptyDist (id=-1) replacing any type.
- - This followed by n_dists_j floats, the component weights in dimension j.
-   They all must be nonnegative and they have to add up to one.
- - This followed by a variable length block of n_dists_j mixture component
-   parameters. The number of component parameters depend on the component
-   types (see utils.generative_regression).
+ - This is followed by n_components_j floats, the component weights in
+   dimension j. They all must be nonnegative and they have to add up to one.
+ - This is followed by a variable length block of n_components_j mixture
+   component parameters. The number of component parameters depend on the
+   component types (see utils.generative_regression).
 """
 
 # Authors: Gabriel Hurtado <gabriel.j.hurtado@gmail.com>,
@@ -44,22 +44,22 @@ def convert_y_true(y_true):
 
 def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
     curr_idx = 0
-    if multivar:
 
-        _, n_dists, weights, types, dists, paramss = \
+    if multivar:
+        _, n_components, weights, types, dists, paramss = \
             get_components(curr_idx, y_pred)
 
-        n_instances = np.zeros(n_dists)
+        n_instances = np.zeros(n_components)
         # negative log likelihoods of each output dimension and instance
 
-        log_lks = np.zeros((n_dists, y_true.shape[1]))
+        log_lks = np.zeros((n_components, y_true.shape[1]))
         # pointer within the vector representation of mixtures y_pred[i]
 
-        for i in range(n_dists):
+        for i in range(n_components):
             curr_idx = 0
             weighted_probs = np.zeros(y_true.shape[1])
             for j_dim, y_true_dim in enumerate(y_true):
-                curr_idx, n_dists, weights, types, dists, paramss = \
+                curr_idx, n_components, weights, types, dists, paramss = \
                     get_components(curr_idx, y_pred)
                 non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
                 probs = dists[i].pdf(
@@ -78,10 +78,10 @@ def get_likelihoods(y_true, y_pred, min_likelihood, multivar=False):
         n_instances = np.zeros(y_true.shape[0])
         log_lks = np.zeros(y_true.shape)
         for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types, dists, paramss = \
+            curr_idx, n_components, weights, types, dists, paramss = \
                 get_components(curr_idx, y_pred)
             weighted_probs = np.zeros(len(y_true_dim))
-            for i in range(n_dists):
+            for i in range(n_components):
                 non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
                 probs = dists[i].pdf(
                     y_true_dim[non_empty_mask],
@@ -177,10 +177,11 @@ class MDLikelihoodRatio(BaseScoreType):
 
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)
-        nll_reg_score = MDNegativeLogLikelihood(multivar=self.multivar,
-                                                min_likelihood=self.min_likelihood,
-                                                output_dim=self.output_dim,
-                                                verbose=self.verbose or self.plot)
+        nll_reg_score = MDNegativeLogLikelihood(
+            multivar=self.multivar,
+            min_likelihood=self.min_likelihood,
+            output_dim=self.output_dim,
+            verbose=self.verbose or self.plot)
         if self.verbose or self.plot:
             nll_reg, log_lks = nll_reg_score(y_true, y_pred)
         else:
@@ -227,9 +228,9 @@ class MDRMSE(BaseScoreType):
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types, dists, paramss = \
+            curr_idx, n_components, weights, types, dists, paramss = \
                 get_components(curr_idx, y_pred)
-            for i in range(n_dists):
+            for i in range(n_components):
                 non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
                 means = dists[i].mean(
                     *paramss[i][non_empty_mask].swapaxes(0, 1))
@@ -267,9 +268,9 @@ class MDR2(BaseScoreType):
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types, dists, paramss = \
+            curr_idx, n_components, weights, types, dists, paramss = \
                 get_components(curr_idx, y_pred)
-            for i in range(n_dists):
+            for i in range(n_components):
                 non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
                 means = dists[i].mean(
                     *paramss[i][non_empty_mask].swapaxes(0, 1))
@@ -306,9 +307,9 @@ class MDKSCalibration(BaseScoreType):
         # pointer within the vector representation of mixtures y_pred[i]
         curr_idx = 0
         for j_dim, y_true_dim in enumerate(y_true):
-            curr_idx, n_dists, weights, types, dists, paramss = \
+            curr_idx, n_components, weights, types, dists, paramss = \
                 get_components(curr_idx, y_pred)
-            for i in range(n_dists):
+            for i in range(n_components):
                 non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
                 cdfss = dists[i].cdf(
                     y_true_dim[non_empty_mask],

@@ -47,27 +47,28 @@ class GenerativeRegressor(object):
         regressor submission is assumed to be such that each Gaussian component
         has a diagonal covariance matrix. The regressor is parametrized as
         follows:
-            weights : numpy array (n_timesteps, n_dist_per_dim*n_dims)
+            weights : numpy array (n_timesteps, n_components_per_dim*n_dims)
                 The weights of the mixtures.
                 They should sum up to one for each instance.
-            types : numpy array (n_timesteps, n_dist_per_dim*n_dims)
+            types : numpy array (n_timesteps, n_components_per_dim*n_dims)
                 The types of the mixtures.
                 Only gaussian is supported in this case.
                 For more info look at rampwf.utils.distributions_dict.
-            params : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist
-                                                *n_dims)
+            params : numpy array (n_timesteps,
+                                  n_components_per_dim*n_param_per_dist*n_dims)
                 The params of the mixture for current dim, the order must
                 correspond to the one of types
 
         The mixture returned by a 1d generative regressor (decomposition set to
         'autoregressive' or 'independent') is parameterized as follows:
-            weights : numpy array (n_timesteps, n_dist_per_dim)
+            weights : numpy array (n_timesteps, n_components_per_dim)
                 The weights of the mixture for current dim.
                 They should sum up to one for each instance.
-            types : numpy array (n_timesteps, n_dist_per_dim)
+            types : numpy array (n_timesteps, n_components_per_dim)
                 The types of the mixture for current dim
                 For more info look at rampwf.utils.distributions_dict
-            params : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist)
+            params : numpy array (n_timesteps,
+                                  n_components_per_dim*n_param_per_dist)
                 the params of the mixture for current dim, the order must
                 correspond to the one of types
 
@@ -307,7 +308,7 @@ class GenerativeRegressor(object):
 
             weights, types, params = dists
 
-            n_dists_curr = len(types)
+            n_components_curr = len(types)
             try:
                 types = [distributions_dict[type_name] for type_name in types]
             except KeyError:
@@ -316,9 +317,9 @@ class GenerativeRegressor(object):
                 raise AssertionError(message)
             types = np.array([types, ] * len(weights))
 
-            assert n_dists_curr <= self.max_n_components
+            assert n_components_curr <= self.max_n_components
 
-            n_dists_per_dim = n_dists_curr // n_targets
+            n_components_per_dim = n_components_curr // n_targets
 
             # We convert the multi-d Gaussian mixture into its chain rule
             # decomposition so that we can use the same evaluation
@@ -331,12 +332,13 @@ class GenerativeRegressor(object):
             if not types.any():
                 mus = params[:, 0::2]
                 sigmas = params[:, 1::2]
-                l_probs = np.empty((len(types), n_dists_per_dim, n_targets))
-                weights_s = weights[:, :n_dists_per_dim]
+                l_probs = np.empty(
+                    (len(types), n_components_per_dim, n_targets))
+                weights_s = weights[:, :n_components_per_dim]
 
                 # We get the logpdf of every component for every point
                 for i in range(n_targets):
-                    for j in range(n_dists_per_dim):
+                    for j in range(n_components_per_dim):
                         l_probs[:, j, i] = norm.logpdf(
                             y[:, i], mus[:, i], sigmas[:, i])
 
@@ -350,9 +352,9 @@ class GenerativeRegressor(object):
                 # We finish computing the different parts of the formula,
                 # and convert from log space
                 diffs = np.empty_like(p_excluded)
-                for i in range(n_dists_per_dim):
+                for i in range(n_components_per_dim):
                     inner_diff = []
-                    for j in range(n_dists_per_dim):
+                    for j in range(n_components_per_dim):
                         inner_diff.append(
                             weights_s[:, j:j + 1, np.newaxis] *
                             np.exp(p_excluded[:, i:i + 1, :] -
@@ -365,9 +367,9 @@ class GenerativeRegressor(object):
                 weights = final_w.reshape(len(types), -1, order='F')
 
             # We assume that every dimension is predicted with the same dists
-            sizes = np.full((len(types), n_targets), n_dists_per_dim)
+            sizes = np.full((len(types), n_targets), n_components_per_dim)
             size_concatenated = (
-                    weights.shape[1] + n_dists_curr + params.shape[1])
+                    weights.shape[1] + n_components_curr + params.shape[1])
             step = (size_concatenated + n_targets) // n_targets
             mixture_y_pred = np.empty(
                 (len(types), n_targets + size_concatenated))
@@ -375,16 +377,16 @@ class GenerativeRegressor(object):
             mixture_y_pred[:, 0::step] = sizes
 
             offset = 1
-            for i in range(offset, n_dists_per_dim + offset):
+            for i in range(offset, n_components_per_dim + offset):
                 mixture_y_pred[:, i::step] = \
-                    weights[:, i - offset::n_dists_per_dim]
+                    weights[:, i - offset::n_components_per_dim]
 
-            offset += n_dists_per_dim
-            for i in range(offset, n_dists_per_dim + offset):
+            offset += n_components_per_dim
+            for i in range(offset, n_components_per_dim + offset):
                 mixture_y_pred[:, i::step] = \
-                    types[:, i - offset::n_dists_per_dim]
+                    types[:, i - offset::n_components_per_dim]
 
-            offset += n_dists_per_dim
+            offset += n_components_per_dim
             for i in range(offset, params.shape[1] // n_targets + offset):
                 mixture_y_pred[:, i::step] = \
                     params[:, i - offset::params.shape[1] // n_targets]
@@ -407,15 +409,16 @@ class GenerativeRegressor(object):
                     dists = reg.predict(X)
 
                 weights, types, params = dists
-                n_dists_curr = len(types)
+                n_components_curr = len(types)
                 try:
-                    types = [distributions_dict[type_name] for type_name in types]
+                    types = [
+                        distributions_dict[type_name] for type_name in types]
                 except KeyError:
                     message = ('One of the type names is not a valid Scipy '
                                'distribution')
                     raise AssertionError(message)
                 types = np.array([types, ] * len(weights))
-                assert n_dists_curr <= self.max_n_components
+                assert n_components_curr <= self.max_n_components
                 mixture.add(weights, types, params)
 
             mixture_y_pred = mixture.finalize(order)
@@ -538,9 +541,10 @@ class GenerativeRegressor(object):
 
                 weights, types, params = dists
 
-                n_dists = len(types)
+                n_components = len(types)
                 try:
-                    types = [distributions_dict[type_name] for type_name in types]
+                    types = [
+                        distributions_dict[type_name] for type_name in types]
                 except KeyError:
                     message = ('One of the type names is not a valid Scipy '
                                'distribution')
@@ -549,7 +553,7 @@ class GenerativeRegressor(object):
 
                 w = weights[0].ravel()
                 w = w / sum(w)
-                selected = rng.choice(n_dists, p=w)
+                selected = rng.choice(n_components, p=w)
                 dist = distributions_dispatcher(int(types[0, selected]))
 
                 # find which params to take: this is needed if we have a

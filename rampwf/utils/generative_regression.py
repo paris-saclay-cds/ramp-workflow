@@ -162,18 +162,18 @@ class MixtureYPred:
 
         Parameters
         ----------
-        weights : numpy array (n_timesteps, n_dist_per_dim)
+        weights : numpy array (n_timesteps, n_component_per_dim)
             the weights of the mixture for current dim
 
-        types : numpy array (n_timesteps, n_dist_per_dim)
+        types : numpy array (n_timesteps, n_component_per_dim)
             the types of the mixture for current dim
 
-        params : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist)
+        params : numpy array (n_timesteps, n_component_per_dim*n_param_per_dist)
             the params of the mixture for current dim, the order must
             correspond to the one of types
         """
-        n_dists_curr = types.shape[1]
-        sizes = np.full((len(types), 1), n_dists_curr)
+        n_components_curr = types.shape[1]
+        sizes = np.full((len(types), 1), n_components_curr)
         result = np.concatenate(
             (sizes, weights, types, params), axis=1)
         self.dims.append(result)
@@ -195,9 +195,9 @@ class MixtureYPred:
 
 
 def get_components(curr_idx, y_pred):
-    """
-    Extracts dimensions from the whole y_pred array to use them elsewhere
-    (e.g. to compute the pdf).
+    """Extracts dimensions from the whole y_pred array.
+
+    These dimensions can then be used elsewhere (e.g. to compute the pdf).
     It is meant to be called like so:
 
     curr_idx=0
@@ -216,29 +216,29 @@ def get_components(curr_idx, y_pred):
     curr_idx : int
         The current index in the whole y_pred after recovering the current
         dimension
-    n_dists : int
+    n_components : int
         The number of components in the mixture for the current dim
-    weights : numpy array (n_timesteps, n_dist_per_dim)
+    weights : numpy array (n_timesteps, n_component_per_dim)
         The weights of the mixture for current dim
-    types : numpy array (n_timesteps, n_dist_per_dim)
+    types : numpy array (n_timesteps, n_component_per_dim)
         The types of the mixture for current dim
     dists : list of objects extending AbstractDists
         A list of distributions to be used for current dim
-    paramss : numpy array (n_timesteps, n_dist_per_dim*n_param_per_dist)
+    paramss : numpy array (n_timesteps, n_component_per_dim*n_param_per_dist)
         The params of the mixture for current dim, that align with the
         other returned values
     """
-    n_dists = int(y_pred[0, curr_idx])
+    n_components = int(y_pred[0, curr_idx])
     curr_idx += 1
-    id_params_start = curr_idx + n_dists * 2
-    weights = y_pred[:, curr_idx:curr_idx + n_dists]
+    id_params_start = curr_idx + n_components * 2
+    weights = y_pred[:, curr_idx:curr_idx + n_components]
     assert (weights >= 0).all(), "Weights should all be positive."
     weights /= weights.sum(axis=1)[:, np.newaxis]
-    types = y_pred[:, curr_idx + n_dists:id_params_start]
+    types = y_pred[:, curr_idx + n_components:id_params_start]
     curr_idx = id_params_start
     dists = []
     paramss = []
-    for i in range(n_dists):
+    for i in range(n_components):
         non_empty_mask = ~np.array(types[:, i] == EMPTY_DIST)
         curr_types = types[:, i][non_empty_mask]
         curr_type = curr_types[0]
@@ -248,4 +248,4 @@ def get_components(curr_idx, y_pred):
         paramss.append(y_pred[:, curr_idx:end_params])
         curr_idx = end_params
 
-    return curr_idx, n_dists, weights, types, dists, paramss
+    return curr_idx, n_components, weights, types, dists, paramss
