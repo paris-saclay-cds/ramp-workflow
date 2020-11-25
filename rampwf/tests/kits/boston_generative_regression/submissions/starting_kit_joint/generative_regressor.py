@@ -32,7 +32,7 @@ class GenerativeRegressor(BaseEstimator):
         y_pred = self.reg.predict(X_array)
         residuals = y_array - y_pred
         # Estimate a single sigma from residual variance
-        if residuals.all() == 0:
+        if (residuals == 0).all():
             print('WARNING: all residuals are 0 in linear regressor.')
         self.sigmas = np.sqrt(
             (1 / (X_array.shape[0] - 1)) * np.sum(residuals ** 2, axis=0))
