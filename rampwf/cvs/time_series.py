@@ -95,10 +95,10 @@ class InsideRestart(object):
 
     An episode in a time series is defined by a sequence of consecutive times.
     They are identified by a restart column whose value is equal to 1 at the
-    start of each new episode. The term episode comes from the the episode of
-    an reinforcement learning task.
+    start of each new episode. The term episode comes from the episode of
+    a reinforcement learning task.
 
-    A split into a training and test set in done inside each episode and all
+    A split into a training and test set is done inside each episode and all
     the training sets (respectively the test sets) are concatenated into one
     big training set (respectively test set).
 
@@ -154,8 +154,20 @@ class InsideRestart(object):
 class PerRestart(object):
     """K-fold CV where folds are defined with the episodes.
 
-    Each time one of the episodes is the test and the rest form the
+    An episode in a time series is defined by a sequence of consecutive times.
+    They are identified by a restart column whose value is equal to 1 at the
+    start of each new episode. The term episode comes from the episode of
+    a reinforcement learning task.
+
+    For each split, one of the episodes is the test and the rest forms the
     training set.
+
+    Parameters
+    ----------
+    restart_name : string
+        Name of the restart column.
+    n_burn_in : int
+        Number of steps used as burn in.
     """
 
     def __init__(self, restart_name='restart', n_burn_in=0):
@@ -194,8 +206,13 @@ class PerRestart(object):
 class ShuffleRestart:
     """Shuffle split on the episodes.
 
+    An episode in a time series is defined by a sequence of consecutive times.
+    They are identified by a restart column whose value is equal to 1 at the
+    start of each new episode. The term episode comes from the episode of
+    a reinforcement learning task.
+
     For each split, ``n_episodes_in_test`` episodes are selected at random to
-    form a test set. The rest of the episodes form the training set.
+    form a test set. The rest of the episodes forms the training set.
 
     Parameters
     ----------
