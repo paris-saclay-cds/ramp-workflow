@@ -10,7 +10,7 @@ export PATH="$MINICONDA_PATH/bin:$PATH"
 conda update --yes --quiet conda
 
 # create the environment
-conda create --name testenv python=3
+conda create --name testenv python=3.8
 source activate testenv
 pip install -r requirements.txt --progress-bar off
 pip install sphinx sphinx_rtd_theme --progress-bar off
