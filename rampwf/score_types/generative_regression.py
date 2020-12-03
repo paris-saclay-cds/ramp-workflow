@@ -166,13 +166,12 @@ class MDLikelihoodRatio(BaseScoreType):
 
     def __init__(self, name='lr', precision=2,
                  min_likelihood=1.4867195147342979e-06,  # 5 sigma
-                 output_dim=None, verbose=False, plot=False, multivar=False):
+                 output_dim=None, verbose=False, multivar=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
         self.min_likelihood = min_likelihood
         self.verbose = verbose
-        self.plot = plot
         self.multivar = multivar
 
     def __call__(self, y_true, y_pred):
@@ -181,8 +180,8 @@ class MDLikelihoodRatio(BaseScoreType):
             multivar=self.multivar,
             min_likelihood=self.min_likelihood,
             output_dim=self.output_dim,
-            verbose=self.verbose or self.plot)
-        if self.verbose or self.plot:
+            verbose=self.verbose)
+        if self.verbose:
             nll_reg, log_lks = nll_reg_score(y_true, y_pred)
         else:
             nll_reg = nll_reg_score(y_true, y_pred)
@@ -291,13 +290,11 @@ class MDKSCalibration(BaseScoreType):
     minimum = 0.0
     maximum = 1.0
 
-    def __init__(self, name='ks', precision=2, output_dim=None, verbose=False,
-                 plot=False):
+    def __init__(self, name='ks', precision=2, output_dim=None, verbose=False):
         self.name = name
         self.precision = precision
         self.output_dim = output_dim
         self.verbose = verbose
-        self.plot = plot
 
     def __call__(self, y_true, y_pred):
         n_instances = len(y_true)

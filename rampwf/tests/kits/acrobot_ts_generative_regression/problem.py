@@ -23,7 +23,7 @@ score_types = [
     rw.score_types.MDLikelihoodRatio('lr', precision=2),
     rw.score_types.MDOutlierRate('or', precision=4),
     rw.score_types.MDR2('r2', precision=6),
-    rw.score_types.MDKSCalibration('ks', precision=4, plot=False),
+    rw.score_types.MDKSCalibration('ks', precision=4),
 ]
 # generate scores for each output dimension
 _score_types = copy.deepcopy(score_types)
