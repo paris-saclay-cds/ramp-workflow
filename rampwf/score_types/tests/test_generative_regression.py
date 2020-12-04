@@ -15,9 +15,9 @@ Y_PRED_1 = MixtureYPred().add(WEIGHTS, TYPES, PARAMS_1).finalize()
 Y_PRED_2 = MixtureYPred().add(WEIGHTS, TYPES, PARAMS_2).finalize()
 
 TYPES_UNI = np.array([[1.0], ] * 2)
-PARAMS_UNI_1 = np.array([[0.49, 0.52], ] * 2)
+PARAMS_UNI_1 = np.array([[0.49, 0.03], ] * 2)
 Y_PRED_UNI_1 = MixtureYPred().add(WEIGHTS, TYPES_UNI, PARAMS_UNI_1).finalize()
-PARAMS_UNI_2 = np.array([[0.45, 0.5], ] * 2)
+PARAMS_UNI_2 = np.array([[0.45, 0.05], ] * 2)
 Y_PRED_UNI_2 = MixtureYPred().add(WEIGHTS, TYPES_UNI, PARAMS_UNI_2).finalize()
 Y_TRUTH_1 = np.array([[0.5], [0.51]])
 
