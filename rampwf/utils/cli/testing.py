@@ -9,11 +9,31 @@ from ..testing import assert_submission
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
+def get_submissions(ctx, args, incomplete):
+    """Call-back for submission autocomplete.
+
+    Find the possible submission names and use them for autocompletion.
+    This only works if the submissions can be found in a 'submissions' folder.
+    """
+    submission_dir_path = os.path.join('.', 'submissions')
+    try:
+        all_submissions = [
+            f.name for f in os.scandir(submission_dir_path)
+            if f.is_dir() and f.name != '__pycache__']
+    except FileNotFoundError:
+        return []
+    else:
+        valid_submissions = [submission for submission in all_submissions
+                             if incomplete in submission]
+        return valid_submissions
+
+
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option('--submission', default='starting_kit', show_default=True,
               help='The kit to test. It should be located in the '
               '"submissions" folder of the starting kit. If "ALL", all '
-              'submissions in the directory will be tested.')
+              'submissions in the directory will be tested.',
+              autocompletion=get_submissions)
 @click.option('--ramp-kit-dir', default='.', show_default=True,
               help='Root directory of the ramp-kit to test.')
 @click.option('--ramp-data-dir', default='.', show_default=True,
