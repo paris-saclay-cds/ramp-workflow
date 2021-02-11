@@ -6,8 +6,7 @@ from scipy.stats import norm
 from sklearn.utils.validation import check_random_state
 
 from ..utils.importing import import_module_from_source
-from ..utils import distributions_dispatcher, MixtureYPred, distributions_dict
-from .. utils import get_n_params
+from ..utils import MixtureYPred, distributions_dict
 
 
 class GenerativeRegressor(object):
@@ -203,6 +202,28 @@ class GenerativeRegressor(object):
                 'or independent. It is {}'.format(decomposition))
 
         if decomposition is None:
+            # set the _n_targets attribute needed in the _sample method of
+            # BaseGenerativeRegressor. we use a property to prevent the
+            # attribute from being changed later and raise an informative error
+            if hasattr(reg, '_n_targets'):
+                raise AttributeError(
+                    'The _n_targets attribute is used internally by '
+                    'ramp-workflow and cannot be used. Please use another '
+                    'name for your attribute.')
+            n_targets = len(self.target_column_names)
+
+            def getter(self):
+                return n_targets
+
+            def setter(self, value):
+                raise AttributeError(
+                    'Cannot set attribute _n_targets as it is used internally '
+                    'by ramp-workflow. Please use another name for your '
+                    'attribute.')
+
+            generative_regressor.GenerativeRegressor._n_targets = property(
+                getter, setter)
+
             # return order for compatibility with autoregressive
             order = range(len(self.target_column_names))
             if restart is not None:
@@ -309,6 +330,7 @@ class GenerativeRegressor(object):
             weights, types, params = dists
 
             n_components_curr = len(types)
+
             try:
                 types = [distributions_dict[type_name] for type_name in types]
             except KeyError:
@@ -317,8 +339,7 @@ class GenerativeRegressor(object):
                 raise AssertionError(message)
             types = np.array([types, ] * len(weights))
 
-            assert n_components_curr <= self.max_n_components
-
+            assert n_components_curr <= self.max_n_components * y.shape[1]
             n_components_per_dim = n_components_curr // n_targets
 
             # We convert the multi-d Gaussian mixture into its chain rule
@@ -329,7 +350,7 @@ class GenerativeRegressor(object):
             # covariance matrices are considered for the components of the
             # multi-d Gaussian mixture, most of the work consists in computing
             # the weights of each 1d conditional Gaussian mixture,
-            if not types.any():
+            if not types.any() and not np.all(weights == 1):
                 mus = params[:, 0::2]
                 sigmas = params[:, 1::2]
                 l_probs = np.empty(
@@ -478,6 +499,7 @@ class GenerativeRegressor(object):
         y_sampled : numpy array, shape (1, n_targets)
             The sampled targets.
         """
+
         rng = check_random_state(random_state)
         regressors, order = trained_model
         decomposition = getattr(
@@ -486,34 +508,12 @@ class GenerativeRegressor(object):
         X_df, restart = self._check_restart(X_df)
 
         if decomposition is None:
-            X = X_df.values
-            # sample from the mutli-d Gaussian mixture
-            n_targets = len(self.target_column_names)
             reg = regressors[0]
+            X_df = X_df.values
             if restart is not None:
-                dists = reg.predict(X, restart)
+                sampled = reg.sample(X_df, restart=restart, rng=rng)
             else:
-                dists = reg.predict(X)
-
-            weights, types, params = dists
-            # the weights are all the same for each dimension: we keep only
-            # the ones of the first dimension
-            w_components = weights.reshape(n_targets, -1)[0]
-
-            # we convert the params mus and sigmas back to their shape
-            # (n_samples, n_targets, n_components) as it is then easier to
-            # retrieve the ones that we need.
-            all_mus = params[:, 0::2].reshape(1, n_targets, -1)
-            all_sigmas = params[:, 1::2].reshape(1, n_targets, -1)
-
-            # sample from the gaussian mixture
-            n_components = len(w_components)
-            selected_component = rng.choice(n_components, p=w_components)
-            mus = all_mus[0, :, selected_component]
-            sigmas = all_sigmas[0, :, selected_component]
-            y_sampled = rng.multivariate_normal(mus, np.diag(sigmas ** 2))
-            return y_sampled[np.newaxis, :]
-
+                sampled = reg.sample(X_df, rng=rng)
         else:  # autoregressive or independent decomposition.
             n_features_init = X_df.shape[1]
 
@@ -535,36 +535,11 @@ class GenerativeRegressor(object):
                     X_used = X[:, :n_features_init + j]
 
                 if restart is not None:
-                    dists = reg.predict(X_used, restart)
+                    samples = reg.sample(X_used, restart=restart, rng=rng)
                 else:
-                    dists = reg.predict(X_used)
-
-                weights, types, params = dists
-
-                n_components = len(types)
-                try:
-                    types = [
-                        distributions_dict[type_name] for type_name in types]
-                except KeyError:
-                    message = ('One of the type names is not a valid Scipy '
-                               'distribution')
-                    raise AssertionError(message)
-                types = np.array([types, ] * len(weights))
-
-                w = weights[0].ravel()
-                w = w / sum(w)
-                selected = rng.choice(n_components, p=w)
-                dist = distributions_dispatcher(int(types[0, selected]))
-
-                # find which params to take: this is needed if we have a
-                # mixture of different distributions with different number of
-                # parameters
-                sel_id = 0
-                for k in range(selected):
-                    curr_type = distributions_dispatcher(int(types[0, k]))
-                    sel_id += get_n_params(curr_type)
-                y_sampled[j] = dist.rvs(
-                    *params[0, sel_id:sel_id + get_n_params(dist)])
+                    samples = reg.sample(X_used, rng=rng)
+                y_sampled[j] = samples
 
             y_sampled = np.array(y_sampled)[np.argsort(order)]
-            return y_sampled[np.newaxis, :]
+            sampled = y_sampled[np.newaxis, :]
+        return sampled

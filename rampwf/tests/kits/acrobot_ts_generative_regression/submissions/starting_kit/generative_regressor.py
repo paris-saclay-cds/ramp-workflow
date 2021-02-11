@@ -1,9 +1,9 @@
-from sklearn.base import BaseEstimator
+from rampwf.utils import BaseGenerativeRegressor
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
 
-class GenerativeRegressor(BaseEstimator):
+class GenerativeRegressor(BaseGenerativeRegressor):
     def __init__(self, max_n_components, target_dim):
         """
         Parameters
@@ -13,7 +13,7 @@ class GenerativeRegressor(BaseEstimator):
         target_dim : int
             The index of the target column to be predicted.
         """
-        pass
+        self.decomposition = 'autoregressive'
 
     def fit(self, X_array, y_array):
         """Linear regression + residual sigma.
