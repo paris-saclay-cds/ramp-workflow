@@ -23,6 +23,7 @@ from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
 from .soft_accuracy import SoftAccuracy
+from .r2 import R2
 
 __all__ = [
     'Accuracy',
@@ -59,4 +60,5 @@ __all__ = [
     'ROCAUC',
     'SCP',
     'SoftAccuracy',
+    'R2'
 ]

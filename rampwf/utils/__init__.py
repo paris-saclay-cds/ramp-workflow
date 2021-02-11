@@ -6,7 +6,8 @@ from .combine import get_score_cv_bags
 from .importing import import_module_from_source
 from .generative_regression import MAX_MIXTURE_PARAMS, distributions_dispatcher
 from .generative_regression import distributions_dict, get_components
-from .generative_regression import EMPTY_DIST, get_n_params, MixtureYPred
+from .generative_regression import MixtureYPred, EMPTY_DIST, get_n_params
+from .generative_regression import BaseGenerativeRegressor
 
 __all__ = ['assert_cv',
            'assert_data',
@@ -24,5 +25,6 @@ __all__ = ['assert_cv',
            'get_components',
            'EMPTY_DIST',
            'get_n_params',
-           'MixtureYPred'
+           'MixtureYPred',
+           'BaseGenerativeRegressor'
            ]
