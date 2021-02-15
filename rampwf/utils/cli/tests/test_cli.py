@@ -16,8 +16,11 @@ def test_get_submissions(monkeypatch):
     monkeypatch.chdir(iris_kit_path)
 
     assert ['starting_kit'] == get_submissions(None, None, 'star')
-    submissions = get_submissions(None, None, '')
-    assert ['starting_kit', 'random_forest_10_10'] == submissions
+    completed_submissions = get_submissions(None, None, '')
+    true_submissions = ['starting_kit', 'random_forest_10_10']
+    # check ignoring order
+    assert len(completed_submissions) == len(true_submissions)
+    assert set(completed_submissions) == set(true_submissions)
 
 
 def test_bagged_table_and_headers():
