@@ -10,10 +10,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 def get_submissions(ctx, args, incomplete):
-    """Call-back for submission autocomplete.
+    """Callback function for submission autocomplete.
 
     Find the possible submission names and use them for autocompletion.
     This only works if the submissions can be found in a 'submissions' folder.
+
+    See click documentation for more information on the signature of the
+    function.
     """
     submission_dir_path = os.path.join('.', 'submissions')
     try:
