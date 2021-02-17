@@ -3,10 +3,24 @@ import os
 import pandas as pd
 import numpy as np
 
+from rampwf.utils.cli.testing import get_submissions
 from rampwf.utils.cli.show import _bagged_table_and_headers
 from rampwf.utils.cli.show import _mean_table_and_headers
 from rampwf.utils.cli.show import _load_score_submission
 PATH = os.path.dirname(__file__)
+
+
+def test_get_submissions(monkeypatch):
+    iris_kit_path = os.path.join(
+        PATH, '..', '..', '..', 'tests', 'kits', 'iris')
+    monkeypatch.chdir(iris_kit_path)
+
+    assert ['starting_kit'] == get_submissions(None, None, 'star')
+    completed_submissions = get_submissions(None, None, '')
+    true_submissions = ['starting_kit', 'random_forest_10_10']
+    # check ignoring order
+    assert len(completed_submissions) == len(true_submissions)
+    assert set(completed_submissions) == set(true_submissions)
 
 
 def test_bagged_table_and_headers():
