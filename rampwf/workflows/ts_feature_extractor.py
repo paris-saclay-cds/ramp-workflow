@@ -72,7 +72,7 @@ def extend_train_is(X, train_is, n_burn_in, restart_name):
         for b, bound in enumerate(episode_starts_y):
             if bound in train_is:
                 extended_train_is += list(
-                    range(episode_starts_X[b], episode_starts_X[b+1]))
+                    range(episode_starts_X[b], episode_starts_X[b + 1]))
 
         return extended_train_is
 
