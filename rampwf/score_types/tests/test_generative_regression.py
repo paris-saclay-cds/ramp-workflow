@@ -47,7 +47,7 @@ def test_metrics():
     assert mdr(Y_TRUTH_1, Y_PRED_1) == pytest.approx(-81, 10e-5)
 
     mdks = MDKSCalibration()
-    assert mdks(Y_TRUTH_1, Y_PRED_UNI_1) == pytest.approx(1/3, 10e-5)
+    assert mdks(Y_TRUTH_1, Y_PRED_UNI_1) == pytest.approx(1 / 3, 10e-5)
 
     mdout = MDOutlierRate()
     assert mdout(Y_TRUTH_1, Y_PRED_UNI_2) == pytest.approx(0.5, 10e-5)

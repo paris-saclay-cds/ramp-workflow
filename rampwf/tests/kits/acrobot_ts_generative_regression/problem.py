@@ -6,7 +6,8 @@ import pandas as pd
 import rampwf as rw
 
 problem_title = 'Acrobot system identification'
-_max_components = 100  # max number of mixture components in generative regressors
+# set max number of mixture components in generative regressors
+_max_components = 100
 
 _target_column_observation_names = [
     'theta_1', 'theta_2', 'theta_dot_1', 'theta_dot_2']

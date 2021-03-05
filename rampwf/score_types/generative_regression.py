@@ -128,8 +128,8 @@ class MDNegativeLogLikelihood(BaseScoreType):
             else:
                 return log_lks.sum() / n_instances.sum()
         elif not self.multivar:
-            return np.sum(log_lks[self.output_dim]) / \
-                   n_instances[self.output_dim]
+            return (np.sum(log_lks[self.output_dim]) /
+                    n_instances[self.output_dim])
         else:
             print("Non supported when doin multivariate")
 
@@ -153,8 +153,7 @@ class MDOutlierRate(BaseScoreType):
         log_lks, n_instances = get_likelihoods(
             y_true, y_pred, self.min_likelihood)
         if self.output_dim is None:
-            return 1 - n_instances.sum() / \
-                   (y_true.shape[0] * y_true.shape[1])
+            return 1 - n_instances.sum() / (y_true.shape[0] * y_true.shape[1])
         else:
             return 1 - n_instances[self.output_dim] / y_true.shape[1]
 

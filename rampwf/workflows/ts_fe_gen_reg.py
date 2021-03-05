@@ -27,9 +27,9 @@ class TSFEGenReg:
         the (future) labels, so it is technically possible to cheat.
         We developed a randomized technique to safeguard against this.
         The idea is that we first run `transform` on the original `X_ds`,
-        obtaining the feature matrix `X_array`. Then we randomly change elements
-        of `X_ds` after`n_burn_in + check_index`, and then check if the
-        features in the new`X_check_array` change *before*
+        obtaining the feature matrix `X_array`. Then we randomly change
+        elements of `X_ds` after`n_burn_in + check_index`, and then check if
+        the features in the new`X_check_array` change *before*
         `n_burn_in + check_index` wrt `X_array`.
         If they do, the submission is illegal.
         If they don't, it is possible that the user carefully avoided looking

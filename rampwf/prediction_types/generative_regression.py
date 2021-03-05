@@ -24,12 +24,14 @@ def _regression_init(self, y_pred=None, y_true=None, n_samples=None,
             y_true = y_true[fold_is]
         self.y_pred = np.array(y_true)
     elif n_samples is not None:
-        # for each dim, 1 for the nb of dists (which is max self.max_n_components),
+        # for each dim, 1 for the nb of dists
+        # (which is max self.max_n_components),
         # then nb_dists for weights, nb of dists for types
         # and lastly nb of dists*2 for dist parameters
         shape = (
             n_samples,
-            self.n_columns * (1 + (2 + MAX_MIXTURE_PARAMS) * self.max_n_components))
+            self.n_columns * (
+                1 + (2 + MAX_MIXTURE_PARAMS) * self.max_n_components))
         self.y_pred = np.empty(shape, dtype=float)
         self.y_pred.fill(np.nan)
     else:
@@ -137,13 +139,13 @@ def make_generative_regression(max_n_components, label_names=None):
     Predictions = type(
         'GenerativeRegressionGaussian',
         (BasePrediction,),
-        {'label_names'       : label_names,
-         'max_n_components'  : max_n_components,
-         'n_columns'         : len(label_names),
-         'n_columns_true'    : len(label_names),
-         '__init__'          : _regression_init,
-         'combine'           : _combine,
-         'valid_indexes'     : _valid_indexes,
+        {'label_names': label_names,
+         'max_n_components': max_n_components,
+         'n_columns': len(label_names),
+         'n_columns_true': len(label_names),
+         '__init__': _regression_init,
+         'combine': _combine,
+         'valid_indexes': _valid_indexes,
          'set_valid_in_train': set_valid_in_train
          })
     return Predictions

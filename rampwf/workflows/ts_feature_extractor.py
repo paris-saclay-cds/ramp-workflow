@@ -79,8 +79,8 @@ def extend_train_is(X, train_is, n_burn_in, restart_name):
 
 class TimeSeriesFeatureExtractor(object):
     """
-    restart_name should be None, or a one item list containing 1 on the timestep
-    where time continuity is broken (e.g. a system restart)
+    restart_name should be None, or a one item list containing 1 on the
+    timestep where time continuity is broken (e.g. a system restart)
     """
     def __init__(self, check_sizes=None, check_indexs=None,
                  restart_name=None, n_burn_in=0, n_lookahead=1,
@@ -135,7 +135,7 @@ class TimeSeriesFeatureExtractor(object):
                 X_train = X.isel(time=extended_train_is)
             y_train = y_array[train_is]
             ts_fe.fit(X_train, y_train)
-        except (AttributeError, IndexError, ValueError) as FitError:
+        except (AttributeError, IndexError, ValueError):
             pass
         return ts_fe
 

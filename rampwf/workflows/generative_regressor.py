@@ -390,7 +390,7 @@ class GenerativeRegressor(object):
             # We assume that every dimension is predicted with the same dists
             sizes = np.full((len(types), n_targets), n_components_per_dim)
             size_concatenated = (
-                    weights.shape[1] + n_components_curr + params.shape[1])
+                weights.shape[1] + n_components_curr + params.shape[1])
             step = (size_concatenated + n_targets) // n_targets
             mixture_y_pred = np.empty(
                 (len(types), n_targets + size_concatenated))

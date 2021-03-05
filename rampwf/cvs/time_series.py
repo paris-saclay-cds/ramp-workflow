@@ -85,8 +85,8 @@ def fold_to_str(idxs):
     boundaries = np.insert(boundaries, 0, -1)
     boundaries = np.append(boundaries, len(idxs) - 1)
     s = ''
-    for l, u in zip(boundaries[:-1], boundaries[1:]):
-        s += '{}..{}, '.format(idx_array[l + 1], idx_array[u])
+    for lb, ub in zip(boundaries[:-1], boundaries[1:]):
+        s += '{}..{}, '.format(idx_array[lb + 1], idx_array[ub])
     return s
 
 
@@ -112,7 +112,6 @@ class InsideRestart(object):
         if self.cv_method is None:
             self.cv_method = KFold(
                 n_splits=3, random_state=None, shuffle=False).split
-
 
     def get_cv(self, X_df, y):
         episode_bounds = list(np.where(X_df[self.restart_name])[0])

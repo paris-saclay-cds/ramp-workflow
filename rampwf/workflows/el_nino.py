@@ -20,9 +20,8 @@ from .regressor import Regressor
 
 class ElNino(object):
     def __init__(self, check_sizes, check_indexs,
-        restart_name=None, n_burn_in=0, n_lookahead=1,
-        workflow_element_names=[
-            'ts_feature_extractor', 'regressor']):
+                 restart_name=None, n_burn_in=0, n_lookahead=1,
+                 workflow_element_names=['ts_feature_extractor', 'regressor']):
         self.element_names = workflow_element_names
         self.ts_feature_extractor_workflow = TimeSeriesFeatureExtractor(
             check_sizes, check_indexs, restart_name, n_burn_in, n_lookahead,
