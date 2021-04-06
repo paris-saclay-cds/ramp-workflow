@@ -2,6 +2,7 @@
 # License: BSD 3 clause
 import numpy as np
 from sklearn.model_selection import KFold, ShuffleSplit
+from abc import ABCMeta
 
 
 class TimeSeries(object):
@@ -90,7 +91,7 @@ def fold_to_str(idxs):
     return s
 
 
-class InsideRestart(object):
+class InsideEpisode(object):
     """CV inside each of the episodes.
 
     An episode in a time series is defined by a sequence of consecutive times.
@@ -114,17 +115,19 @@ class InsideRestart(object):
                 n_splits=3, random_state=None, shuffle=False).split
 
     def get_cv(self, X_df, y):
-        episode_bounds = list(np.where(X_df[self.restart_name])[0])
-        if len(episode_bounds) == 0 or episode_bounds[0] != 0:
-            episode_bounds.insert(0, 0)
-        episode_bounds.append(len(y))
-        print('episode bounds: {}'.format(episode_bounds))
-        n_episodes = len(episode_bounds) - 1  # The number of episodes
+        episode_starts = list(np.where(X_df[self.restart_name])[0])
+        if len(episode_starts) == 0 or episode_starts[0] != 0:
+            episode_starts.insert(0, 0)
+        print('episode starts: {}'.format(episode_starts))
+        n_episodes = len(episode_starts)
+        # we add the start index of the virtual next episode to ease
+        # the computation of the folds
+        episode_starts.append(len(y))
         episode_list = []
         ranges = []
         for episode_id in range(n_episodes + 1):
             episode_range = list(range(
-                episode_bounds[episode_id], episode_bounds[episode_id + 1]))
+                episode_starts[episode_id], episode_starts[episode_id + 1]))
             ranges.append(np.array(episode_range))
             episode_list.append(self.cv_method(episode_range, episode_range))
         n_cv = len(list(self.cv_method(range(len(X_df)), range(len(X_df)))))
@@ -150,7 +153,77 @@ class InsideRestart(object):
             yield (train_is, test_is)
 
 
-class PerRestart(object):
+class PerEpisode(metaclass=ABCMeta):
+    """Abstract CV where folds are defined with the episodes.
+
+    An episode in a time series is defined by a sequence of consecutive times.
+    They are identified by a restart column whose value is equal to 1 at the
+    start of each new episode. The term episode comes from the episode of
+    a reinforcement learning task.
+
+    For each split, some episodes are in the training and some others in the
+    test. Children should implement a get_splits(n_episodes) function and
+    initialize restart_name and n_burn_in.
+    """
+
+    def _get_episode_starts(self, X_df):
+        """Episode start indices without burn-in samples.
+
+        List of episode start indices if burn-in samples were first removed.
+        This is used to slice the ground truth target array y.
+
+        Parameters
+        ----------
+        X_df : pandas dataframe
+            Contains a restart_name column with values equal to 1 for the
+            start of an episode, 0 otherwise.
+
+        Return
+        ------
+        episode_starts : numpy array
+            Episode bound indices
+        """
+        episode_starts = np.where(X_df[self.restart_name])[0]
+        episode_starts = list(episode_starts)
+        if len(episode_starts) == 0 or episode_starts[0] != 0:
+            episode_starts.insert(0, 0)
+
+        # align starts to take burn in into account
+        if self.n_burn_in > 0:
+            align = np.arange(0, len(episode_starts)) * self.n_burn_in
+            episode_starts[1:] = episode_starts[1:] - align[1:]
+
+        print('episode starts: {}'.format(episode_starts))
+        return episode_starts
+
+    def get_cv(self, X_df, y):
+        episode_starts = self._get_episode_starts(X_df)
+        n_episodes = len(episode_starts)
+        splits = self.get_splits(n_episodes)
+        # we add the start index of the virtual next episode to ease
+        # the computation of the folds
+        episode_starts.append(len(y))
+        for fold_i, (train_idx, test_idx) in enumerate(splits):
+            # we sort so that the X samples extended with the burn in are
+            # aligned with the y samples.
+            # XXX it would be better to fix this when building
+            # extended_train_is in the workflows
+            train_idx.sort()
+            test_idx.sort()
+            train_is = []
+            test_is = []
+            for i in train_idx:
+                train_is += (
+                    list(range(episode_starts[i], episode_starts[i + 1])))
+            for i in test_idx:
+                test_is += (
+                    list(range(episode_starts[i], episode_starts[i + 1])))
+            print('CV fold {}: train {} valid {}'.format(
+                fold_i, fold_to_str(train_is), fold_to_str(test_is)))
+            yield (train_is, test_is)
+
+
+class KFoldPerEpisode(PerEpisode):
     """K-fold CV where folds are defined with the episodes.
 
     An episode in a time series is defined by a sequence of consecutive times.
@@ -173,36 +246,12 @@ class PerRestart(object):
         self.restart_name = restart_name
         self.n_burn_in = n_burn_in
 
-    def get_cv(self, X_df, y):
-        episode_bounds = np.where(X_df[self.restart_name])[0]
-        episode_bounds = list(episode_bounds)
-        if len(episode_bounds) == 0 or episode_bounds[0] != 0:
-            episode_bounds.insert(0, 0)
-
-        # align bounds to take burn in into account
-        if self.n_burn_in > 0:
-            align = np.arange(0, len(episode_bounds)) * self.n_burn_in
-            episode_bounds[1:] = episode_bounds[1:] - align[1:]
-        episode_bounds.append(len(y))
-        print('episode bounds: {}'.format(episode_bounds))
-        n_episodes = len(episode_bounds) - 1  # The number of episodes
+    def get_splits(self, n_episodes):
         k_fold = KFold(n_splits=n_episodes, shuffle=False)
-        for fold_i, (train_idx, test_idx) in enumerate(k_fold.split(
-                np.arange(n_episodes))):
-            train_is = []
-            test_is = []
-            for i in train_idx:
-                train_is += (
-                    list(range(episode_bounds[i], episode_bounds[i + 1])))
-            for i in test_idx:
-                test_is += (
-                    list(range(episode_bounds[i], episode_bounds[i + 1])))
-            print('CV fold {}: train {} valid {}'.format(
-                fold_i, fold_to_str(train_is), fold_to_str(test_is)))
-            yield (train_is, test_is)
+        return k_fold.split(np.arange(n_episodes))
 
 
-class ShuffleRestart:
+class ShufflePerEpisode(PerEpisode):
     """Shuffle split on the episodes.
 
     An episode in a time series is defined by a sequence of consecutive times.
@@ -236,38 +285,34 @@ class ShuffleRestart:
         self.n_episodes_in_test = n_episodes_in_test
         self.random_state = random_state
 
-    def get_cv(self, X_df, y):
-        episode_bounds = np.where(X_df[self.restart_name])[0]
-        episode_bounds = list(episode_bounds)
-        if len(episode_bounds) == 0 or episode_bounds[0] != 0:
-            episode_bounds.insert(0, 0)
-
-        # align bounds to take burn in into account
-        if self.n_burn_in > 0:
-            align = np.arange(0, len(episode_bounds)) * self.n_burn_in
-            episode_bounds[1:] = episode_bounds[1:] - align[1:]
-        episode_bounds.append(len(y))
-        print('episode bounds: {}'.format(episode_bounds))
-        n_episodes = len(episode_bounds) - 1  # The number of episodes
+    def get_splits(self, n_episodes):
         shuffle_cv = ShuffleSplit(
             n_splits=self.n_splits, test_size=self.n_episodes_in_test,
             random_state=self.random_state)
-        for fold_i, (train_idx, test_idx) in enumerate(shuffle_cv.split(
-                np.arange(n_episodes))):
-            # we sort so that the X samples extended with the burn in are
-            # aligned with the y samples.
-            # XXX it would be better to fix this when building
-            # extended_train_is in the workflows
-            train_idx.sort()
-            test_idx.sort()
-            train_is = []
-            test_is = []
-            for i in train_idx:
-                train_is += (
-                    list(range(episode_bounds[i], episode_bounds[i + 1])))
-            for i in test_idx:
-                test_is += (
-                    list(range(episode_bounds[i], episode_bounds[i + 1])))
-            print('CV fold {}: train {} valid {}'.format(
-                fold_i, fold_to_str(train_is), fold_to_str(test_is)))
-            yield (train_is, test_is)
+        return shuffle_cv.split(np.arange(n_episodes))
+
+
+class RollingPerEpisode(PerEpisode):
+    """Rolling split on the episodes.
+
+    An episode in a time series is defined by a sequence of consecutive times.
+    They are identified by a restart column whose value is equal to 1 at the
+    start of each new episode. The term episode comes from the episode of
+    a reinforcement learning task.
+
+    For split j, the training episodes are 0..j, and the test episode is j+1.
+
+    Parameters
+    ----------
+    restart_name : string
+        Name of the restart column.
+    n_burn_in : int
+        Number of steps used as burn in.
+    """
+
+    def __init__(self, restart_name='restart', n_burn_in=0):
+        self.restart_name = restart_name
+        self.n_burn_in = n_burn_in
+
+    def get_splits(self, n_episodes):
+        return [(np.arange(j), np.array([j])) for j in range(1, n_episodes)]

@@ -35,7 +35,7 @@ for o_i, o in enumerate(_target_column_observation_names):
         score_type.output_dim = o_i
     score_types += dim_score_types
 
-cv = rw.cvs.PerRestart(restart_name=_restart_name)
+cv = rw.cvs.KFoldPerEpisode(restart_name=_restart_name)
 get_cv = cv.get_cv
 
 workflow = rw.workflows.TSFEGenReg(
