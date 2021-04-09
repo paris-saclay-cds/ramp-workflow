@@ -341,29 +341,40 @@ class BaseGenerativeRegressor(BaseEstimator):
 
         Returns
         -------
-        y_sampled : numpy array, shape (1, n_targets)
+        y_sampled : numpy array, shape (1, n_targets) if decomposition is not
+        None, shape (n_samples, n_targets) if decomposition is None
             The sampled targets. n_targets is equal to 1 if decomposition is
             not None.
         """
         if self.decomposition is None:
             weights, types, params = distribution
             # the weights are all the same for each dimension: we keep only
-            # the ones of the first dimension
-            w_components = weights.reshape(self._n_targets, -1)[0]
+            # the ones of the first dimension, the final shape is
+            # (n_samples, n_components)
+            n_samples = weights.shape[0]
+            weights = weights.reshape(self._n_targets, n_samples, -1)[0]
 
             # we convert the params mus and sigmas back to their shape
             # (n_samples, n_targets, n_components) as it is then easier to
             # retrieve the ones that we need.
-            all_mus = params[:, 0::2].reshape(1, self._n_targets, -1)
-            all_sigmas = params[:, 1::2].reshape(1, self._n_targets, -1)
+            all_mus = params[:, 0::2].reshape(n_samples, self._n_targets, -1)
+            all_sigmas = params[:, 1::2].reshape(
+                n_samples, self._n_targets, -1)
 
             # sample from the gaussian mixture
-            n_components = len(w_components)
-            selected_component = rng.choice(n_components, p=w_components)
-            mus = all_mus[0, :, selected_component]
-            sigmas = all_sigmas[0, :, selected_component]
-            y_sampled = rng.multivariate_normal(mus, np.diag(sigmas ** 2))
-            y_sampled = y_sampled[np.newaxis, :]
+            weights /= np.sum(weights, axis=1)[:, np.newaxis]
+            # vectorize sampling of one component for each sample
+            cum_weights = weights.cumsum(axis=1)
+            sampled_components = (
+                (cum_weights > rng.rand(n_samples)[:, np.newaxis])
+                .argmax(axis=1))
+            # get associated means and sigmas
+            all_ind = np.arange(n_samples)
+            sampled_means = all_mus[all_ind, :, sampled_components]
+            sampled_sigmas = all_sigmas[all_ind, :, sampled_components]
+
+            y_sampled = rng.randn(n_samples, self._n_targets) * sampled_sigmas
+            y_sampled += sampled_means
         else:  # autoregressive or independent decomposition.
             weights, types, params = distribution
 

@@ -211,11 +211,9 @@ class TSFEGenReg:
         return y_pred_mixture
 
     def step(self, trained_model, X_df, random_state=None):
-        """Sample next observation.
+        """Sample observations.
 
-        Sample one target observation from the predicted distribution obtained
-        with the history X_df. Note that this only samples one target
-        observation and not one target observation for each timestep of X_df.
+        Sample from the predicted distribution obtained with the history X_df.
 
         Parameters
         ----------
@@ -223,12 +221,10 @@ class TSFEGenReg:
             Trained model returned by the train_submission method.
 
         X_df : pandas dataframe
-            History used to sample the target observation.
+            History used to sample the target observations.
 
             Each sample of X_df is assumed to contain one observation and one
             action, the action being the one selected after the observation.
-            The action of the last row is the one for which we want to sample
-            the next observation.
 
         random_state : int, RandomState instance or None, default=None
             If int, random_state is the seed used by the random number
@@ -238,19 +234,13 @@ class TSFEGenReg:
 
         Return
         ------
-        sample_df : pandas dataframe, shape (1, n_targets)
+        sample_df : pandas dataframe, shape (n_samples, n_targets)
             The next observation.
         """
         fe, reg = trained_model
 
         X_df_tf = self.feature_extractor_workflow.test_submission(
             fe, X_df[self.cols_for_extractor])
-
-        # depending on the feature extractor, more than one extracted state can
-        # be returned in X_df_tf. here we only sample for the next
-        # timestep, i.e. from the last state built with the feature extractor.
-        # we use [-1] so that a pandas DataFrame is returned and not a Series
-        X_df_tf = X_df_tf.iloc[[-1]]
 
         sampled = self.regressor_workflow.step(reg, X_df_tf, random_state)
         sampled_df = pd.DataFrame(
