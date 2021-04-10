@@ -63,7 +63,7 @@ def assert_score_types(ramp_kit_dir='.'):
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='submissions',
                       submission='starting_kit', is_pickle=False,
-                      save_output=False, retrain=False):
+                      save_output=False, retrain=False, bagging=True):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -83,6 +83,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     retrain : bool, default is False
         Whether to train the model on the full training set and test on the
         test set.
+    bagging : bool, default is True
+        Whether to compute and print CV bagging results.
     """
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
@@ -101,10 +103,11 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         if not os.path.exists(training_output_path):
             os.makedirs(training_output_path)
 
-    # saving predictions for CV bagging after the CV loop
-    predictions_valid_list = []
-    predictions_test_list = []
     df_scores_list = []
+    # saving predictions for CV bagging after the CV loop
+    if bagging:
+        predictions_valid_list = []
+        predictions_test_list = []
 
     for fold_i, fold in enumerate(cv):
         fold_output_path = ''
@@ -127,10 +130,11 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         df_scores_rounded = round_df_scores(df_scores, score_types)
         print_df_scores(df_scores_rounded, indent='\t')
 
-        # saving predictions for CV bagging after the CV loop
         df_scores_list.append(df_scores)
-        predictions_valid_list.append(predictions_valid)
-        predictions_test_list.append(predictions_test)
+        # saving predictions for CV bagging after the CV loop
+        if bagging:
+            predictions_valid_list.append(predictions_valid)
+            predictions_test_list.append(predictions_test)
 
     print_title('----------------------------')
     print_title('Mean CV scores')
@@ -147,11 +151,13 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             problem, submission_path, X_train, y_train, X_test, y_test,
             score_types, is_pickle, save_output, training_output_path,
             ramp_data_dir)
-    bag_submissions(
-        problem, cv, y_train, y_test, predictions_valid_list,
-        predictions_test_list, training_output_path,
-        ramp_data_dir=ramp_data_dir, score_type_index=None,
-        save_output=save_output)
+
+    if bagging:
+        bag_submissions(
+            problem, cv, y_train, y_test, predictions_valid_list,
+            predictions_test_list, training_output_path,
+            ramp_data_dir=ramp_data_dir, score_type_index=None,
+            save_output=save_output)
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
