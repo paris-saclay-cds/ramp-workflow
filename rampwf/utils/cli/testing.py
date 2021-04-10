@@ -61,10 +61,13 @@ def get_submissions(ctx, args, incomplete):
 @click.option('--retrain', is_flag=True,
               help='Specify this flag to retrain the submission on the full '
               'training set after the CV loop.')
+@click.option('--no-bagging', is_flag=True,
+              help='Specify this flag to not compute CV bagging results.')
 @click.option('--ignore-warning', is_flag=True,
               help='Will filters all warning and avoid to print them.')
 def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
-         notebook, quick_test, pickle, save_output, retrain, ignore_warning):
+         notebook, quick_test, pickle, save_output, retrain, no_bagging,
+         ignore_warning):
     """Test a submission and/or a notebook before to submit on RAMP studio."""
     if quick_test:
         os.environ['RAMP_TEST_MODE'] = '1'
@@ -89,7 +92,8 @@ def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
                           submission=sub,
                           is_pickle=pickle,
                           save_output=save_output,
-                          retrain=retrain)
+                          retrain=retrain,
+                          bagging=not no_bagging)
 
     if notebook:
         assert_notebook(ramp_kit_dir=ramp_kit_dir)
