@@ -8,6 +8,9 @@ and this project adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.
 
 [Unreleased]
 ============
+
+0.4.0 - 2020-04-14
+==================
 Added
 -----
 - Autocompletion for submission names (`#261 <https://github.com/paris-saclay-cds/ramp-workflow/pull/261>`_)
