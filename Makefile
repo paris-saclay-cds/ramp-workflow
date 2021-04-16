@@ -19,7 +19,7 @@ test-all:
 test: test-all
 
 code-analysis:
-	flake8 . --ignore=E501,E211,E265 | grep -v __init__ | grep -v external
+	flake8 .
 
 upload-pypi:
 	python setup.py sdist bdist_wheel && twine upload dist/*

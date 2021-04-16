@@ -20,7 +20,7 @@ import sphinx_rtd_theme
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('sphinxext'))
-from github_link import make_linkcode_resolve
+from github_link import make_linkcode_resolve  # noqa
 
 # -- General configuration ------------------------------------------------
 
@@ -45,8 +45,8 @@ extensions = [
 numpydoc_show_class_members = False
 
 # pngmath / imgmath compatibility layer for different sphinx versions
-import sphinx
-from distutils.version import LooseVersion
+import sphinx  # noqa
+from distutils.version import LooseVersion  # noqa
 if LooseVersion(sphinx.__version__) < LooseVersion('1.4'):
     extensions.append('sphinx.ext.pngmath')
 else:
@@ -81,7 +81,7 @@ copyright = '2015 - 2019, Paris-Saclay Center for Data Science'
 # built documents.
 #
 # The short X.Y version.
-from rampwf import __version__
+from rampwf import __version__  # noqa
 version = __version__
 # The full version, including alpha/beta/rc tags.
 release = __version__
