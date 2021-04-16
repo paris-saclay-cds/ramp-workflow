@@ -11,6 +11,8 @@ and this project adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.
 Added
 -----
 - Autocompletion for submission names (`#261 <https://github.com/paris-saclay-cds/ramp-workflow/pull/261>`_)
+- Add optional ``--data-label`` parameter to ``ramp_test```
+  (`#245 <https://github.com/paris-saclay-cds/ramp-workflow/pull/245>`_)
 
 Changed
 -------
@@ -24,6 +26,8 @@ Changed
   (`#242 <https://github.com/paris-saclay-cds/ramp-workflow/pull/242>`_)
 - Force utf8 encoding when reading notebook
   (`#252 <https://github.com/paris-saclay-cds/ramp-workflow/pull/252>`_)
+- Handle the case of single hyperparameter in hyperopt
+  (`#257 <https://github.com/paris-saclay-cds/ramp-workflow/pull/257>`_)
 
 Fixed
 -----
