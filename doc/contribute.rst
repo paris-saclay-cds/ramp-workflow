@@ -47,6 +47,17 @@ environment for ramp-workflow.
 
 .. _ramp-workflow: https://github.com/paris-saclay-cds/ramp-workflow
 
+Code style
+----------
+
+This repo uses `flake8` for code style. It can be run on commits automatically
+by installing and activating `pre-commit <https://pre-commit.com/>`_:
+
+.. code-block:: bash
+
+   pip install pre-commit
+   pre-commit install
+
 Release process
 ---------------
 
