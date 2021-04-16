@@ -198,8 +198,8 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     ramp_data_dir : str, default='.'
         The directory of the data.
     data_label : str, default=None
-        The subdirectory of data in /data and training outputs in
-        /submissions/<submission>/training_output
+        The subdirectory of data in {ramp_data_dir}/data and training outputs in
+        {ramp_kit_dir}/submissions/<submission>/training_output
     ramp_submission_dir : str, default='./submissions'
         The directory of the submissions.
     save_output : bool, default is False
