@@ -6,15 +6,43 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
--
+- Autocompletion for submission names ([#261](https://github.com/paris-saclay-cds/ramp-workflow/pull/261))
 
 ### Changed
--
+- Stop using colored prompt in Windows
+  ([#224](https://github.com/paris-saclay-cds/ramp-workflow/pull/224))
+- Use colored output only form terminals that know how to handle it
+  [#225](https://github.com/paris-saclay-cds/ramp-workflow/pull/225)
+- Sanitize user input in workflows
+  ([#226](https://github.com/paris-saclay-cds/ramp-workflow/pull/226))
+- Set `display.width` to None in prompt
+  ([#242](https://github.com/paris-saclay-cds/ramp-workflow/pull/242))
+- Force utf8 encoding when reading notebook
+  ([#252](https://github.com/paris-saclay-cds/ramp-workflow/pull/252))
 
-### Removed
--
+### Fixed
+- Fix warnings in pickled models
+  ([#233](https://github.com/paris-saclay-cds/ramp-workflow/pull/233))
+- Create new Estimator classes to be compatible with ramp-board
+  ([#222](https://github.com/paris-saclay-cds/ramp-workflow/pull/222))
+- Pass all argument by position in `train_test_submission`
+  ([add3fdc4c](https://github.com/paris-saclay-cds/ramp-workflow/commit/add3fdc4cd6afd1c42811616b1e10b7fed9be503))
 
-## 0.2.0 - 2017-11-06
+## 0.3.3 - 2020-03-13
+
+## 0.3.2 - 2020-02-28
+
+## 0.3.2 - 2020-02-28
+
+## 0.3.1 - 2020-02-01
+
+## 0.3.0 - 2020-01-30
+
+## 0.2.1 - 2020-01-21
+
+## 0.2.0 - 2020-01-21
+
+## v0.2.0 (git tag only) - 2017-11-06
 ### Added
 - refactored README and wiki
 - `ramp_test_submission` script: beautified score printing, optional pickling of trained models, optional saving `y_pred`, cv bagging
@@ -23,9 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - fake news: soft accuracy using a cost matrix
 - kaggle seguro: normalized Gini score
 
-## 0.1.0 - 2017-10-10
-### Added
--
+## v0.1.0 (git tag only) - 2017-10-10
 
 
-[Unreleased]: https://github.com/paris-saclay-cds/ramp-workflow/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/paris-saclay-cds/ramp-workflow/compare/0.3.3...HEAD
