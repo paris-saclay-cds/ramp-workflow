@@ -11,3 +11,4 @@ ramp_workflow.egg-info
 # included test starting kits
 training_output/
 *starting_kit.html
+doc/_build/
