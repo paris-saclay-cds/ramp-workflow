@@ -8,8 +8,20 @@ and this project adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.
 
 0.5.0 [Unreleased]
 ==================
+
+Added
+-----
+
 - Added decoupled Cross Validation (`#271 <https://github.com/paris-saclay-cds/ramp-workflow/pull/271>`_)
 
+Removed
+-------
+- Following CLI commands were removed
+  (`#272 <https://github.com/paris-saclay-cds/ramp-workflow/pull/272>`_)
+  - ``ramp_test_submission`` → use ``ramp-test`` instead
+  - ``ramp_test_notebook``
+  - ``ramp_convert_notebook``
+  - ``ramp_leaderboard``
 
 0.4.0 - 2020-04-14
 ==================
