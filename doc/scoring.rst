@@ -10,65 +10,65 @@ Training and scoring a submission
 
 When running the ``ramp-test`` script locally, the starting kit submission is trained, tested, and scored. The output contains all the training, validation, and test scores and wall clock times for all *K* folds. At the end we provide two summaries: the classical mean scores over the *K* folds, and the scores achived by ensembling all the *K* foldwise models, a technique called CV-bagging (we typically take the mean prediction of the *K* models on each test point) ::
 
-    λ ramp-test                                              
-    Testing Titanic survival classification                             
-    Reading train and test files from ./data/ ...                       
-    Reading cv ...                                                      
-    Training submissions/starting_kit ...                               
-                                                                        
-    CV fold 0                                                           
-            score   auc   acc   nll      time                           
-            train  0.84  0.79  0.47  0.482708                           
-            valid  0.92  0.83  0.38  0.007979                           
-            test   0.86  0.84  0.43  0.005988                           
-    CV fold 1                                                           
-            score   auc   acc   nll      time                           
-            train  0.85  0.82  0.46  0.009974                           
-            valid  0.86  0.78  0.46  0.003989                           
-            test   0.84  0.83  0.46  0.010971                           
-    CV fold 2                                                           
-            score   auc   acc   nll      time                           
-            train  0.87  0.79  0.44  0.009975                           
-            valid  0.80  0.82  0.49  0.006979                           
-            test   0.86  0.84  0.44  0.004987                           
-    CV fold 3                                                           
-            score   auc   acc   nll      time                           
-            train  0.85  0.81  0.46  0.011969                           
-            valid  0.87  0.81  0.43  0.004986                           
-            test   0.86  0.85  0.43  0.010972                           
-    CV fold 4                                                           
-            score   auc   acc   nll      time                           
-            train  0.85  0.82  0.45  0.009975                           
-            valid  0.84  0.79  0.47  0.005984                           
-            test   0.84  0.82  0.45  0.006009                           
-    CV fold 5                                                           
-            score   auc   acc   nll      time                           
-            train  0.84  0.80  0.46  0.013964                           
-            valid  0.88  0.78  0.42  0.005983                           
-            test   0.86  0.84  0.43  0.010006                           
-    CV fold 6                                                           
-            score   auc   acc   nll      time                           
-            train  0.87  0.81  0.44  0.009999                           
-            valid  0.79  0.75  0.52  0.004964                           
-            test   0.84  0.83  0.45  0.005982                           
-    CV fold 7                                                           
-            score   auc   acc   nll      time                           
-            train  0.84  0.79  0.47  0.010975                           
-            valid  0.90  0.83  0.42  0.008975                           
-            test   0.85  0.84  0.44  0.007978                           
-    ----------------------------                                        
-    Mean CV scores                                                      
-    ----------------------------                                        
-            score           auc          acc           nll        time  
-            train  0.85 ± 0.011  0.8 ± 0.012  0.46 ± 0.012  0.1 ± 0.16  
-            valid  0.86 ± 0.044  0.8 ± 0.028  0.45 ± 0.041   0.0 ± 0.0  
-            test   0.85 ± 0.008  0.84 ± 0.01  0.44 ± 0.009   0.0 ± 0.0  
-    ----------------------------                                        
-    Bagged scores                                                       
-    ----------------------------                                        
-            score   auc   acc   nll                                     
-            valid  0.84  0.79  0.47                                     
-            test   0.86  0.85  0.44                                     
+    λ ramp-test
+    Testing Titanic survival classification
+    Reading train and test files from ./data/ ...
+    Reading cv ...
+    Training submissions/starting_kit ...
+
+    CV fold 0
+            score   auc   acc   nll      time
+            train  0.84  0.79  0.47  0.482708
+            valid  0.92  0.83  0.38  0.007979
+            test   0.86  0.84  0.43  0.005988
+    CV fold 1
+            score   auc   acc   nll      time
+            train  0.85  0.82  0.46  0.009974
+            valid  0.86  0.78  0.46  0.003989
+            test   0.84  0.83  0.46  0.010971
+    CV fold 2
+            score   auc   acc   nll      time
+            train  0.87  0.79  0.44  0.009975
+            valid  0.80  0.82  0.49  0.006979
+            test   0.86  0.84  0.44  0.004987
+    CV fold 3
+            score   auc   acc   nll      time
+            train  0.85  0.81  0.46  0.011969
+            valid  0.87  0.81  0.43  0.004986
+            test   0.86  0.85  0.43  0.010972
+    CV fold 4
+            score   auc   acc   nll      time
+            train  0.85  0.82  0.45  0.009975
+            valid  0.84  0.79  0.47  0.005984
+            test   0.84  0.82  0.45  0.006009
+    CV fold 5
+            score   auc   acc   nll      time
+            train  0.84  0.80  0.46  0.013964
+            valid  0.88  0.78  0.42  0.005983
+            test   0.86  0.84  0.43  0.010006
+    CV fold 6
+            score   auc   acc   nll      time
+            train  0.87  0.81  0.44  0.009999
+            valid  0.79  0.75  0.52  0.004964
+            test   0.84  0.83  0.45  0.005982
+    CV fold 7
+            score   auc   acc   nll      time
+            train  0.84  0.79  0.47  0.010975
+            valid  0.90  0.83  0.42  0.008975
+            test   0.85  0.84  0.44  0.007978
+    ----------------------------
+    Mean CV scores
+    ----------------------------
+            score           auc          acc           nll        time
+            train  0.85 ± 0.011  0.8 ± 0.012  0.46 ± 0.012  0.1 ± 0.16
+            valid  0.86 ± 0.044  0.8 ± 0.028  0.45 ± 0.041   0.0 ± 0.0
+            test   0.85 ± 0.008  0.84 ± 0.01  0.44 ± 0.009   0.0 ± 0.0
+    ----------------------------
+    Bagged scores
+    ----------------------------
+            score   auc   acc   nll
+            valid  0.84  0.79  0.47
+            test   0.86  0.85  0.44
 
 When using a RAMP challenge (`RAMP studio`_), the bagged validation score is displayed on the public leaderboard, and the bagged test score is used privately to determine the final rankings.
 
@@ -92,7 +92,7 @@ This flowchart shows what happens when ``ramp-test`` is executed. You can see ho
 Testing manually
 ----------------
 
-Sometimes it is useful to execute elements of RAMP manually, for example to obtain predictions or the trained model interactively in a notebook. The following sequence can be run on any RAMP, line by line. It does not use the cross validation so it can be used to debug the workflow once the 
+Sometimes it is useful to execute elements of RAMP manually, for example to obtain predictions or the trained model interactively in a notebook. The following sequence can be run on any RAMP, line by line. It does not use the cross validation so it can be used to debug the workflow once the
 following elements are defined in problem.py::
 
     get_train_data
@@ -105,10 +105,10 @@ The sequence to execute (assuming you are in the same folder with `problem.py`):
 
     from rampwf.utils import assert_read_problem
     problem = assert_read_problem()
-    
+
     X_train, y_train = problem.get_train_data()
     X_test, y_test = problem.get_test_data()
-    
+
     trained_workflow = problem.workflow.train_submission(
         'submissions/starting_kit', X_train, y_train)
     y_pred_test = problem.workflow.test_submission(

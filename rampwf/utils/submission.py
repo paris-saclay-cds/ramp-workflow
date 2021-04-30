@@ -121,7 +121,7 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
             y_pred_train = problem.workflow.test_submission(
                 trained_workflow, X_train, fold)
         else:
-            #  to stay compatible with fold-independent test_submission
+            # to stay compatible with fold-independent test_submission
             y_pred_train = problem.workflow.test_submission(
                 trained_workflow, X_train)
     except Exception:
