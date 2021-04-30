@@ -12,19 +12,17 @@ class BrierScore(BaseScoreType):
         self.name = name
         self.precision = precision
 
-    def score_function(self, ground_truths, predictions, valid_indexes=None):
+    def score_function(self, ground_truths, predictions):
         """A hybrid score.
 
         It tests the the predicted _probability_ of the second class
         against the true _label index_ (which is 0 if the first label is the
         ground truth, and 1 if it is not, in other words, it is the
-        tru probabilty of the second class). Thus we have to override the
+        true probabilty of the second class). Thus we have to override the
         `Base` function here
         """
-        if valid_indexes is None:
-            valid_indexes = slice(None, None, None)
-        y_proba = predictions.y_pred[valid_indexes][:, 1]
-        y_true_proba = ground_truths.y_pred_label_index[valid_indexes]
+        y_proba = predictions.y_pred[:, 1]
+        y_true_proba = ground_truths.y_pred_label_index
         self.check_y_pred_dimensions(y_true_proba, y_proba)
         return self.__call__(y_true_proba, y_proba)
 
@@ -41,7 +39,7 @@ class BrierSkillScore(BaseScoreType):
         self.name = name
         self.precision = precision
 
-    def score_function(self, ground_truths, predictions, valid_indexes=None):
+    def score_function(self, ground_truths, predictions):
         """A hybrid score.
 
         It tests the the predicted _probability_ of the second class
@@ -50,10 +48,8 @@ class BrierSkillScore(BaseScoreType):
         tru probabilty of the second class). Thus we have to override the
         `Base` function here
         """
-        if valid_indexes is None:
-            valid_indexes = slice(None, None, None)
-        y_proba = predictions.y_pred[valid_indexes][:, 1]
-        y_true_proba = ground_truths.y_pred_label_index[valid_indexes]
+        y_proba = predictions.y_pred[:, 1]
+        y_true_proba = ground_truths.y_pred_label_index
         self.check_y_pred_dimensions(y_true_proba, y_proba)
         return self.__call__(y_true_proba, y_proba)
 
@@ -78,7 +74,7 @@ class BrierScoreReliability(BaseScoreType):
         self.bin_centers[self.bin_centers > 1] = 1
         self.bin_centers[self.bin_centers < 0] = 0
 
-    def score_function(self, ground_truths, predictions, valid_indexes=None):
+    def score_function(self, ground_truths, predictions):
         """A hybrid score.
 
         It tests the the predicted _probability_ of the second class
@@ -87,10 +83,8 @@ class BrierScoreReliability(BaseScoreType):
         tru probabilty of the second class). Thus we have to override the
         `Base` function here
         """
-        if valid_indexes is None:
-            valid_indexes = slice(None, None, None)
-        y_proba = predictions.y_pred[valid_indexes][:, 1]
-        y_true_proba = ground_truths.y_pred_label_index[valid_indexes]
+        y_proba = predictions.y_pred[:, 1]
+        y_true_proba = ground_truths.y_pred_label_index
         self.check_y_pred_dimensions(y_true_proba, y_proba)
         return self.__call__(y_true_proba, y_proba)
 
@@ -125,7 +119,7 @@ class BrierScoreResolution(BaseScoreType):
         self.bin_centers[self.bin_centers > 1] = 1
         self.bin_centers[self.bin_centers < 0] = 0
 
-    def score_function(self, ground_truths, predictions, valid_indexes=None):
+    def score_function(self, ground_truths, predictions):
         """A hybrid score.
 
         It tests the the predicted _probability_ of the second class
@@ -134,10 +128,8 @@ class BrierScoreResolution(BaseScoreType):
         tru probabilty of the second class). Thus we have to override the
         `Base` function here
         """
-        if valid_indexes is None:
-            valid_indexes = slice(None, None, None)
-        y_proba = predictions.y_pred[valid_indexes][:, 1]
-        y_true_proba = ground_truths.y_pred_label_index[valid_indexes]
+        y_proba = predictions.y_pred[:, 1]
+        y_true_proba = ground_truths.y_pred_label_index
         self.check_y_pred_dimensions(y_true_proba, y_proba)
         return self.__call__(y_true_proba, y_proba)
 

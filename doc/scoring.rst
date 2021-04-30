@@ -1,120 +1,167 @@
 .. _scoring:
 
-RAMP scoring
-############
+RAMP execution
+##############
 
-Local submissions
-=================
+RAMP implements a **double cross-validation scheme**: submissions are trained on each training fold, then tested on each validation fold and on the held out test set. This assures **proper model evaluation** when models are tuned using validation scores.
 
-When testing a submission locally (i.e. with ``ramp_test_submission``) a number
-of scores will be calculated and printed to standard output. The scores will
-look like this::
+Training and scoring a submission
+=================================
 
+When running the ``ramp-test`` script locally, the starting kit submission is trained, tested, and scored. The output contains all the training, validation, and test scores and wall clock times for all *K* folds. At the end we provide two summaries: the classical mean scores over the *K* folds, and the scores achieved by ensembling all the *K* foldwise models, a technique called CV-bagging (we typically take the mean prediction of the *K* models on each test point) ::
+
+    λ ramp-test
     Testing Titanic survival classification
-    Reading train and test files from ./data ...
+    Reading train and test files from ./data/ ...
     Reading cv ...
-    Training ./submissions/random_forest_20_5 ...
+    Training submissions/starting_kit ...
+
     CV fold 0
-        train auc = 0.84
-        valid auc = 0.89
-        test auc = 0.83
+            score   auc   acc   nll      time
+            train  0.84  0.79  0.47  0.482708
+            valid  0.92  0.83  0.38  0.007979
+            test   0.86  0.84  0.43  0.005988
     CV fold 1
-        train auc = 0.85
-        valid auc = 0.86
-        test auc = 0.83
+            score   auc   acc   nll      time
+            train  0.85  0.82  0.46  0.009974
+            valid  0.86  0.78  0.46  0.003989
+            test   0.84  0.83  0.46  0.010971
     CV fold 2
-        train auc = 0.85
-        valid auc = 0.83
-        test auc = 0.82
+            score   auc   acc   nll      time
+            train  0.87  0.79  0.44  0.009975
+            valid  0.80  0.82  0.49  0.006979
+            test   0.86  0.84  0.44  0.004987
     CV fold 3
-        train auc = 0.84
-        valid auc = 0.91
-        test auc = 0.83
+            score   auc   acc   nll      time
+            train  0.85  0.81  0.46  0.011969
+            valid  0.87  0.81  0.43  0.004986
+            test   0.86  0.85  0.43  0.010972
     CV fold 4
-        train auc = 0.85
-        valid auc = 0.87
-        test auc = 0.83
+            score   auc   acc   nll      time
+            train  0.85  0.82  0.45  0.009975
+            valid  0.84  0.79  0.47  0.005984
+            test   0.84  0.82  0.45  0.006009
     CV fold 5
-        train auc = 0.84
-        valid auc = 0.89
-        test auc = 0.84
+            score   auc   acc   nll      time
+            train  0.84  0.80  0.46  0.013964
+            valid  0.88  0.78  0.42  0.005983
+            test   0.86  0.84  0.43  0.010006
     CV fold 6
-        train auc = 0.84
-        valid auc = 0.88
-        test auc = 0.84
+            score   auc   acc   nll      time
+            train  0.87  0.81  0.44  0.009999
+            valid  0.79  0.75  0.52  0.004964
+            test   0.84  0.83  0.45  0.005982
     CV fold 7
-        train auc = 0.85
-        valid auc = 0.86
-        test auc = 0.84
+            score   auc   acc   nll      time
+            train  0.84  0.79  0.47  0.010975
+            valid  0.90  0.83  0.42  0.008975
+            test   0.85  0.84  0.44  0.007978
     ----------------------------
     Mean CV scores
     ----------------------------
-        train auc = 0.85 ± 0.005
-        valid auc = 0.87 ± 0.023
-        test auc = 0.83 ± 0.006
+            score           auc          acc           nll        time
+            train  0.85 ± 0.011  0.8 ± 0.012  0.46 ± 0.012  0.1 ± 0.16
+            valid  0.86 ± 0.044  0.8 ± 0.028  0.45 ± 0.041   0.0 ± 0.0
+            test   0.85 ± 0.008  0.84 ± 0.01  0.44 ± 0.009   0.0 ± 0.0
     ----------------------------
     Bagged scores
     ----------------------------
-        score   auc
-        valid  0.875
-        test   0.834
+            score   auc   acc   nll
+            valid  0.84  0.79  0.47
+            test   0.86  0.85  0.44
 
-Locally, there should be a training dataset and a testing dataset, usually
-within a folder named ``data/``. We will call these datasets the 'public'
-training data and the 'public' test data. This is because, for a RAMP challenge,
-there will also be private training and test data (see :ref:`data` for more).
+When using a RAMP challenge (`RAMP studio`_), the bagged validation score is displayed on the public leaderboard, and the bagged test score is used privately to determine the final rankings.
 
-Eight-fold cross-validation (CV) is performed, whereby the public training data
-is split into 'training' and 'validation' subsets 8 times. The subsets are
-different each time. For each CV fold, the model is trained with
-the training data then used to predict targets for the training and validation
-subsets and the public testing data. The scores are computed for the training,
-validation and testing datasets, for each fold. The mean of these 8 scores are
-calculated and printed under ``Mean CV scores``. In the example above, there is
-only one score metric; 'auc'. If more than one score metric was defined in
-``problem.py`` (see :ref:`score types <score-types>`), scores for all the score
-metrics will be printed.
+Other submissions can be trained and scored using the ``--submission`` switch, and the result of the training can be saved using the ``--save-output`` switch. See :ref:`command-line` for all the command-line options.
 
-``Bagged scores`` are calculated by combining the predictions of the 8 folds
-and using the combined prediction to calculate the score. For regression
-problems the combined prediction is the mean of the predictions and
-for classification problems, it is the mean probability of each class. For
-detection problems, the combined prediction calculation is more complex. See
-the `source code 
-<https://github.com/paris-saclay-cds/ramp-workflow/blob/12512a3192bcc515c2da956a6a6704849cdadeee/rampwf/prediction_types/detection.py#L37>`_
-for more details.
+The functional data flow
+========================
 
-For example, the Titanic challenge aims to predict whether or not each
-passenger survived. For each CV fold, different survival predictions are made
-for the test data. This is because for each CV fold, the model is different as
-it was trained using different data. The probality of each classification
-(survived or did not survive), computed from the 8 CV models, is averaged for
-every sample in the test dataset. The classification label is
-then computed using the new averaged probabilities. This new 'combined
-prediction' is used to calculate the 'bagged' score. The validation bagged
-score is calculated similarly, though there is a slight variation because the
-validation datasets differ between each CV fold. Validation
-samples may or may not overlap between CV folds. In cases where a validation
-sample was present in only one CV fold, there is only one prediction for that
-sample. The combined prediction for this sample will simply be that single
-prediction.
+This flowchart shows what happens when ``ramp-test`` is executed. You can see how the data, elements in ``problem.py``, and the submission interact. This is useful for those who would like to see what happens under the lid, and for those who would like to implement their own customized RAMP workflows.
 
-Note that technically this is not what bagging means, but the name is used for
-historical reasons.
+.. image:: images/functional_data_flow.png
+   :width: 700
 
-RAMP event submissions
-=======================
+1. The data is loaded by calling ``problem.get_train_data`` and ``problem.get_test_data``.
+2. The training data is passed to ``problem.get_cv`` which yields the CV fold objects, typically *K* pairs of training indices and validation indices.
+3. The training data (``X_train`` and ``y_train``), and the training indices are passed to ``problem.workflow.train_submission``. This function imports the submission files and calls the appropriate training functions (typically ``fit`` and ``transform``) implemented in the submission. It can also contain "glue" code: fixed data processing and transformation steps before, after, or between trained steps (implemented by the submission).
+4. The trained model is passed to ``problem.workflow.test_submission`` twice (per fold): once for computing the training and validation predictions (on ``X_train``), and once for computing the test predictions (on ``X_test``).
+5. Six ``workflow.Predictions`` objects are created (per fold), three on the ground truth and three on the predictions. The training and validation predictions are both created from ``y_pred_train`` and ``y_train`` in ``workflow.Predictions.__init__`` using the training and validation indices.
+6. The corresponding pairs of ground truth and predictions are passed to each ``problem.score_types[i].score_function`` which returns a scalar score.
 
-The above scores are also calculated when you make a submission to a RAMP
-event on `RAMP studio`_. However, only the mean cv validation score (i.e.,
-``valid  0.825 ± 0.0096`` above) is shown on the public leaderboard. The
-mean cv test score is not shown as we wish to assess if the participants
-submissions generalise to the private test data. Providing them with the
-test score provides participants with a score to try and improve and may result
-in models that perform well on the test data because it is overfit for the test
-data.
+Testing manually
+----------------
 
-Typically, the test score is used to officially rank the participants and
-are made public at the end of a RAMP event.
+Sometimes it is useful to execute elements of RAMP manually, for example to obtain predictions or the trained model interactively in a notebook. The following sequence can be run on any RAMP, line by line. It does not use the cross validation so it can be used to debug the workflow once the
+following elements are defined in problem.py::
+
+    get_train_data
+    get_test_data
+    Predictions
+    workflow
+    score_types
+
+The sequence to execute (assuming you are in the same folder with `problem.py`)::
+
+    from rampwf.utils import assert_read_problem
+    problem = assert_read_problem()
+
+    X_train, y_train = problem.get_train_data()
+    X_test, y_test = problem.get_test_data()
+
+    trained_workflow = problem.workflow.train_submission(
+        'submissions/starting_kit', X_train, y_train)
+    y_pred_test = problem.workflow.test_submission(
+        trained_workflow, X_test)
+    test_predictions = problem.Predictions(y_pred=y_pred_test)
+    test_ground_truth = problem.Predictions(y_true=y_test)
+    for score_type in problem.score_types:
+        score = score_type.score_function(
+            test_ground_truth, test_predictions)
+        print(f'{score_type.name} = {score}')
+
+On titanic, it should produce::
+
+    auc = 0.8628342245989303
+    acc = 0.8539325842696629
+    nll = 0.43442182924613426
+
+Once `problem.get_cv` is defined, the following sequence implements the full data flow (modulo formatting, saving, and modularizing, it is identical to `ramp-test`) ::
+
+    from rampwf.utils import assert_read_problem
+    problem = assert_read_problem()
+
+    X_train, y_train = problem.get_train_data()
+    X_test, y_test = problem.get_test_data()
+    cv = problem.get_cv(X_train, y_train)
+
+    for fold_i, (train_is, valid_is) in enumerate(cv):
+        print(f'fold {fold_i}:')
+        trained_workflow = problem.workflow.train_submission(
+            'submissions/starting_kit', X_train, y_train, train_is)
+        y_pred_train = problem.workflow.test_submission(
+            trained_workflow, X_train)
+        y_pred_test = problem.workflow.test_submission(
+            trained_workflow, X_test)
+        train_predictions = problem.Predictions(
+            y_pred=y_pred_train, fold_is=train_is)
+        valid_predictions = problem.Predictions(
+            y_pred=y_pred_train, fold_is=valid_is)
+        test_predictions = problem.Predictions(y_pred=y_pred_test)
+        train_ground_truth = problem.Predictions(
+            y_true=y_train, fold_is=train_is)
+        valid_ground_truth = problem.Predictions(
+            y_true=y_train,fold_is=valid_is)
+        test_ground_truth = problem.Predictions(y_true=y_test)
+        for score_type in problem.score_types:
+            train_score = score_type.score_function(
+                train_ground_truth, train_predictions)
+            valid_score = score_type.score_function(
+                valid_ground_truth, valid_predictions)
+            test_score = score_type.score_function(
+                test_ground_truth, test_predictions)
+            print(f'\ttrain {score_type.name} = {train_score}')
+            print(f'\tvalid {score_type.name} = {valid_score}')
+            print(f'\ttest {score_type.name} = {test_score}')
 
 .. _RAMP Studio: https://ramp.studio/
