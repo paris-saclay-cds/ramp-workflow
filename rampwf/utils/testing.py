@@ -174,7 +174,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='.', data_label=None,
-                      save_output=False, min_improvement=0.0):
+                      save_output=False, min_improvement=0.0,
+                      score_type_index=0):
     """Blending submissions in a ramp-kit and compute contributivities.
 
     If save_output is True, we create three files:
@@ -241,7 +242,8 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             predictions_test_list.append(predictions_test)
 
         best_index_list = blend_on_fold(
-            predictions_valid_list, ground_truths_valid, score_types[0],
+            predictions_valid_list, ground_truths_valid,
+            score_types[score_type_index],
             min_improvement=min_improvement)
 
         # we share a unit of 1. among the contributive submissions
@@ -293,7 +295,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     bag_submissions(
         problem, cv, y_train, y_test, combined_predictions_valid_list,
         combined_predictions_test_list, training_output_path,
-        ramp_data_dir=ramp_data_dir, score_type_index=0,
+        ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output, score_table_title='Combined bagged scores',
         score_f_name_prefix='foldwise_best')
     if save_output:
@@ -305,7 +307,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     bag_submissions(
         problem, cv, y_train, y_test, foldwise_best_predictions_valid_list,
         foldwise_best_predictions_test_list, training_output_path,
-        ramp_data_dir=ramp_data_dir, score_type_index=0,
+        ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output,
         score_table_title='Foldwise best bagged scores',
         score_f_name_prefix='combined')
