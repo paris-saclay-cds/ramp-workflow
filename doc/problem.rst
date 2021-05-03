@@ -86,7 +86,7 @@ file. It is worth taking a look at the `whole file
    function, which defines the workflow to implement during training and
    testing time. An attribute called ``workflow_element_names`` is also
    required. This attribute is a list of the file names that
-   ``ramp_test_submission`` expects for each submission. This class is
+   ``ramp-test`` expects for each submission. This class is
    implemented by RAMP workflow internals to train and test each submission of a
    challenge.
 
