@@ -3,10 +3,13 @@ import os
 import pandas as pd
 import numpy as np
 
+from click.testing import CliRunner
+
 from rampwf.utils.cli.testing import get_submissions
 from rampwf.utils.cli.show import _bagged_table_and_headers
 from rampwf.utils.cli.show import _mean_table_and_headers
 from rampwf.utils.cli.show import _load_score_submission
+from rampwf.utils.cli.blend import main as blend_main
 PATH = os.path.dirname(__file__)
 
 
@@ -32,7 +35,7 @@ def test_bagged_table_and_headers():
         for sub in os.listdir(path_submissions)
         if os.path.isdir(os.path.join(path_submissions, sub))
     }
-    df1, headers1 = _bagged_table_and_headers(all_submissions)
+    df1, headers1 = _bagged_table_and_headers(all_submissions, metric='acc')
 
     subs = []
     valid_scores = []
@@ -93,3 +96,9 @@ def test_mean_table_and_headers():
 
     pd.testing.assert_frame_equal(df1, df)
     np.testing.assert_array_equal(headers1, headers)
+
+
+def test_blend_cli():
+    runner = CliRunner()
+    result = runner.invoke(blend_main, '--help')
+    assert result.exit_code == 0
