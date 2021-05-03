@@ -22,6 +22,8 @@ Changed
   (`#273 <https://github.com/paris-saclay-cds/ramp-workflow/pull/273>`_)
 - Fixes leaderboard (including fix for ``--bagged`` and ``--data-label`` options)
   (`#273 <https://github.com/paris-saclay-cds/ramp-workflow/pull/273>`_)
+- Fixes ``ramp-test`` when both ``--submission ALL`` and a ``--ramp-submission-dir`` are provided
+  (`#274 <https://github.com/paris-saclay-cds/ramp-workflow/pull/274>`_)
 
 
 Removed
