@@ -62,6 +62,5 @@ setup(
             'ramp-blend = rampwf.utils.cli.blend:start',
             'ramp-test = rampwf.utils.cli.testing:start',
             'ramp-show = rampwf.utils.cli.show:start',
-            'ramp-blend = rampwf.utils.cli.blend:start',
             'ramp-hyperopt = rampwf.hyperopt.cli.hyperopt:start',
         ]})
