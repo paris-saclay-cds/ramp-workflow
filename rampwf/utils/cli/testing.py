@@ -84,11 +84,11 @@ def main(submission, ramp_kit_dir, ramp_data_dir, data_label,
         warnings.simplefilter("ignore")
 
     if submission == "ALL":
-        ramp_submission_dir = os.path.join(ramp_kit_dir, 'submissions')
+        submissions_dir = os.path.join(ramp_kit_dir, ramp_submission_dir)
         submission = [
             directory
-            for directory in os.listdir(ramp_submission_dir)
-            if os.path.isdir(os.path.join(ramp_submission_dir, directory))
+            for directory in os.listdir(submissions_dir)
+            if os.path.isdir(os.path.join(submissions_dir, directory))
         ]
     else:
         submission = [submission]
