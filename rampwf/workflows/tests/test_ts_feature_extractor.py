@@ -11,6 +11,8 @@ def test_extend_train_is_with_restart():
     X = np.concatenate(
         (X.reshape(-1, 1), X_restart.reshape(-1, 1)), axis=1)
     X_df = pd.DataFrame(data=X, columns=['col_1', 'restart'])
+
+    # checks for whole episode (used for instance in PerEpisode CVs)
     n_burn_in = 1
     # check for first episode: train_is are the index of the associated y
     # with n_burn_in less timesteps than X for each episode
@@ -39,6 +41,31 @@ def test_extend_train_is_with_restart():
     extended_train_is = extend_train_is(
         X_df, train_is, n_burn_in=n_burn_in, restart_name='restart')
     expected_output = np.array([0, 1, 2, 3, 8, 9, 10, 11, 12, 13])
+    assert (extended_train_is == expected_output).all()
+
+    # checks for parts of an episode (used for instance in InsideEpisode CV)
+    # train_is is the concatenation of train indices from each episode
+    n_burn_in = 1
+    # including beginnings of the episodes
+    train_is = np.array([0, 1, 3, 4, 6, 7])
+    extended_train_is = extend_train_is(
+        X_df, train_is, n_burn_in=n_burn_in, restart_name='restart')
+    expected_output = np.array([0, 1, 2, 4, 5, 6, 8, 9, 10])
+    assert (extended_train_is == expected_output).all()
+
+    # including ends of the episodes, different lengths
+    train_is = np.array([2, 4, 5, 8, 9, 10])
+    extended_train_is = extend_train_is(
+        X_df, train_is, n_burn_in=n_burn_in, restart_name='restart')
+    expected_output = np.array([2, 3, 5, 6, 7, 10, 11, 12, 13])
+    assert (extended_train_is == expected_output).all()
+
+    # middle of the episodes
+    train_is = np.array([1, 4, 7, 8])
+    extended_train_is = extend_train_is(
+        X_df, train_is, n_burn_in=n_burn_in, restart_name='restart')
+    expected_output = np.array([1, 2, 5, 6, 9, 10, 11])
+    assert (extended_train_is == expected_output).all()
 
 
 def test_extend_train_is_no_burn_in_or_no_restart():

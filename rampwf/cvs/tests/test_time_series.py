@@ -2,6 +2,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 import pandas as pd
 
+from rampwf.cvs.time_series import _get_episode_starts
 from rampwf.cvs.time_series import KFoldPerEpisode
 from rampwf.cvs.time_series import RollingPerEpisode
 from rampwf.cvs.time_series import ShufflePerEpisode
@@ -16,12 +17,10 @@ def test_get_episode_starts():
     X_df = pd.DataFrame(
         columns=['X_1', 'X_2', 'restart'], data=data)
 
-    cv = KFoldPerEpisode(restart_name, 0)
-    episode_starts = cv._get_episode_starts(X_df)
+    episode_starts = _get_episode_starts(X_df, restart_name, 0)
     assert_allclose(episode_starts, np.array([0, 4, 7]))
 
-    cv = KFoldPerEpisode(restart_name, 2)
-    episode_starts = cv._get_episode_starts(X_df)
+    episode_starts = _get_episode_starts(X_df, restart_name, 2)
     assert_allclose(episode_starts, np.array([0, 2, 3]))
 
 
