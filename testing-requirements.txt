@@ -10,4 +10,4 @@ xarray
 scikit-image
 joblib
 keras<2.4
-tensorflow == 2.0.4
+tensorflow == 2.5.0
