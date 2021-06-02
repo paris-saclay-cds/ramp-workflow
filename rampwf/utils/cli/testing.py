@@ -1,5 +1,6 @@
 import os
 import warnings
+import sys
 
 import click
 
@@ -58,7 +59,9 @@ def main(submission, ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
         ]
     else:
         submission = [submission]
-
+    if not os.path.exists("utils"):
+        os.makedirs("utils")
+    sys.path.append(os.path.join(ramp_kit_dir, "utils"))
     for sub in submission:
         assert_submission(ramp_kit_dir=ramp_kit_dir,
                           ramp_data_dir=ramp_data_dir,
