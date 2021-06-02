@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 
 def combine_predictions(Predictions, predictions_list, index_list):
@@ -57,13 +58,19 @@ def get_score_cv_bags(score_type, predictions_list, ground_truths,
         # setting valid fold indexes of points to be combined
         y_comb[i].set_valid_in_train(predictions_list[i], test_is)
         # combine first i folds
-        combined_predictions = Predictions.combine(y_comb[:i + 1])
+        combined_predictions = combine_predictions(
+            Predictions, y_comb[:i + 1], range(i + 1))
         # get indexes of points with at least one prediction in
         # combined_predictions
         valid_indexes = combined_predictions.valid_indexes
+        # set valid slices in ground truth and predictions
+        ground_truths_local = copy.deepcopy(ground_truths)
+        ground_truths_local.set_slice(valid_indexes)
+        combined_predictions.set_slice(valid_indexes)
         # score the combined predictions
-        score_cv_bags.append(score_type.score_function(
-            ground_truths, combined_predictions, valid_indexes))
+        score_of_prefix = score_type.score_function(
+            ground_truths_local, combined_predictions)
+        score_cv_bags.append(score_of_prefix)
         # Alex' old suggestion: maybe use masked arrays rather than passing
         # valid_indexes
     # TODO: will crash if len(test_is_list) == 0

@@ -10,32 +10,30 @@
 
 Each score type has the following member variables:
 * `name` : string
-  
+
   It has a typical default that the user can redefine. Its main use is to name the columns of the leaderboard.
 * `precision` : integer
-  
+
   The number of digits after the decimal point when scores are displayed, for example, on the leaderboard.
 
 Each score type has the following member functions:
 * `score_function`
-  
+
   It implements a wrapper function that takes
   * `ground_truths` : rampwf.prediction_types.BasePrediction
     The ground truth, typically a numpy array `y_true` wrapped into a prediction type.
   * `predictions` : rampwf.prediction_types.BasePrediction
     The prediction, typically a numpy array `y_pred` wrapped into a prediction type.
-  * `valid_indexes` : list of integers with default `None`
-    Optionally a set of cross validation fold indexes.
-  
-  It is called in `ramp_test_submission` and at the [ramp-board][rboard] frontend when evaluating user submissions. Most of the time it uses the default implementation in `BaseScoreType` that optionally selects the cv fold and checks if the number of rows are identical in `y_true` and `y_pred`, then calls `__call__(self, y_true, y_pred)`. `ClassifierBaseScoreType` does the same except it calls `__call__` with `y_true_label_index` and `y_pred_label_index`. When __call__ raises a non implemented error, `score_function` has to be overridden.
+
+  It is called in `ramp-test` and at the [ramp-board][rboard] frontend when evaluating user submissions. Most of the time it uses the default implementation in `BaseScoreType` that checks if the number of rows are identical in `y_true` and `y_pred`, then calls `__call__(self, y_true, y_pred)`. `ClassifierBaseScoreType` does the same except it calls `__call__` with `y_true_label_index` and `y_pred_label_index`. When __call__ raises a non implemented error, `score_function` has to be overridden.
 * `__call__`
-  
+
   It implements a wrapper function that takes
   * `y_true` : np.array
     The ground truth.
   * `y_pred` : np.array
     The prediction.
-  
+
   It is an optional function (when not implemented, e.g., in `Combined`, it raises an error) called by `score_function` or, typically, in user notebooks where folds are selected by the user and checks are unnecessary. It typically calls a scikit learn metrics or implements a metrics which doesn't exist there.
 
 <!-- RAMP studio -->
