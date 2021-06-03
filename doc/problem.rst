@@ -310,5 +310,17 @@ file. It is worth taking a look at the `whole file
    The ``_read_data()`` is not strictly required and is acting as a helper
    function in the code above.
 
+8. If the ``problem.py`` file becomes too long and you would like to refactor
+   it, you can add an ``external_imports`` folder in the ``ramp_kit_dir`` and
+   have modules there that you can import from. The way this works is that
+   running ``ramp-test`` adds the ``external_imports`` folder to ``sys.path``
+   if such a folder exists. For instance if you have a ``utils.py`` module
+   in the ``external_imports`` folder::
+
+        external_imports/
+            utils.py
+
+   Then you can do ``import utils`` in ``problem.py``.
+
 .. _RAMP workflow: https://github.com/paris-saclay-cds/ramp-workflow
 .. _Pollenating insects: <https://github.com/ramp-kits/pollenating_insects>`_

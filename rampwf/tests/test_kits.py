@@ -35,10 +35,39 @@ def _generate_grid_path_kits():
     return grid
 
 
+def test_external_imports(tmpdir):
+    path_kit = tmpdir.join("titanic_external_imports")
+    shutil.copytree(os.path.join(PATH, "kits", "titanic"), path_kit)
+    problem_path = os.path.join(path_kit, "problem.py")
+    submissions_dir = os.path.join(path_kit, 'submissions')
+    submission_path = os.path.join(submissions_dir, 'starting_kit')
+    estimator_path = os.path.join(submission_path, "estimator.py")
+    for path in [problem_path, estimator_path]:
+        with open(path, 'r+') as f:
+            content = f.read()
+            f.seek(0, 0)
+            line1 = "from utils import test_imports as test"
+            line2 = "assert test.x == 2"
+            f.write(line1 + '\n' + line2 + '\n' + content)
+    utils_path = path_kit.mkdir("external_imports").mkdir("utils")
+    with open(os.path.join(utils_path, "test_imports.py"), 'w+') as f:
+        content = f.read()
+        f.seek(0, 0)
+        line = "x = 2"
+        f.write(line + '\n' + content)
+    assert_submission(
+        ramp_kit_dir=path_kit,
+        ramp_data_dir=path_kit,
+        ramp_submission_dir=submissions_dir,
+        submission=submission_path,
+        is_pickle=True,
+        save_output=False,
+        retrain=True)
+
+
 @pytest.mark.parametrize(
     "path_kit",
-    _generate_grid_path_kits()
-)
+    _generate_grid_path_kits())
 def test_notebook_testing(path_kit):
     # check if there is a notebook to be tested
     if len(glob.glob(os.path.join(path_kit, '*.ipynb'))):
