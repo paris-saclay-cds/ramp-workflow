@@ -16,7 +16,7 @@ Added
 - Adds an option to ramp-blend to select the ``--score_metrics_index`` to blend on
   (`#273 <https://github.com/paris-saclay-cds/ramp-workflow/pull/273>`_)
 - Adds the possibility to import modules located inside the ``external_imports`` directory
-  (`#181 <https://github.com/paris-saclay-cds/ramp-workflow/pull/279>`_)
+  (`#279 <https://github.com/paris-saclay-cds/ramp-workflow/pull/279>`_)
 
 Changed
 -------
