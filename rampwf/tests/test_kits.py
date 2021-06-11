@@ -1,6 +1,7 @@
 import os
 import glob
 import shutil
+from textwrap import dedent
 
 import cloudpickle
 
@@ -36,25 +37,39 @@ def _generate_grid_path_kits():
 
 
 def test_external_imports(tmpdir):
+    # checking imports from an external_imports folder located in the
+    # ramp_kit_dir
+
+    # temporary kit
     path_kit = tmpdir.join("titanic_external_imports")
     shutil.copytree(os.path.join(PATH, "kits", "titanic"), path_kit)
     problem_path = os.path.join(path_kit, "problem.py")
     submissions_dir = os.path.join(path_kit, 'submissions')
     submission_path = os.path.join(submissions_dir, 'starting_kit')
     estimator_path = os.path.join(submission_path, "estimator.py")
+
+    # module to be imported
+    ext_module_dir = path_kit.mkdir("external_imports").mkdir("utils")
+    with open(os.path.join(ext_module_dir, "test_imports.py"), 'w+') as f:
+        f.write(
+            dedent(
+                """
+                x = 2
+                """
+            )
+        )
+
     for path in [problem_path, estimator_path]:
-        with open(path, 'r+') as f:
-            content = f.read()
-            f.seek(0, 0)
-            line1 = "from utils import test_imports as test"
-            line2 = "assert test.x == 2"
-            f.write(line1 + '\n' + line2 + '\n' + content)
-    utils_path = path_kit.mkdir("external_imports").mkdir("utils")
-    with open(os.path.join(utils_path, "test_imports.py"), 'w+') as f:
-        content = f.read()
-        f.seek(0, 0)
-        line = "x = 2"
-        f.write(line + '\n' + content)
+        with open(path, 'a') as f:
+            f.write(
+                dedent(
+                    """
+                    from utils import test_imports
+                    assert test_imports.x == 2
+                    """
+                )
+            )
+
     assert_submission(
         ramp_kit_dir=path_kit,
         ramp_data_dir=path_kit,
