@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import shutil
+import sys
 
 import numpy as np
 import pandas as pd
@@ -26,6 +27,10 @@ def assert_notebook(ramp_kit_dir='.'):
 
 
 def assert_read_problem(ramp_kit_dir='.'):
+    # allowing external imports from the external_imports folder if it exists
+    ext_imp_dir = os.path.join(ramp_kit_dir, "external_imports")
+    if os.path.exists(ext_imp_dir) and ext_imp_dir not in sys.path:
+        sys.path.append(ext_imp_dir)
     # giving a random name to the module so it passes looped tests
     return import_module_from_source(
         os.path.join(ramp_kit_dir, 'problem.py'), 'problem'
