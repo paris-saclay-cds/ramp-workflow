@@ -5,6 +5,7 @@ from .brier_score import (
     BrierScore, BrierSkillScore, BrierScoreReliability, BrierScoreResolution)
 from .clustering_efficiency import ClusteringEfficiency
 from .classification_error import ClassificationError
+from .classifier_base import ClassifierBaseScoreType
 from .combined import Combined
 from .detection import (
     OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
@@ -30,6 +31,7 @@ __all__ = [
     'BrierScoreResolution',
     'BrierSkillScore',
     'ClassificationError',
+    'ClassifierBaseScoreType',
     'ClusteringEfficiency',
     'Combined',
     'DetectionPrecision',
