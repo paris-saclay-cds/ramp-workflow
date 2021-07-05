@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import shutil
+import sys
 
 import numpy as np
 import pandas as pd
@@ -26,6 +27,10 @@ def assert_notebook(ramp_kit_dir='.'):
 
 
 def assert_read_problem(ramp_kit_dir='.'):
+    # allowing external imports from the external_imports folder if it exists
+    ext_imp_dir = os.path.join(ramp_kit_dir, "external_imports")
+    if os.path.exists(ext_imp_dir) and ext_imp_dir not in sys.path:
+        sys.path.append(ext_imp_dir)
     # giving a random name to the module so it passes looped tests
     return import_module_from_source(
         os.path.join(ramp_kit_dir, 'problem.py'), 'problem'
@@ -39,29 +44,22 @@ def assert_title(ramp_kit_dir='.'):
 
 def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=None):
     problem = assert_read_problem(ramp_kit_dir)
-    if data_label is None:
-        print_title('Reading train and test files from {}/data/ ...'.format(
-            ramp_data_dir))
-        X_train, y_train = problem.get_train_data(path=ramp_data_dir)
-        X_test, y_test = problem.get_test_data(path=ramp_data_dir)
-    else:
-        print_title(
-            'Reading train and test files from {}/data/{}/ ...'.format(
-                ramp_data_dir, data_label))
-        X_train, y_train = problem.get_train_data(
-            path=ramp_data_dir, data_label=data_label)
-        X_test, y_test = problem.get_test_data(
-            path=ramp_data_dir, data_label=data_label)
+    print_title('Reading train and test files from {}/data/{} ...'.format(
+        ramp_data_dir, f'{data_label}/' if data_label is not None else ""))
+    kwargs = {}
+    if data_label is not None:
+        kwargs['data_label'] = data_label
+    X_train, y_train = problem.get_train_data(path=ramp_data_dir, **kwargs)
+    X_test, y_test = problem.get_test_data(path=ramp_data_dir, **kwargs)
     return X_train, y_train, X_test, y_test
 
 
 def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label=None):
     problem = assert_read_problem(ramp_kit_dir)
-    if data_label is None:
-        X_train, y_train = problem.get_train_data(path=ramp_data_dir)
-    else:
-        X_train, y_train = problem.get_train_data(
-            path=ramp_data_dir, data_label=data_label)
+    kwargs = {}
+    if data_label is not None:
+        kwargs['data_label'] = data_label
+    X_train, y_train = problem.get_train_data(path=ramp_data_dir, **kwargs)
     print_title('Reading cv ...')
     cv = list(problem.get_cv(X_train, y_train))
     return cv
@@ -199,8 +197,8 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     ramp_data_dir : str, default='.'
         The directory of the data.
     data_label : str, default=None
-        The subdirectory of data in /data and training outputs in
-        /submissions/<submission>/training_output
+        The subdirectory of data in {ramp_data_dir}/data and training outputs
+        in {ramp_kit_dir}/submissions/<submission>/training_output
     ramp_submission_dir : str, default='./submissions'
         The directory of the submissions.
     save_output : bool, default is False

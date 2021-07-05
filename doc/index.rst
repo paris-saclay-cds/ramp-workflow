@@ -47,3 +47,8 @@ The advanced branch of ramp-workflow can be installed via `pip`::
    using_kits
 
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Additional information
+
+   whats_new

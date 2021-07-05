@@ -59,6 +59,7 @@ setup(
     extras_require=EXTRAS_REQUIRE,
     entry_points={
         'console_scripts': [
+            'ramp-blend = rampwf.utils.cli.blend:start',
             'ramp-test = rampwf.utils.cli.testing:start',
             'ramp-show = rampwf.utils.cli.show:start',
             'ramp-blend = rampwf.utils.cli.blend:start',
