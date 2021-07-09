@@ -476,17 +476,14 @@ class GenerativeRegressor(object):
                     raise AssertionError(message)
 
     def step(self, trained_model, X_df, random_state=None):
-        """Sample the targets for the sample in X_df.
-
-        X_df is assumed to contain only one sample and only one array of
-        shape (1, n_targets) is sampled.
+        """Sample the targets for the samples in X_df.
 
         Parameters
         ----------
         trained_model : list
             The list of trained models returned by train_submission.
 
-        X_df : pandas DataFrame, shape (1, n_features)
+        X_df : pandas DataFrame, shape (n_samples, n_features)
             Inputs. Note that compared test_submission
             the targets are not in this array as this is what we want to
             sample.
@@ -496,7 +493,7 @@ class GenerativeRegressor(object):
 
         Returns
         -------
-        y_sampled : numpy array, shape (1, n_targets)
+        y_sampled : numpy array, shape (n_samples, n_targets)
             The sampled targets.
         """
 
@@ -505,15 +502,16 @@ class GenerativeRegressor(object):
         decomposition = getattr(
             regressors[0], 'decomposition', 'autoregressive')
 
+        n_samples = X_df.shape[0]
         X_df, restart = self._check_restart(X_df)
 
         if decomposition is None:
             reg = regressors[0]
             X_df = X_df.values
             if restart is not None:
-                sampled = reg.sample(X_df, restart=restart, rng=rng)
+                y_sampled = reg.sample(X_df, restart=restart, rng=rng)
             else:
-                sampled = reg.sample(X_df, rng=rng)
+                y_sampled = reg.sample(X_df, rng=rng)
         else:  # autoregressive or independent decomposition.
             n_features_init = X_df.shape[1]
 
@@ -521,25 +519,24 @@ class GenerativeRegressor(object):
                 # preallocate array by concatenating with unknown predicted
                 # array
                 predicted_array = np.full(
-                    (1, len(regressors)), fill_value=np.nan)
+                    (n_samples, len(regressors)), fill_value=np.nan)
                 X = np.concatenate(
                     [X_df.values, predicted_array], axis=1)
                 X_used = X[:, :n_features_init]
             else:
                 X_used = X_df.values
 
-            y_sampled = np.zeros(len(regressors))
+            y_sampled = np.zeros((n_samples, len(regressors)))
             for j, reg in enumerate(regressors):
                 if j >= 1 and decomposition == 'autoregressive':
-                    X[:, n_features_init + (j - 1)] = y_sampled[j - 1]
+                    X[:, n_features_init + (j - 1)] = y_sampled[:, j - 1]
                     X_used = X[:, :n_features_init + j]
 
                 if restart is not None:
                     samples = reg.sample(X_used, restart=restart, rng=rng)
                 else:
                     samples = reg.sample(X_used, rng=rng)
-                y_sampled[j] = samples
+                y_sampled[:, j] = samples
 
-            y_sampled = np.array(y_sampled)[np.argsort(order)]
-            sampled = y_sampled[np.newaxis, :]
-        return sampled
+            y_sampled = y_sampled[:, np.argsort(order)]
+        return y_sampled
