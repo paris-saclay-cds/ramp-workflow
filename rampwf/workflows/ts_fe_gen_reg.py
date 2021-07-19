@@ -242,6 +242,9 @@ class TSFEGenReg:
         X_df_tf = self.feature_extractor_workflow.test_submission(
             fe, X_df[self.cols_for_extractor])
 
+        if self.n_burn_in > 0:
+            X_df_tf = X_df_tf.iloc[[-1]]
+
         sampled = self.regressor_workflow.step(reg, X_df_tf, random_state)
         sampled_df = pd.DataFrame(
             data=sampled, columns=self.target_column_observation_names)
