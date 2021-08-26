@@ -381,8 +381,8 @@ class BaseGenerativeRegressor(BaseEstimator):
             if weights.shape[0] > 1:
                 raise ValueError(
                     'You are trying to sample more than 1 sample without your '
-                    'own sample method. Using the sample method inherited from '
-                    'BaseGenerativeRegressor is not supporting this. '
+                    'own sample method. Using the sample method inherited from'
+                    ' BaseGenerativeRegressor is not supporting this. '
                     'Supporting it can be made with a simple (slow) for loop.')
 
             n_dists = len(types)
