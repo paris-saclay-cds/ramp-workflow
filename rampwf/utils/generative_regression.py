@@ -378,6 +378,13 @@ class BaseGenerativeRegressor(BaseEstimator):
         else:  # autoregressive or independent decomposition.
             weights, types, params = distribution
 
+            if weights.shape[0] > 1:
+                raise ValueError(
+                    'You are trying to sample more than 1 sample without your '
+                    'own sample method. Using the sample method inherited from'
+                    ' BaseGenerativeRegressor is not supporting this. '
+                    'Supporting it can be made with a simple (slow) for loop.')
+
             n_dists = len(types)
             try:
                 types = [distributions_dict[type_name] for type_name in types]
