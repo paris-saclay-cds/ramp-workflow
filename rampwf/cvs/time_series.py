@@ -327,3 +327,61 @@ class RollingPerEpisode(PerEpisode):
 
     def get_splits(self, n_episodes):
         return [(np.arange(j), np.array([j])) for j in range(1, n_episodes)]
+
+
+class RollingInsideEpisode(object):
+    """CV inside each of the episodes.
+
+    An episode in a time series is defined by a sequence of consecutive times.
+    They are identified by a restart column whose value is equal to 1 at the
+    start of each new episode. The term episode comes from the episode of
+    a reinforcement learning task.
+
+    A split into a training and test set is done inside each episode and all
+    the training sets (respectively the test sets) are concatenated into one
+    big training set (respectively test set).
+
+    Using this CV with burn-in is not supported.
+    """
+
+    def __init__(self, n_splits=10, restart_name='restart', n_burn_in=0):
+        """cv_method should typically be rw.cvs.TimeSeries().get_cv"""
+        self.n_splits = n_splits
+        self.restart_name = restart_name
+        self.n_burn_in = n_burn_in
+
+    def get_cv(self, X_df, y):
+        """Return train and test indices.
+
+        This method changes the passed dataset set X_df to put a restart at the
+        start of the test episodes.
+        """
+        episode_starts = _get_episode_starts(
+            X_df, self.restart_name, self.n_burn_in)
+        n_episodes = len(episode_starts)
+        # we add the start index of the virtual next episode to ease
+        # the computation of the folds
+        episode_starts.append(len(y))
+        ranges = []
+        for episode_id in range(n_episodes):
+            episode_range = list(range(
+                episode_starts[episode_id], episode_starts[episode_id + 1]))
+            ranges.append(np.array(episode_range))
+        n_episode_samples = [len(episode) for episode in ranges]
+        assert len(np.unique(n_episode_samples)) == 1
+        n_episode_samples = n_episode_samples[0]
+        n_cv = self.n_splits + 1
+        n_cv_samples = n_episode_samples // n_cv
+
+        for fold_i in range(n_cv):
+            train_is = []
+            test_is = []
+            split_idx = n_cv_samples * (fold_i + 1)
+            for ep_range in ranges:
+                train_idx = ep_range[:split_idx]
+                test_idx = ep_range[split_idx:]
+                train_is += list(train_idx)
+                test_is += list(test_idx)
+            # print('CV fold {}: train {} valid {}'.format(
+            #     fold_i, fold_to_str(train_is), fold_to_str(test_is)))
+            yield (train_is, test_is)
