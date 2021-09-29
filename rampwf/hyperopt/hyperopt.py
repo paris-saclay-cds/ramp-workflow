@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from tempfile import mkdtemp
 from ..utils import (
-    assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
+    assert_read_problem, assert_data, import_module_from_source, run_submission_on_cv_fold)
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
@@ -386,12 +386,12 @@ class HyperparameterOptimization(object):
             is found
     """
 
-    def __init__(self, hyperparameters, engine, ramp_kit_dir, submission_dir):
+    def __init__(self, hyperparameters, engine, ramp_kit_dir, submission_dir, data_label):
         self.hyperparameters = hyperparameters
         self.engine = engine
         self.problem = assert_read_problem(ramp_kit_dir)
-        self.X_train, self.y_train = self.problem.get_train_data(
-            path=ramp_kit_dir)
+        self.X_train, self.y_train, _, _ = assert_data(
+        ramp_kit_dir, '.', data_label)
         self.cv = list(self.problem.get_cv(self.X_train, self.y_train))
         self.submission_dir = submission_dir
         self.hyperparameter_names = [h.name for h in hyperparameters]
@@ -496,9 +496,9 @@ class HyperparameterOptimization(object):
         self._save_best_model()
 
 
-def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission, engine_name):
+def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label):
     problem = assert_read_problem(ramp_kit_dir)
-    hyperopt_submission = submission + '_hyperopt'
+    hyperopt_submission = submission + '_' + data_label + '_hyperopt'
     hyperopt_submission_dir = os.path.join(
         ramp_submission_dir, hyperopt_submission)
     submission_dir = os.path.join(
@@ -513,15 +513,15 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission, engine_name):
     else:
         raise ValueError('{} is not a valide engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
-        hyperparameters, engine, ramp_kit_dir, hyperopt_submission_dir)
+        hyperparameters, engine, ramp_kit_dir, hyperopt_submission_dir, data_label)
     return hyperparameter_experiment
 
 
-def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir,
+def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
                  submission, engine_name, n_iter, save_best=True,
                  is_cleanup=False):
     hyperparameter_experiment = init_hyperopt(
-        ramp_kit_dir, ramp_submission_dir, submission, engine_name)
+        ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label)
     hyperparameter_experiment.run(n_iter)
     if is_cleanup:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
