@@ -107,9 +107,19 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
     train_time = time.time() - t0
     set_state('trained', save_output, output_path)
     if is_pickle:
-        trained_workflow = pickle_model(
+        is_pickled = pickle_model(
             output_path, trained_workflow, model_name)
-
+        if is_pickled:
+            # Checking if pickle can be unpickled
+            trained_workflow_unpickled = unpickle_model(
+                output_path, model_name)
+            if trained_workflow_unpickled is None:
+                print("Can't unpickle model {output_path}/{model_name}.")
+            else:
+                trained_workflow = trained_workflow_unpickled
+        else:
+            print(f"Can't pickle model into {output_path}/{model_name}.")
+            
     # Validate
     params = signature(problem.workflow.test_submission).parameters
     is_fold_passed_to_test = (len(params) == 3 and list(params)[2] == 'fold')
@@ -421,9 +431,9 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
 
 
 def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
-    """Pickle and reload trained workflow.
+    """Pickle trained workflow.
 
-    If workflow can't be pickled, print warning and return original workflow.
+    If workflow can't be pickled return False.
 
     Parameters
     ----------
@@ -435,25 +445,39 @@ def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
         the file name of the pickled workflow
     Returns
     -------
-    trained_workflow : a rampwf.workflow
-        either the input workflow or the pickled and reloaded workflow
+    is_pickled : boolean
+        True is pickling was succesful, False otherwise
     """
-    msg = "Warning: model can't be pickled."
     model_file = os.path.join(fold_output_path, model_name)
     try:
         with open(model_file, 'wb') as pickle_file:
             cloudpickle.dump(trained_workflow, pickle_file)
     except pickle.PicklingError as e:
-        print_warning(msg)
-        print_warning(e)
-        return trained_workflow
-    else:
-        # check if dumped trained_workflow can be loaded
-        try:
-            with open(model_file, 'rb') as pickle_file:
-                trained_workflow = cloudpickle.load(pickle_file)
-        except Exception as e:
-            print_warning(msg)
-            print_warning(e)
+        return False
+    return True
 
+
+def unpickle_model(fold_output_path, model_name='model.pkl'):
+    """Unpickle trained workflow.
+
+    If workflow can't be unpickled, return None, otherwise return
+    the trained workflow.
+
+    Parameters
+    ----------
+    fold_output_path : str
+        the path into which the model will be pickled
+    model_name : str (default='model.pkl')
+        the file name of the pickled workflow
+    Returns
+    -------
+    trained_workflow : a rampwf.workflow or None
+        either the unpickled workflow or None if unpickling unsuccessful
+    """
+    model_file = os.path.join(fold_output_path, model_name)
+    try:
+        with open(model_file, 'rb') as pickle_file:
+            trained_workflow = cloudpickle.load(pickle_file)
+    except Exception as e:
+        return None
     return trained_workflow
