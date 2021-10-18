@@ -1,11 +1,11 @@
 import tempfile
 import pickle
 
-from rampwf.utils.submission import pickle_model
+from rampwf.utils.submission import pickle_model, unpickle_model
 
 
-def test_pickle_model(capsys):
-    # check that warning is raised if trained workflow cannot be pickled
+def test_pickle_model():
+    # check that False is returned if trained workflow cannot be pickled
 
     # object raising PicklingError when dumped
     class Unpicklable(object):
@@ -16,7 +16,15 @@ def test_pickle_model(capsys):
     tmpdir = tempfile.mkdtemp()
     tmpfile = 'tmp.pkl'
 
-    pickle_model(tmpdir, Unpicklable(), model_name=tmpfile)
-    msg = "Warning: model can't be pickled."
-    captured = capsys.readouterr()
-    assert msg in captured.out
+    is_pickled = pickle_model(tmpdir, Unpicklable(), model_name=tmpfile)
+    assert not is_pickled
+
+
+def test_unpickle_model(capsys):
+    # check that None is returned if trained workflow cannot be unpickled
+
+    tmpdir = tempfile.mkdtemp()
+    tmpfile = 'tmp.pkl'
+
+    trained_workflow = unpickle_model(tmpdir, model_name=tmpfile)
+    assert trained_workflow is None
