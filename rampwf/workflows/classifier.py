@@ -18,7 +18,11 @@ class Classifier(object):
             sanitize=True
         )
         clf = classifier.Classifier()
-        clf.fit(X_array[train_is], y_array[train_is], prev_trained_submission)
+        if prev_trained_submission is None:
+            clf.fit(X_array[train_is], y_array[train_is])
+        else:
+            clf.fit(
+                X_array[train_is], y_array[train_is], prev_trained_submission)
         return clf
 
     def test_submission(self, trained_model, X_array):

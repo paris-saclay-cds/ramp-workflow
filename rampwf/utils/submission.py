@@ -324,7 +324,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
     """
     (y_pred_train, y_pred_test), _ = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        save_output, output_path, 'retrained_model.pkl', None)
+        None, save_output, output_path, 'retrained_model.pkl', None)
     predictions_train = problem.Predictions(y_pred=y_pred_train)
     ground_truth_train = problem.Predictions(y_true=y_train)
     if y_test is not None:
