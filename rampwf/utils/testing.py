@@ -74,7 +74,7 @@ def assert_score_types(ramp_kit_dir='.'):
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='submissions', data_label=None,
                       submission='starting_kit', is_pickle=False,
-                      save_output=False, retrain=False):
+                      is_partial_train=False, save_output=False, retrain=False):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -92,6 +92,9 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         The name of the submission to be tested.
     is_pickle : bool, default is False
         Whether to pickle the model or not.
+    is_partial_train : bool, default is False
+        Whether to partial train a model, pickled before. 
+        workflow.train_submission needs to accept prev_model.
     save_y_preds : bool, default is False
         Whether to store the predictions.
     retrain : bool, default is False
@@ -142,8 +145,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         predictions_valid, predictions_test, df_scores = \
             run_submission_on_cv_fold(
                 problem, submission_path, fold, X_train, y_train,
-                X_test, y_test, is_pickle, save_output, fold_output_path,
-                ramp_data_dir)
+                X_test, y_test, is_pickle, is_partial_train, save_output,
+                fold_output_path, ramp_data_dir)
         if save_output:
             filename = os.path.join(fold_output_path, 'scores.csv')
             df_scores.to_csv(filename)

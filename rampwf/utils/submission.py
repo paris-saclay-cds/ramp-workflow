@@ -51,8 +51,8 @@ def save_submissions(problem, y_pred, data_path='.', output_path='.',
 
 
 def train_test_submission(problem, module_path, X_train, y_train, X_test,
-                          is_pickle, save_output, output_path,
-                          model_name, fold):
+                          is_pickle, is_partial_train, save_output,
+                          output_path, model_name, fold):
     """Train and test submission, on cv fold if fold is not none.
 
     Parameters
@@ -69,6 +69,9 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         returned by problem.get_test_data
     is_pickle : boolean
         True if the model should be pickled
+    is_partial_train : boolean
+        Whether to partial train a model, pickled before. 
+        workflow.train_submission needs to accept prev_model.
     output_path : str
         the path into which the model will be pickled
     save_output : boolean
@@ -98,8 +101,22 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
     # Train
     t0 = time.time()
     try:
-        trained_workflow = problem.workflow.train_submission(
-            module_path, X_train, y_train, train_is)
+        if is_partial_train:
+            prev_trained_workflow = unpickle_model(
+                output_path, model_name)
+            if prev_trained_workflow is None:
+                print(f"Can't unpickle model {output_path}/{model_name}.")
+            try:
+                trained_workflow = problem.workflow.train_submission(
+                    module_path, X_train, y_train, train_is,
+                    prev_trained_workflow)
+            except TypeError as e:
+                print('Probably because problem.workflow.train_submission '
+                      'does not accept prev_model as its last argument.')
+                raise e
+        else:
+            trained_workflow = problem.workflow.train_submission(
+                module_path, X_train, y_train, train_is)
     except Exception:
         print_submission_exception(save_output, output_path)
         set_state('training_error', save_output, output_path)
@@ -165,8 +182,9 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
 
 def run_submission_on_cv_fold(problem, module_path, fold, X_train,
                               y_train, X_test=None, y_test=None,
-                              is_pickle=False, save_output=False,
-                              fold_output_path='.', ramp_data_dir='.'):
+                              is_pickle=False, is_partial_train=False,
+                              save_output=False, fold_output_path='.',
+                              ramp_data_dir='.'):
     """Run submission, compute and return predictions and scores on cv.
 
     Parameters
@@ -187,6 +205,9 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
         returned by problem.get_test_data
     is_pickle : boolean
         True if the model should be pickled
+    is_partial_train : boolean, default is False
+        Whether to partial train a model, pickled before. 
+        workflow.train_submission needs to accept prev_model.
     save_output : boolean
         True if predictions should be written in files
     fold_output_path : str
@@ -206,7 +227,8 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
     train_is, valid_is = fold
     pred, timing = train_test_submission(
         problem, module_path, X_train, y_train, X_test, is_pickle,
-        save_output, fold_output_path, 'model.pkl', fold)
+        is_partial_train, save_output, fold_output_path,
+        'model.pkl', fold)
     y_pred_train, y_pred_test = pred
     train_time, valid_time, test_time = timing
 

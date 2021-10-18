@@ -8,7 +8,8 @@ class Classifier(object):
         self.element_names = workflow_element_names
         # self.name = 'classifier_workflow'  # temporary
 
-    def train_submission(self, module_path, X_array, y_array, train_is=None):
+    def train_submission(self, module_path, X_array, y_array, train_is=None,
+                         prev_trained_submission=None):
         if train_is is None:
             train_is = slice(None, None, None)
         classifier = import_module_from_source(
@@ -17,7 +18,7 @@ class Classifier(object):
             sanitize=True
         )
         clf = classifier.Classifier()
-        clf.fit(X_array[train_is], y_array[train_is])
+        clf.fit(X_array[train_is], y_array[train_is], prev_trained_submission)
         return clf
 
     def test_submission(self, trained_model, X_array):
