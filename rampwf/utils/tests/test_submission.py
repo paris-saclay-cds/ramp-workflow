@@ -1,6 +1,7 @@
 import os
-import tempfile
+import pytest
 import pickle
+import tempfile
 
 from rampwf.utils.submission import (
     pickle_trained_workflow, unpickle_trained_workflow)
@@ -21,6 +22,10 @@ def test_pickle_trained_workflow():
     is_pickled = pickle_trained_workflow(
         tmpdir, Unpicklable(), trained_workflow_name=tmpfile)
     assert not is_pickled
+    with pytest.raises(pickle.PicklingError):
+        pickle_trained_workflow(
+            tmpdir, Unpicklable(), trained_workflow_name=tmpfile, 
+            is_silent=False)
 
 
 def test_unpickle_trained_workflow():
@@ -39,5 +44,8 @@ def test_unpickle_trained_workflow():
     trained_workflow = unpickle_trained_workflow(
         tmpdir, trained_workflow_name=tmpfile)
     assert trained_workflow is None
+    with pytest.raises(pickle.UnpicklingError):
+        trained_workflow = unpickle_trained_workflow(
+            tmpdir, trained_workflow_name=tmpfile, is_silent=False)
 
 

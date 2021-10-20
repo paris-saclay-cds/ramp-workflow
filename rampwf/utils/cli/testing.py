@@ -66,9 +66,10 @@ def get_submissions(ctx, args, incomplete):
               help='Specify this flag to pickle the submission after '
               'training.')
 @click.option('--partial-train', is_flag=True,
-              help='Specify this flag to partial train an existing model, '
-              'previously saved by setting --pickle. The '
-              'workflow.train_submission needs to accept prev_model.')
+              help='Specify this flag to partial train an existing trained '
+              'workflow, previously saved by setting --pickle. The '
+              'workflow.train_submission needs to accept '
+              'prev_trained_workflow.')
 @click.option('--save-output', is_flag=True,
               help='Specify this flag to save predictions, scores, eventual '
               'error trace, and state after training.')
