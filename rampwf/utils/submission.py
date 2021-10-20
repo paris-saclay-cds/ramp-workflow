@@ -71,7 +71,7 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         True if the model should be pickled
     is_partial_train : boolean
         Whether to partial train a model, pickled before. 
-        workflow.train_submission needs to accept prev_model.
+        workflow.train_submission needs to accept prev_trained_submission.
     output_path : str
         the path into which the model will be pickled
     save_output : boolean
@@ -111,9 +111,10 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
                     module_path, X_train, y_train, train_is,
                     prev_trained_workflow)
             except TypeError as e:
-                print('Probably because problem.workflow.train_submission '
-                      'does not accept prev_model as its last argument.')
-                raise e
+                raise TypeError(
+                    'Probably because problem.workflow.train_submission '
+                    'does not accept prev_trained_submission as its last '
+                    'argument.') from e
         else:
             trained_workflow = problem.workflow.train_submission(
                 module_path, X_train, y_train, train_is)
@@ -460,7 +461,7 @@ def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
     Parameters
     ----------
     fold_output_path : str
-        the path into which the model will be pickled
+        the path of the folder containing the pickled object
     trained_workflow : a rampwf.workflow
         the workflow to be pickled
     model_name : str (default='model.pkl')
@@ -468,7 +469,7 @@ def pickle_model(fold_output_path, trained_workflow, model_name='model.pkl'):
     Returns
     -------
     is_pickled : boolean
-        True is pickling was succesful, False otherwise
+        True is pickling was successful, False otherwise
     """
     model_file = os.path.join(fold_output_path, model_name)
     try:
@@ -488,7 +489,7 @@ def unpickle_model(fold_output_path, model_name='model.pkl'):
     Parameters
     ----------
     fold_output_path : str
-        the path into which the model will be pickled
+        the path of the folder containing the pickled object
     model_name : str (default='model.pkl')
         the file name of the pickled workflow
     Returns

@@ -20,7 +20,7 @@ def test_pickle_model():
     assert not is_pickled
 
 
-def test_unpickle_model(capsys):
+def test_unpickle_model():
     # check that None is returned if trained workflow cannot be unpickled
 
     tmpdir = tempfile.mkdtemp()
