@@ -487,16 +487,10 @@ def pickle_trained_workflow(fold_output_path, trained_workflow,
             print("Can't unpickle workflow "
                   f'{fold_output_path}/{trained_workflow_name}.')
             return False
-        elif trained_workflow != trained_workflow_unpickled:
-            print('Workflow is not the same before and after pickling.')
-            return False
     
     if check_if_can_be_unpickled and not is_silent:
         trained_workflow_unpickled = unpickle_trained_workflow(
             fold_output_path, trained_workflow_name, is_silent=False)
-        if trained_workflow != trained_workflow_unpickled:
-            raise pickle.PicklingError(
-                'Workflow is not the same before and after pickling.')
         
     return True
 

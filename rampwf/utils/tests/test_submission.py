@@ -20,12 +20,24 @@ def test_pickle_trained_workflow():
     tmpfile = 'tmp.pkl'
 
     is_pickled = pickle_trained_workflow(
-        tmpdir, Unpicklable(), trained_workflow_name=tmpfile)
+        tmpdir, Unpicklable(), trained_workflow_name=tmpfile, 
+        is_silent=True, check_if_can_be_unpickled=False)
     assert not is_pickled
     with pytest.raises(pickle.PicklingError):
         pickle_trained_workflow(
             tmpdir, Unpicklable(), trained_workflow_name=tmpfile, 
-            is_silent=False)
+            is_silent=False, check_if_can_be_unpickled=False)
+
+    tmpdir = tempfile.mkdtemp()
+    tmpfile = 'tmp.pkl'
+    is_pickled = pickle_trained_workflow(
+        tmpdir, 1, trained_workflow_name=tmpfile, 
+        is_silent=True, check_if_can_be_unpickled=True)
+    assert is_pickled
+    is_pickled = pickle_trained_workflow(
+        tmpdir, None, trained_workflow_name=tmpfile, 
+        is_silent=True, check_if_can_be_unpickled=True)
+    assert not is_pickled
 
 
 def test_unpickle_trained_workflow():
