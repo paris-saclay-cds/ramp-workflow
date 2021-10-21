@@ -11,18 +11,18 @@ class FeatureExtractorClassifier(object):
         self.classifier_workflow = Classifier([self.element_names[1]])
 
     def train_submission(self, module_path, X_df, y_array, train_is=None,
-                         prev_trained_submission=None):
+                         prev_trained_model=None):
         if train_is is None:
             train_is = slice(None, None, None)
         fe = self.feature_extractor_workflow.train_submission(
             module_path, X_df, y_array, train_is)
         X_train_array = self.feature_extractor_workflow.test_submission(
             fe, X_df.iloc[train_is])
-        prev_classifier = None if prev_trained_submission is None\
-            else prev_trained_submission[1]
+        prev_classifier = None if prev_trained_model is None\
+            else prev_trained_model[1]
         clf = self.classifier_workflow.train_submission(
             module_path, X_train_array, y_array[train_is],
-            prev_trained_submission=prev_classifier)
+            prev_trained_model=prev_classifier)
         return fe, clf
 
     def test_submission(self, trained_model, X_df):

@@ -8,7 +8,7 @@ class Regressor(object):
         self.element_names = workflow_element_names
 
     def train_submission(self, module_path, X_array, y_array, train_is=None,
-                         prev_trained_submission=None):
+                         prev_trained_model=None):
         if train_is is None:
             train_is = slice(None, None, None)
         regressor = import_module_from_source(
@@ -17,11 +17,11 @@ class Regressor(object):
             sanitize=True
         )
         reg = regressor.Regressor()
-        if prev_trained_submission is None:
+        if prev_trained_model is None:
             reg.fit(X_array[train_is], y_array[train_is])
         else:
             reg.fit(
-                X_array[train_is], y_array[train_is], prev_trained_submission)
+                X_array[train_is], y_array[train_is], prev_trained_model)
         return reg
 
     def test_submission(self, trained_model, X_array):
