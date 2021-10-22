@@ -105,8 +105,9 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
             prev_trained_model = unpickle_trained_model(
                 output_path, trained_model_name)
             if prev_trained_model is None:
-                print("Can't unpickle trained model "
-                      f'{output_path}/{trained_model_name}.')
+                print_warning("Can't unpickle trained model "
+                      f'{output_path}/{trained_model_name}, '
+                      ' thus we are retraining from scratch.')
             try:
                 trained_model = problem.workflow.train_submission(
                     module_path, X_train, y_train, train_is,
@@ -130,7 +131,7 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
             output_path, trained_model, trained_model_name,
             is_silent=True, check_if_can_be_unpickled=True)
         if not is_pickled:
-            print("Can't pickle workflow into "
+            print_warning("Can't pickle workflow into "
                   f'{output_path}/{trained_model_name}.')
             
     # Validate
@@ -487,7 +488,7 @@ def pickle_trained_model(fold_output_path, trained_model,
         trained_model_unpickled = unpickle_trained_model(
             fold_output_path, trained_model_name)
         if trained_model_unpickled is None:
-            print("Can't unpickle workflow "
+            print_warning("Can't unpickle workflow "
                   f'{fold_output_path}/{trained_model_name}.')
             return False
     
