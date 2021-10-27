@@ -390,8 +390,8 @@ class HyperparameterOptimization(object):
         self.hyperparameters = hyperparameters
         self.engine = engine
         self.problem = assert_read_problem(ramp_kit_dir)
-        self.X_train, self.y_train, _, _ = assert_data(
-        ramp_kit_dir, '.', data_label)
+        self.X_train, self.y_train = self.problem.get_train_data(
+            path=ramp_kit_dir, data_label= data_label)
         self.cv = list(self.problem.get_cv(self.X_train, self.y_train))
         self.submission_dir = submission_dir
         self.hyperparameter_names = [h.name for h in hyperparameters]
@@ -498,7 +498,11 @@ class HyperparameterOptimization(object):
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label):
     problem = assert_read_problem(ramp_kit_dir)
-    hyperopt_submission = submission + '_' + data_label + '_hyperopt'
+    if data_label is None :
+        hyperopt_submission = submission + '_hyperopt'
+    else:
+        hyperopt_submission = submission + '_' + data_label + '_hyperopt'
+
     hyperopt_submission_dir = os.path.join(
         ramp_submission_dir, hyperopt_submission)
     submission_dir = os.path.join(

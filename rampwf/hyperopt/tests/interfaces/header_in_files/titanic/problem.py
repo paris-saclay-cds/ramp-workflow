@@ -32,11 +32,11 @@ def _read_data(path, f_name):
     return X_df, y_array
 
 
-def get_train_data(path='.'):
+def get_train_data(path='.', data_label=None):
     f_name = 'train.csv'
     return _read_data(path, f_name)
 
 
-def get_test_data(path='.'):
+def get_test_data(path='.', data_label=None):
     f_name = 'test.csv'
     return _read_data(path, f_name)

@@ -40,5 +40,6 @@ def test_hyperopt():
         PATH, 'interfaces', 'header_in_files', 'titanic')
     submission = 'starting_kit'
     run_hyperopt(
-        ramp_kit_dir, ramp_kit_dir, os.path.join(ramp_kit_dir, 'submissions'),
+        ramp_kit_dir, ramp_kit_dir,
+        os.path.join(ramp_kit_dir, 'submissions'), None,
         submission, 'random', 64, is_cleanup=True)
