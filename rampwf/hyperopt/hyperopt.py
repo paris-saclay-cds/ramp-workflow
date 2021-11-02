@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from tempfile import mkdtemp
 from ..utils import (
-    assert_read_problem, assert_data, import_module_from_source, run_submission_on_cv_fold)
+    assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
@@ -391,7 +391,7 @@ class HyperparameterOptimization(object):
         self.engine = engine
         self.problem = assert_read_problem(ramp_kit_dir)
         self.X_train, self.y_train = self.problem.get_train_data(
-            path=ramp_kit_dir, data_label= data_label)
+            path=ramp_kit_dir, data_label=data_label)
         self.cv = list(self.problem.get_cv(self.X_train, self.y_train))
         self.submission_dir = submission_dir
         self.hyperparameter_names = [h.name for h in hyperparameters]
@@ -454,6 +454,7 @@ class HyperparameterOptimization(object):
         self.df_summary_.to_csv(summary_fname)
 
     def _save_best_model(self):
+        print("save model")
         official_scores = self.df_summary_[
             'valid_' + self.problem.score_types[0].name + '_m']
         if self.problem.score_types[0].is_lower_the_better:
@@ -496,9 +497,10 @@ class HyperparameterOptimization(object):
         self._save_best_model()
 
 
-def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label):
+def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
+                  engine_name, data_label):
     problem = assert_read_problem(ramp_kit_dir)
-    if data_label is None :
+    if data_label is None:
         hyperopt_submission = submission + '_hyperopt'
     else:
         hyperopt_submission = submission + '_' + data_label + '_hyperopt'
@@ -509,23 +511,24 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission, engine_name, da
         ramp_submission_dir, submission)
     if os.path.exists(hyperopt_submission_dir):
         shutil.rmtree(hyperopt_submission_dir)
-    shutil.copytree(submission_dir, hyperopt_submission_dir)
+    x = shutil.copytree(submission_dir, hyperopt_submission_dir)
     hyperparameters = parse_all_hyperparameters(
         hyperopt_submission_dir, problem.workflow)
+
     if engine_name == 'random':
         engine = RandomEngine(hyperparameters)
     else:
         raise ValueError('{} is not a valide engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
         hyperparameters, engine, ramp_kit_dir, hyperopt_submission_dir, data_label)
+
     return hyperparameter_experiment
 
 
 def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
-                 submission, engine_name, n_iter, save_best=True,
-                 is_cleanup=False):
+                 submission, engine_name, n_iter, save_best=False):
     hyperparameter_experiment = init_hyperopt(
         ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label)
     hyperparameter_experiment.run(n_iter)
-    if is_cleanup:
+    if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)

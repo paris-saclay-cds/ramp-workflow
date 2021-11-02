@@ -42,4 +42,14 @@ def test_hyperopt():
     run_hyperopt(
         ramp_kit_dir, ramp_kit_dir,
         os.path.join(ramp_kit_dir, 'submissions'), None,
-        submission, 'random', 64, is_cleanup=True)
+        submission, 'random', 64, False)
+
+def test_hyperopt_gen_classifier():
+    ramp_kit_dir = os.path.join(
+        PATH, 'interfaces', 'header_in_files', 'generative_classifier')
+    run_hyperopt(
+        ramp_kit_dir, ramp_kit_dir,
+        os.path.join(ramp_kit_dir, 'submissions'), 'cover_type',
+        'rf', 'random', 64, True)
+    assert os.path.exists(os.path.join(ramp_kit_dir, 'submissions', 'rf_cover_type_hyperopt')) == True
+
