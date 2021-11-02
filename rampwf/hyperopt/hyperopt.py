@@ -511,7 +511,7 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         ramp_submission_dir, submission)
     if os.path.exists(hyperopt_submission_dir):
         shutil.rmtree(hyperopt_submission_dir)
-    x = shutil.copytree(submission_dir, hyperopt_submission_dir)
+    shutil.copytree(submission_dir, hyperopt_submission_dir)
     hyperparameters = parse_all_hyperparameters(
         hyperopt_submission_dir, problem.workflow)
 

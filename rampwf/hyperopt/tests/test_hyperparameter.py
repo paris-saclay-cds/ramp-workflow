@@ -37,20 +37,9 @@ def test_hyperparameter():
 
 def test_hyperopt():
     ramp_kit_dir = os.path.join(
-        PATH, 'interfaces', 'header_in_files', 'titanic')
+        PATH, 'interfaces', 'header_in_files', 'classifier_kit')
     submission = 'starting_kit'
     run_hyperopt(
         ramp_kit_dir, ramp_kit_dir,
-        os.path.join(ramp_kit_dir, 'submissions'), None,
-        submission, 'random', 64, False)
-
-
-def test_hyperopt_gen_classifier():
-    ramp_kit_dir = os.path.join(
-        PATH, 'interfaces', 'header_in_files', 'generative_classifier')
-    run_hyperopt(
-        ramp_kit_dir, ramp_kit_dir,
-        os.path.join(ramp_kit_dir, 'submissions'), 'cover_type',
-        'rf', 'random', 64, True)
-    assert os.path.exists(os.path.join(ramp_kit_dir, 'submissions',
-                                       'rf_cover_type_hyperopt'))
+        os.path.join(ramp_kit_dir, 'submissions'), 'titanic',
+        submission, 'random', 64, True)
