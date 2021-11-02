@@ -454,7 +454,6 @@ class HyperparameterOptimization(object):
         self.df_summary_.to_csv(summary_fname)
 
     def _save_best_model(self):
-        print("save model")
         official_scores = self.df_summary_[
             'valid_' + self.problem.score_types[0].name + '_m']
         if self.problem.score_types[0].is_lower_the_better:
