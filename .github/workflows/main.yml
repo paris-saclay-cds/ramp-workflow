@@ -40,7 +40,7 @@ jobs:
       - name: Test
         shell: bash -l {0}
         run: |
-          pytest -s -v --cov=rampwf rampwf
+          pytest -s -v --cov=rampwf --cov-report=xml rampwf
 
       - uses: codecov/codecov-action@v2
         with:
