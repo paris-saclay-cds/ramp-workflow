@@ -28,6 +28,8 @@ jobs:
         run: |
           python --version
           which python
+          # Otherwise we get errors on Python 3.6 due to https://stackoverflow.com/questions/38257138/jupyter-no-such-kernel-named-python3
+          conda update -y nb_conda_kernels
 
       - name: Install dependencies
         shell: bash -l {0}
