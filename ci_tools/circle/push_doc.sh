@@ -6,6 +6,8 @@
 # We have three possibily workflows:
 #   If the git branch is 'master' then we want to commit and merge the dev/
 #       docs on gh-pages
+#   If the git branch is 'advanced' then we want to commit and merge the
+#       advanced docs on gh-pages
 #   If the git branch is [0-9].[0.9].X (i.e. 0.9.X, 1.0.X, 1.2.X, 41.21.X) then
 #        we want to commit and merge the major.minor/ docs on gh-pages
 #   If the git branch is anything else then we just want to test that committing
@@ -42,6 +44,13 @@ if [ "$CIRCLE_BRANCH" = "master" ]
 then
     # Changes are made to dev/ directory
     DIR="ramp-workflow/dev"
+    doc_clone_commit
+    git push origin $DOC_BRANCH
+    echo "Push complete"
+elif [ "$CIRCLE_BRANCH" = "advanced" ]
+then
+    # Changes are made to advanced/ directory
+    DIR="ramp-workflow/advanced"
     doc_clone_commit
     git push origin $DOC_BRANCH
     echo "Push complete"
