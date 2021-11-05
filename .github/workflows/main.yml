@@ -1,0 +1,59 @@
+name: main
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: [3.6, 3.7, 3.9]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: testenv
+          python-version: ${{ matrix.python_version }}
+
+      - name: Check Python versions
+        shell: bash -l {0}
+        run: |
+          python --version
+          which python
+
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: |
+          pip install -r testing-requirements.txt
+          pip install .
+
+      - name: Test
+        shell: bash -l {0}
+        run: |
+          pytest -s -v --cov=rampwf rampwf
+
+      - uses: codecov/codecov-action@v2
+        with:
+          verbose: true
+
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: lint
+        shell: bash -l {0}
+        run: |
+          flake8 rampwf
