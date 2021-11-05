@@ -2,7 +2,7 @@ name: main
 
 on:
   push:
-    branches: [master, gh-actions-with-upstream-branch]
+    branches: [master]
   pull_request:
     branches: [master]
 
