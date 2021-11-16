@@ -67,7 +67,7 @@ class ClusteringEfficiency(BaseScoreType):
                     # If there are ties, we assign the true cluster to the
                     # predicted cluster with the smallest id (combined behavior
                     # of np.unique which sorts the ids and np.argmax which
-                    # returns the first occurence of a tie).
+                    # returns the first occurrence of a tie).
                     assigned_clusters[i] = np.argmax(predicted_cluster_sizes)
                     true_positives[i] = len(
                         found_points[found_points == assigned_clusters[i]])

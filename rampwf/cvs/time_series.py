@@ -15,7 +15,7 @@ can train on {Z_t, y_t}_{t in I_train} and test on
 and I_test are arbitrary but disjunct train and test index
 sets, respectively (typically produced by sklearn's `ShuffleSplit`). Using
 shuffling would nevertheless allow a second order leakage from training
-points to test points that preceed them, by, e.g., aggregating the training
+points to test points that precede them, by, e.g., aggregating the training
 set and adding the aggregate back as a feature. To avoid this, we use
 block-CV: on each fold, all t in I_test are larger than all
 t in I_train. We also make sure that all training and test

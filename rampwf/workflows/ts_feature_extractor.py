@@ -85,7 +85,7 @@ class TimeSeriesFeatureExtractor(object):
         Test a time series feature extractor.
 
         `X_ds` is `n_burn_in` longer than `X_test_array` below since
-        `X_test_array` contains feautures only beyond the initial burn in
+        `X_test_array` contains features only beyond the initial burn in
         period.
 
         We check if the `transform` of the submission looks ahead into the

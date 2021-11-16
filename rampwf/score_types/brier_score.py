@@ -18,7 +18,7 @@ class BrierScore(BaseScoreType):
         It tests the the predicted _probability_ of the second class
         against the true _label index_ (which is 0 if the first label is the
         ground truth, and 1 if it is not, in other words, it is the
-        true probabilty of the second class). Thus we have to override the
+        true probability of the second class). Thus we have to override the
         `Base` function here
         """
         y_proba = predictions.y_pred[:, 1]
@@ -45,7 +45,7 @@ class BrierSkillScore(BaseScoreType):
         It tests the the predicted _probability_ of the second class
         against the true _label index_ (which is 0 if the first label is the
         ground truth, and 1 if it is not, in other words, it is the
-        tru probabilty of the second class). Thus we have to override the
+        true probability of the second class). Thus we have to override the
         `Base` function here
         """
         y_proba = predictions.y_pred[:, 1]
@@ -80,7 +80,7 @@ class BrierScoreReliability(BaseScoreType):
         It tests the the predicted _probability_ of the second class
         against the true _label index_ (which is 0 if the first label is the
         ground truth, and 1 if it is not, in other words, it is the
-        tru probabilty of the second class). Thus we have to override the
+        true probability of the second class). Thus we have to override the
         `Base` function here
         """
         y_proba = predictions.y_pred[:, 1]
@@ -125,7 +125,7 @@ class BrierScoreResolution(BaseScoreType):
         It tests the the predicted _probability_ of the second class
         against the true _label index_ (which is 0 if the first label is the
         ground truth, and 1 if it is not, in other words, it is the
-        tru probabilty of the second class). Thus we have to override the
+        true probability of the second class). Thus we have to override the
         `Base` function here
         """
         y_proba = predictions.y_pred[:, 1]
