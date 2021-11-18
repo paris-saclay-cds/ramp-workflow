@@ -287,7 +287,7 @@ def write_hyperparameters(submission_dir, output_submission_dir,
             The path to the submission directory from which the submission is
             read.
         output_submission_dir : str
-            The path to the ouput submission directory into which the
+            The path to the output submission directory into which the
             submission with the new hyperparameter values is written.
         hypers_per_workflow_element : dictionary
             Each key is a workflow element name and each value is a list of
@@ -399,7 +399,7 @@ class HyperparameterOptimization(object):
         self.score_names = [s.name for s in self.problem.score_types]
         self.df_summary_ = None
 
-        # Set up hypers_per_workflow_element disctionary: keys are
+        # Set up hypers_per_workflow_element dictionary: keys are
         # workflow element names, values are lists are hypers belonging
         # to the workflow element
         self.hypers_per_workflow_element = {
@@ -516,7 +516,7 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission, engine_name):
     if engine_name == 'random':
         engine = RandomEngine(hyperparameters)
     else:
-        raise ValueError('{} is not a valide engine name'.format(engine_name))
+        raise ValueError('{} is not a valid engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
         hyperparameters, engine, ramp_kit_dir, hyperopt_submission_dir)
     return hyperparameter_experiment
