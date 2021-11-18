@@ -1,0 +1,5 @@
+build: false
+
+
+install:
+  - # Running an empty appveyor config, to have green CI untill it's disabled completely.
