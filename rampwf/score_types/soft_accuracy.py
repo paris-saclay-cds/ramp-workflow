@@ -8,8 +8,6 @@ predicted output levels are coming from a fixed set) by allowing to define
 arbitrary misclassification scores.
 """
 
-from __future__ import division
-
 import numpy as np
 from .base import BaseScoreType
 
