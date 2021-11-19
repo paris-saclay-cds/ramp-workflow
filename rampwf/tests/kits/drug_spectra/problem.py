@@ -36,7 +36,7 @@ Predictions_1 = rw.prediction_types.make_multiclass(
 # to make handling the combined 2D y_pred array easier.
 Predictions_2 = rw.prediction_types.make_regression(
     label_names=[_target_column_name_reg])
-# The combined Predictions is initialized by the list of individual Predictions.
+# The combined Predictions is initialized by the list of individual Predictions
 Predictions = rw.prediction_types.make_combined([Predictions_1, Predictions_2])
 
 # The workflow object, named after the RAMP.
