@@ -1,8 +1,6 @@
 # coding: utf-8
 
 """Provide utils to test ramp-kits."""
-from __future__ import print_function
-
 import os
 import shutil
 import sys
