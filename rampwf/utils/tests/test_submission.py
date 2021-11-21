@@ -20,22 +20,22 @@ def test_pickle_trained_model():
     tmpfile = 'tmp.pkl'
 
     is_pickled = pickle_trained_model(
-        tmpdir, Unpicklable(), trained_model_name=tmpfile, 
+        tmpdir, Unpicklable(), trained_model_name=tmpfile,
         is_silent=True, check_if_can_be_unpickled=False)
     assert not is_pickled
     with pytest.raises(pickle.PicklingError):
         pickle_trained_model(
-            tmpdir, Unpicklable(), trained_model_name=tmpfile, 
+            tmpdir, Unpicklable(), trained_model_name=tmpfile,
             is_silent=False, check_if_can_be_unpickled=False)
 
     tmpdir = tempfile.mkdtemp()
     tmpfile = 'tmp.pkl'
     is_pickled = pickle_trained_model(
-        tmpdir, 1, trained_model_name=tmpfile, 
+        tmpdir, 1, trained_model_name=tmpfile,
         is_silent=True, check_if_can_be_unpickled=True)
     assert is_pickled
     is_pickled = pickle_trained_model(
-        tmpdir, None, trained_model_name=tmpfile, 
+        tmpdir, None, trained_model_name=tmpfile,
         is_silent=True, check_if_can_be_unpickled=True)
     assert not is_pickled
 
@@ -49,7 +49,7 @@ def test_unpickle_trained_model():
     trained_model = unpickle_trained_model(
         tmpdir, trained_model_name=tmpfile)
     assert trained_model is None
-    
+
     with open(os.path.join(tmpdir, tmpfile), 'w') as file:
         file.write('dummy')
 
@@ -59,5 +59,3 @@ def test_unpickle_trained_model():
     with pytest.raises(pickle.UnpicklingError):
         trained_model = unpickle_trained_model(
             tmpdir, trained_model_name=tmpfile, is_silent=False)
-
-

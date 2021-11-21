@@ -72,7 +72,7 @@ def assert_score_types(ramp_kit_dir='.'):
 def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='submissions', data_label=None,
                       submission='starting_kit', is_pickle=False,
-                      is_partial_train=False, save_output=False, 
+                      is_partial_train=False, save_output=False,
                       retrain=False):
     """Helper to test a submission from a ramp-kit.
 
@@ -92,7 +92,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     is_pickle : bool, default is False
         Whether to pickle the trained workflow or not.
     is_partial_train : bool, default is False
-        Whether to partial train a trained workflow, pickled before. 
+        Whether to partial train a trained workflow, pickled before.
         workflow.train_submission needs to accept prev_trained_workflow.
     save_y_preds : bool, default is False
         Whether to store the predictions.

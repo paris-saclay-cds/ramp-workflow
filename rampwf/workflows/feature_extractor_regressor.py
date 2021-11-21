@@ -24,7 +24,7 @@ class FeatureExtractorRegressor(object):
             module_path, X_train_array, y_array[train_is],
             prev_trained_model=prev_regressor)
         return fe, reg
-    
+
     def test_submission(self, trained_model, X_df):
         fe, reg = trained_model
         X_test_array = self.feature_extractor_workflow.test_submission(

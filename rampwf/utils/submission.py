@@ -70,7 +70,7 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
     is_pickle : boolean
         True if the trained model should be pickled
     is_partial_train : boolean
-        Whether to partial train a trained model, pickled before. 
+        Whether to partial train a trained model, pickled before.
         workflow.train_submission needs to accept prev_trained_submission.
     output_path : str
         the path into which the trained model will be pickled
@@ -106,8 +106,8 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
                 output_path, trained_model_name)
             if prev_trained_model is None:
                 print_warning("Can't unpickle trained model "
-                      f'{output_path}/{trained_model_name}, '
-                      ' thus we are retraining from scratch.')
+                              f'{output_path}/{trained_model_name}, '
+                              ' thus we are retraining from scratch.')
             try:
                 trained_model = problem.workflow.train_submission(
                     module_path, X_train, y_train, train_is,
@@ -132,8 +132,8 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
             is_silent=True, check_if_can_be_unpickled=True)
         if not is_pickled:
             print_warning("Can't pickle workflow into "
-                  f'{output_path}/{trained_model_name}.')
-            
+                          f'{output_path}/{trained_model_name}.')
+
     # Validate
     params = signature(problem.workflow.test_submission).parameters
     is_fold_passed_to_test = (len(params) == 3 and list(params)[2] == 'fold')
@@ -203,7 +203,7 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
     is_pickle : boolean
         True if the trained model should be pickled
     is_partial_train : boolean, default is False
-        Whether to partial train a workflow, pickled before. 
+        Whether to partial train a workflow, pickled before.
         workflow.train_submission needs to accept prev_trained_model.
     save_output : boolean
         True if predictions should be written in files
@@ -489,13 +489,13 @@ def pickle_trained_model(fold_output_path, trained_model,
             fold_output_path, trained_model_name)
         if trained_model_unpickled is None:
             print_warning("Can't unpickle workflow "
-                  f'{fold_output_path}/{trained_model_name}.')
+                          f'{fold_output_path}/{trained_model_name}.')
             return False
-    
+
     if check_if_can_be_unpickled and not is_silent:
         trained_model_unpickled = unpickle_trained_model(
             fold_output_path, trained_model_name, is_silent=False)
-        
+
     return True
 
 
