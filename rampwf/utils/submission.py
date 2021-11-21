@@ -406,7 +406,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     bagged_scores = {}
     scoring_step = ['valid', 'test'] if y_test is not None else ['valid']
     for step in scoring_step:
-        # Get either the training or testing infomation depending of the step
+        # Get either the training or testing information depending of the step
         pred_list = (predictions_valid_list if step == 'valid'
                      else predictions_test_list)
         y_step = y_train if step == 'valid' else y_test

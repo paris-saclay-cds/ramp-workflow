@@ -63,7 +63,7 @@ Testing ramp-board
 
 Since ramp-board_ depends on ramp-workflow, any time that there is a PR in ramp-workflow, ramp-board_ should also be tested using the following sequence:
 
- 1. Under `ramp-board GitHub Actions <https://github.com/paris-saclay-cds/ramp-board/actions/workflows/main.yml>`_ in the `main` workflow select "Run Workflow" and in the dropdown menu paste the a pip installable URL to the version of  ramp-workflow from your PR. For instance it would look as folllows,::
+ 1. Under `ramp-board GitHub Actions <https://github.com/paris-saclay-cds/ramp-board/actions/workflows/main.yml>`_ in the `main` workflow select "Run Workflow" and in the dropdown menu paste the a pip installable URL to the version of ramp-workflow from your PR. For instance it would look as follows,::
 
       https://github.com/<your fork>/ramp-workflow/archive/refs/heads/<your branch>.zip
 

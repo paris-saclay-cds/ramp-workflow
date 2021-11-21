@@ -1,8 +1,6 @@
 # coding: utf-8
 
 """Provide utils to test ramp-kits."""
-from __future__ import print_function
-
 import os
 import shutil
 import sys
@@ -226,7 +224,8 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     foldwise_best_predictions_test_list = []
     for fold_i, valid_is in enumerate(valid_is_list):
         print_title('CV fold {}'.format(fold_i))
-        ground_truths_valid = problem.Predictions(y_true=y_train[valid_is])
+        ground_truths_valid = problem.Predictions(
+            y_true=y_train, fold_is=valid_is)
         predictions_valid_list = []
         predictions_test_list = []
         for submission in submissions:
@@ -245,7 +244,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                 problem, data_path=ramp_data_dir,
                 input_path=fold_output_path, suffix='test')
             predictions_valid = problem.Predictions(
-                y_pred=y_pred_train[valid_is])
+                y_pred=y_pred_train, fold_is=valid_is)
             predictions_valid_list.append(predictions_valid)
             predictions_test = problem.Predictions(y_pred=y_pred_test)
             predictions_test_list.append(predictions_test)

@@ -1,5 +1,3 @@
-from __future__ import division
-
 from ..base import BaseScoreType
 from .util import _filter_y_pred
 

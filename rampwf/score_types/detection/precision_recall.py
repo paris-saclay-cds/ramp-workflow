@@ -3,8 +3,6 @@ Precision and recall (and location and size precision) based on a best
 match (given a specific confidence threshold).
 
 """
-from __future__ import division
-
 import numpy as np
 
 from .base import DetectionBaseIOUScoreType
