@@ -211,7 +211,7 @@ def mask_detection_curve(y_true, y_pred, conf_thresholds):
 
     for conf_threshold in conf_thresholds:
         y_pred_above_confidence = _filter_y_pred(y_pred, conf_threshold)
-        ms.append(scp_single(y_true, y_pred_above_confidence))
+        ms.append(scp_single(y_true, y_pred_above_confidence, None))
 
     return np.array(ms)
 
