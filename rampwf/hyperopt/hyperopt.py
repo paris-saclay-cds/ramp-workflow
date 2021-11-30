@@ -390,8 +390,12 @@ class HyperparameterOptimization(object):
         self.hyperparameters = hyperparameters
         self.engine = engine
         self.problem = assert_read_problem(ramp_kit_dir)
-        self.X_train, self.y_train = self.problem.get_train_data(
-            path=ramp_kit_dir, data_label=data_label)
+        if data_label is not None:
+            self.X_train, self.y_train = self.problem.get_train_data(
+                path=ramp_kit_dir, data_label=data_label)
+        else:
+            self.X_train, self.y_train = self.problem.get_train_data(
+                path=ramp_kit_dir)
         self.cv = list(self.problem.get_cv(self.X_train, self.y_train))
         self.submission_dir = submission_dir
         self.hyperparameter_names = [h.name for h in hyperparameters]
@@ -513,7 +517,6 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
     shutil.copytree(submission_dir, hyperopt_submission_dir)
     hyperparameters = parse_all_hyperparameters(
         hyperopt_submission_dir, problem.workflow)
-
     if engine_name == 'random':
         engine = RandomEngine(hyperparameters)
     else:

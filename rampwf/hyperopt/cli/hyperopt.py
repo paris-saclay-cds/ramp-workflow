@@ -39,8 +39,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               '--n-iter 56')
 @click.option('--save-best', is_flag=True, default=False,
               show_default=True,
-              help='Specify this flag to create a <submission>_hyperopt '
-              'in hte "submissions" dir with the best submission.')
+              help='Specify this flag to create a <submission>_<data_label>_hyperopt '
+              '(or <submission>_hyperopt if <data_label> is None)'    
+              'in the "submissions" dir with the best submission.')
 def main(submission, ramp_kit_dir, ramp_data_dir, data_label, ramp_submission_dir,
          engine, n_iter, save_best):
     """Hyperopt a submission."""
