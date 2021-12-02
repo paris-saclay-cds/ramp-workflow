@@ -1,6 +1,7 @@
 import os
 import glob
 import shutil
+from textwrap import dedent
 
 import cloudpickle
 
@@ -28,15 +29,60 @@ def _generate_grid_path_kits():
         if 'digits' in path_kit:
             grid.append(pytest.param(os.path.abspath(path_kit),
                                      marks=skip_no_tensorflow()))
+        elif 'data_label' in path_kit:
+            pass
         else:
             grid.append(os.path.abspath(path_kit))
     return grid
 
 
+def test_external_imports(tmpdir):
+    # checking imports from an external_imports folder located in the
+    # ramp_kit_dir
+
+    # temporary kit
+    path_kit = tmpdir.join("titanic_external_imports")
+    shutil.copytree(os.path.join(PATH, "kits", "titanic"), path_kit)
+    problem_path = os.path.join(path_kit, "problem.py")
+    submissions_dir = os.path.join(path_kit, 'submissions')
+    submission_path = os.path.join(submissions_dir, 'starting_kit')
+    estimator_path = os.path.join(submission_path, "estimator.py")
+
+    # module to be imported
+    ext_module_dir = path_kit.mkdir("external_imports").mkdir("utils")
+    with open(os.path.join(ext_module_dir, "test_imports.py"), 'w+') as f:
+        f.write(
+            dedent(
+                """
+                x = 2
+                """
+            )
+        )
+
+    for path in [problem_path, estimator_path]:
+        with open(path, 'a') as f:
+            f.write(
+                dedent(
+                    """
+                    from utils import test_imports
+                    assert test_imports.x == 2
+                    """
+                )
+            )
+
+    assert_submission(
+        ramp_kit_dir=path_kit,
+        ramp_data_dir=path_kit,
+        ramp_submission_dir=submissions_dir,
+        submission=submission_path,
+        is_pickle=True,
+        save_output=False,
+        retrain=True)
+
+
 @pytest.mark.parametrize(
     "path_kit",
-    _generate_grid_path_kits()
-)
+    _generate_grid_path_kits())
 def test_notebook_testing(path_kit):
     # check if there is a notebook to be tested
     if len(glob.glob(os.path.join(path_kit, '*.ipynb'))):
@@ -84,6 +130,36 @@ def test_blending():
     # cleaning up so next test doesn't try to train "training_output"
     shutil.rmtree(os.path.join(
         PATH, "kits", "iris", "submissions", "training_output"))
+
+
+def test_data_label():
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        data_label='data_label',
+        ramp_submission_dir=os.path.join(
+            PATH, "kits", "iris_data_label", "submissions"),
+        submission='starting_kit', is_pickle=True,
+        save_output=True, retrain=True)
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        data_label='data_label',
+        ramp_submission_dir=os.path.join(
+            PATH, "kits", "iris_data_label", "submissions"),
+        submission='random_forest_10_10', is_pickle=True,
+        save_output=True, retrain=True)
+    blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        data_label='data_label',
+        ramp_submission_dir=os.path.join(
+            PATH, "kits", "iris_data_label", "submissions"),
+        save_output=True)
+    # cleaning up so next test doesn't try to train "training_output"
+    shutil.rmtree(os.path.join(
+        PATH, "kits", "iris_data_label", "submissions", "training_output"))
 
 
 def test_cloudpickle():

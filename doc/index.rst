@@ -47,3 +47,8 @@ Ramp-workflow is available on PyPI and can be installed via `pip`::
    using_kits
 
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Additional information
+
+   whats_new
