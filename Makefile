@@ -21,6 +21,9 @@ test: test-all
 code-analysis:
 	flake8 .
 
+spellcheck:
+	codespell
+
 upload-pypi:
 	python setup.py sdist bdist_wheel && twine upload dist/*
 

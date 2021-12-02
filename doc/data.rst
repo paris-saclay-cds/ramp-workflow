@@ -29,7 +29,7 @@ RAMP data
 =========
 
 A data directory is required to deploy your challenge on a RAMP sever.
-Strictly speaking, it is not required if you simply wish to use RAMP worflow
+Strictly speaking, it is not required if you simply wish to use RAMP workflow
 locally. The data directory should be separate from the starting kit directory
 (see :ref:`directory-structure`).
 
