@@ -43,4 +43,3 @@ def test_hyperopt():
         ramp_kit_dir, ramp_kit_dir,
         os.path.join(ramp_kit_dir, 'submissions'), 'titanic',
         submission, 'random', 64, True)
-
