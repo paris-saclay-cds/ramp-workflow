@@ -385,7 +385,8 @@ class HyperparameterOptimization(object):
             is found
     """
 
-    def __init__(self, hyperparameters, engine, ramp_kit_dir, submission_dir, data_label):
+    def __init__(self, hyperparameters, engine, ramp_kit_dir,
+                 submission_dir, data_label):
         self.hyperparameters = hyperparameters
         self.engine = engine
         self.problem = assert_read_problem(ramp_kit_dir)
@@ -525,7 +526,8 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
     else:
         raise ValueError('{} is not a valid engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
-        hyperparameters, engine, ramp_kit_dir, hyperopt_submission_dir, data_label)
+        hyperparameters, engine, ramp_kit_dir,
+        hyperopt_submission_dir, data_label)
 
     return hyperparameter_experiment
 
