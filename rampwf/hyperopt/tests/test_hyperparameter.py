@@ -40,7 +40,8 @@ def test_hyperopt_data_label_notNone(submission):
     ramp_kit_dir = os.path.join(
         PATH, 'interfaces', 'header_in_files', 'classifier_kit')
     destination_folder = \
-        os.path.join(ramp_kit_dir, 'submissions', 'one_hyper_kit_titanic_hyperopt')
+        os.path.join(ramp_kit_dir, 'submissions',
+                     'one_hyper_kit_titanic_hyperopt')
     if not os.path.exists(destination_folder):
         os.mkdir(destination_folder)
     run_hyperopt(
