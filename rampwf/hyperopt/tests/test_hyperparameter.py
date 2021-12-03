@@ -44,6 +44,7 @@ def test_hyperopt_data_label_notNone():
         os.path.join(ramp_kit_dir, 'submissions'), 'titanic',
         submission, 'random', 64, True)
 
+
 def test_hyperopt_data_label_None():
     ramp_kit_dir = os.path.join(
         PATH, 'interfaces', 'header_in_files', 'classifier_kit')
@@ -52,4 +53,3 @@ def test_hyperopt_data_label_None():
         ramp_kit_dir, ramp_kit_dir,
         os.path.join(ramp_kit_dir, 'submissions'), None,
         submission, 'random', 64, True)
-
