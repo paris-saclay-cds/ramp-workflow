@@ -35,20 +35,20 @@ def test_hyperparameter():
     assert str(e.value) == 'Default must be among values.'
 
 
-def test_hyperopt_data_label_notNone():
+@pytest.mark.parametrize("submission", ['starting_kit', 'one_hyper_kit'])
+def test_hyperopt_data_label_notNone(submission):
     ramp_kit_dir = os.path.join(
         PATH, 'interfaces', 'header_in_files', 'classifier_kit')
-    submission = 'starting_kit'
     run_hyperopt(
         ramp_kit_dir, ramp_kit_dir,
         os.path.join(ramp_kit_dir, 'submissions'), 'titanic',
         submission, 'random', 64, True)
 
 
-def test_hyperopt_data_label_None():
+@pytest.mark.parametrize("submission", ['starting_kit', 'one_hyper_kit'])
+def test_hyperopt_data_label_None(submission):
     ramp_kit_dir = os.path.join(
         PATH, 'interfaces', 'header_in_files', 'classifier_kit')
-    submission = 'starting_kit'
     run_hyperopt(
         ramp_kit_dir, ramp_kit_dir,
         os.path.join(ramp_kit_dir, 'submissions'), None,
