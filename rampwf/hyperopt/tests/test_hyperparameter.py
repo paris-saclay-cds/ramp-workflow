@@ -37,6 +37,9 @@ def test_hyperparameter():
 
 @pytest.mark.parametrize("submission", ['starting_kit', 'one_hyper_kit'])
 def test_hyperopt_with_data_label(submission):
+    # we can remove the creation of the folder
+    # when only python >= 3.8 is supported by using
+    # dirs_exist_ok
     ramp_kit_dir = os.path.join(
         PATH, 'interfaces', 'header_in_files', 'classifier_kit')
     destination_folder = \
