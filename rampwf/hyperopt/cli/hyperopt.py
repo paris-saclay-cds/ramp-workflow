@@ -23,7 +23,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               'specified by --ramp-data-dir (default: ./data), for example '
               'using subdirectories ./data/<data_label>/. It is also '
               'the subdirectory of submissions/<submission>/training_output '
-              'where results are saved if --save-output is used.')
+              'where results are saved')
 @click.option('--ramp-submission-dir', default='submissions',
               show_default=True,
               help='Directory where the submissions are stored. It is the '

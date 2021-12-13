@@ -516,9 +516,8 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         ramp_submission_dir, hyperopt_submission)
     submission_dir = os.path.join(
         ramp_submission_dir, submission)
-    if os.path.exists(hyperopt_submission_dir):
-        shutil.rmtree(hyperopt_submission_dir)
-    shutil.copytree(submission_dir, hyperopt_submission_dir)
+    shutil.copytree(submission_dir, hyperopt_submission_dir,
+                    dirs_exist_ok=True)
     hyperparameters = parse_all_hyperparameters(
         hyperopt_submission_dir, problem.workflow)
     if engine_name == 'random':

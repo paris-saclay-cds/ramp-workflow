@@ -36,7 +36,7 @@ def test_hyperparameter():
 
 
 @pytest.mark.parametrize("submission", ['starting_kit', 'one_hyper_kit'])
-def test_hyperopt_data_label_notNone(submission):
+def test_hyperopt_with_data_label(submission):
     ramp_kit_dir = os.path.join(
         PATH, 'interfaces', 'header_in_files', 'classifier_kit')
     destination_folder = \
@@ -51,7 +51,7 @@ def test_hyperopt_data_label_notNone(submission):
 
 
 @pytest.mark.parametrize("submission", ['starting_kit', 'one_hyper_kit'])
-def test_hyperopt_data_label_None(submission):
+def test_hyperopt_without_data_label(submission):
     ramp_kit_dir = os.path.join(
         PATH, 'interfaces', 'header_in_files', 'classifier_kit')
     run_hyperopt(
