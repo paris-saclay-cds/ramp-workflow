@@ -2,4 +2,4 @@ build: false
 
 
 install:
-  - # Running an empty appveyor config, to have green CI untill it's disabled completely.
+  - # Running an empty appveyor config, to have green CI until it's disabled completely.
