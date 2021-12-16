@@ -173,7 +173,6 @@ class InsideEpisode(object):
 
         train_idx = None
         test_idx = None
-        # restart_col = X_df.columns.get_loc(self.restart_name)
         for fold_i in range(n_cv):
             train_is = []
             test_is = []
