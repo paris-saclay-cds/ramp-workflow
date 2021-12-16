@@ -62,17 +62,27 @@ def extend_train_is(X, train_is, n_burn_in, restart_name):
                 X.to_dataframe()[restart_name])[0]
         if episode_starts_X[0] != 0:
             episode_starts_X = np.r_[0, episode_starts_X]
-        # get the episode bounds in y
+
         align = np.arange(0, len(episode_starts_X))
         align *= n_burn_in
         episode_starts_y = np.r_[0, episode_starts_X[1:] - align[1:]]
-        episode_starts_X = np.r_[episode_starts_X, len(X)]
+
+        # we add the start index of the virtual next episode to ease
+        # the computation of the episode indices
+        n_y_samples = len(X) - len(episode_starts_X) * n_burn_in
+        episode_starts_y_with_end = np.r_[episode_starts_y, n_y_samples]
 
         extended_train_is = []
-        for b, bound in enumerate(episode_starts_y):
-            if bound in train_is:
-                extended_train_is += list(
-                    range(episode_starts_X[b], episode_starts_X[b + 1]))
+        for b, (lower_bound, upper_bound) in enumerate(
+                zip(episode_starts_y, episode_starts_y_with_end[1:])):
+            y_episode_ind = np.arange(lower_bound, upper_bound)
+            y_episode_train_is = np.intersect1d(y_episode_ind, train_is)
+            if len(y_episode_train_is):
+                X_episode_train_is = y_episode_train_is + (b + 1) * n_burn_in
+                extension = np.arange(
+                    X_episode_train_is[0] - n_burn_in, X_episode_train_is[0])
+                X_episode_train_is = np.hstack([extension, X_episode_train_is])
+                extended_train_is += list(X_episode_train_is)
 
         return extended_train_is
 

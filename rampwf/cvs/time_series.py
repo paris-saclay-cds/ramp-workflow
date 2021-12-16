@@ -91,6 +91,41 @@ def fold_to_str(idxs):
     return s
 
 
+def _get_episode_starts(X_df, restart_name, n_burn_in):
+    """Get episode start indices without burn-in samples.
+
+    List of episode start indices if burn-in samples were first removed.
+    This is used to slice the ground truth target array y.
+
+    Parameters
+    ----------
+    X_df : pandas dataframe
+        Contains a restart_name column with values equal to 1 for the
+        start of an episode, 0 otherwise.
+    restart_name : string
+        Name of the restart column.
+    n_burn_in : int
+        Number of steps used as burn in.
+
+    Return
+    ------
+    episode_starts : numpy array
+        Episode bound indices
+    """
+    episode_starts = np.where(X_df[restart_name])[0]
+    episode_starts = list(episode_starts)
+    if len(episode_starts) == 0 or episode_starts[0] != 0:
+        episode_starts.insert(0, 0)
+
+    # align starts to take burn in into account
+    if n_burn_in > 0:
+        align = np.arange(0, len(episode_starts)) * n_burn_in
+        episode_starts[1:] = episode_starts[1:] - align[1:]
+
+    print('episode starts: {}'.format(episode_starts))
+    return episode_starts
+
+
 class InsideEpisode(object):
     """CV inside each of the episodes.
 
@@ -106,26 +141,30 @@ class InsideEpisode(object):
     Using this CV with burn-in is not supported.
     """
 
-    def __init__(self, cv_method=None, restart_name='restart'):
+    def __init__(self, cv_method=None, restart_name='restart', n_burn_in=0):
         """cv_method should typically be rw.cvs.TimeSeries().get_cv"""
         self.cv_method = cv_method
         self.restart_name = restart_name
+        self.n_burn_in = n_burn_in
         if self.cv_method is None:
             self.cv_method = KFold(
                 n_splits=3, random_state=None, shuffle=False).split
 
     def get_cv(self, X_df, y):
-        episode_starts = list(np.where(X_df[self.restart_name])[0])
-        if len(episode_starts) == 0 or episode_starts[0] != 0:
-            episode_starts.insert(0, 0)
-        print('episode starts: {}'.format(episode_starts))
+        """Return train and test indices.
+
+        This method changes the passed dataset set X_df to put a restart at the
+        start of the test episodes.
+        """
+        episode_starts = _get_episode_starts(
+            X_df, self.restart_name, self.n_burn_in)
         n_episodes = len(episode_starts)
         # we add the start index of the virtual next episode to ease
         # the computation of the folds
         episode_starts.append(len(y))
         episode_list = []
         ranges = []
-        for episode_id in range(n_episodes + 1):
+        for episode_id in range(n_episodes):
             episode_range = list(range(
                 episode_starts[episode_id], episode_starts[episode_id + 1]))
             ranges.append(np.array(episode_range))
@@ -134,20 +173,16 @@ class InsideEpisode(object):
 
         train_idx = None
         test_idx = None
+        # restart_col = X_df.columns.get_loc(self.restart_name)
         for fold_i in range(n_cv):
             train_is = []
             test_is = []
-            if fold_i > 0:
-                X_df[self.restart_name][train_idx[0]] = 0
-                X_df[self.restart_name][test_idx[0]] = 0
             for episode, curr_range in zip(episode_list, ranges):
                 train_idx, test_idx = next(episode)
                 train_idx = curr_range[train_idx]
                 test_idx = curr_range[test_idx]
                 train_is += list(train_idx)
                 test_is += list(test_idx)
-                X_df[self.restart_name][train_idx[0]] = 1
-                X_df[self.restart_name][test_idx[0]] = 1
             print('CV fold {}: train {} valid {}'.format(
                 fold_i, fold_to_str(train_is), fold_to_str(test_is)))
             yield (train_is, test_is)
@@ -166,38 +201,9 @@ class PerEpisode(metaclass=ABCMeta):
     initialize restart_name and n_burn_in.
     """
 
-    def _get_episode_starts(self, X_df):
-        """Episode start indices without burn-in samples.
-
-        List of episode start indices if burn-in samples were first removed.
-        This is used to slice the ground truth target array y.
-
-        Parameters
-        ----------
-        X_df : pandas dataframe
-            Contains a restart_name column with values equal to 1 for the
-            start of an episode, 0 otherwise.
-
-        Return
-        ------
-        episode_starts : numpy array
-            Episode bound indices
-        """
-        episode_starts = np.where(X_df[self.restart_name])[0]
-        episode_starts = list(episode_starts)
-        if len(episode_starts) == 0 or episode_starts[0] != 0:
-            episode_starts.insert(0, 0)
-
-        # align starts to take burn in into account
-        if self.n_burn_in > 0:
-            align = np.arange(0, len(episode_starts)) * self.n_burn_in
-            episode_starts[1:] = episode_starts[1:] - align[1:]
-
-        print('episode starts: {}'.format(episode_starts))
-        return episode_starts
-
     def get_cv(self, X_df, y):
-        episode_starts = self._get_episode_starts(X_df)
+        episode_starts = _get_episode_starts(
+            X_df, self.restart_name, self.n_burn_in)
         n_episodes = len(episode_starts)
         splits = self.get_splits(n_episodes)
         # we add the start index of the virtual next episode to ease
@@ -316,3 +322,61 @@ class RollingPerEpisode(PerEpisode):
 
     def get_splits(self, n_episodes):
         return [(np.arange(j), np.array([j])) for j in range(1, n_episodes)]
+
+
+class RollingInsideEpisode(object):
+    """CV inside each of the episodes.
+
+    An episode in a time series is defined by a sequence of consecutive times.
+    They are identified by a restart column whose value is equal to 1 at the
+    start of each new episode. The term episode comes from the episode of
+    a reinforcement learning task.
+
+    A split into a training and test set is done inside each episode and all
+    the training sets (respectively the test sets) are concatenated into one
+    big training set (respectively test set).
+
+    Using this CV with burn-in is not supported.
+    """
+
+    def __init__(self, n_splits=10, restart_name='restart', n_burn_in=0):
+        """cv_method should typically be rw.cvs.TimeSeries().get_cv"""
+        self.n_splits = n_splits
+        self.restart_name = restart_name
+        self.n_burn_in = n_burn_in
+
+    def get_cv(self, X_df, y):
+        """Return train and test indices.
+
+        This method changes the passed dataset set X_df to put a restart at the
+        start of the test episodes.
+        """
+        episode_starts = _get_episode_starts(
+            X_df, self.restart_name, self.n_burn_in)
+        n_episodes = len(episode_starts)
+        # we add the start index of the virtual next episode to ease
+        # the computation of the folds
+        episode_starts.append(len(y))
+        ranges = []
+        for episode_id in range(n_episodes):
+            episode_range = list(range(
+                episode_starts[episode_id], episode_starts[episode_id + 1]))
+            ranges.append(np.array(episode_range))
+        n_episode_samples = [len(episode) for episode in ranges]
+        assert len(np.unique(n_episode_samples)) == 1
+        n_episode_samples = n_episode_samples[0]
+        n_cv = self.n_splits + 1
+        n_cv_samples = n_episode_samples // n_cv
+
+        for fold_i in range(n_cv):
+            train_is = []
+            test_is = []
+            split_idx = n_cv_samples * (fold_i + 1)
+            for ep_range in ranges:
+                train_idx = ep_range[:split_idx]
+                test_idx = ep_range[split_idx:]
+                train_is += list(train_idx)
+                test_is += list(test_idx)
+            # print('CV fold {}: train {} valid {}'.format(
+            #     fold_i, fold_to_str(train_is), fold_to_str(test_is)))
+            yield (train_is, test_is)
