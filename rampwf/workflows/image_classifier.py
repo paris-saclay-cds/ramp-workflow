@@ -1,5 +1,3 @@
-from __future__ import division
-
 import os
 
 import numpy as np
@@ -124,7 +122,7 @@ class ImageClassifier(object):
                 # X_batch = Parallel(n_jobs=self.n_jobs, backend='threading')(
                 #     delayed(transform_img)(x) for x in X_batch)
                 X_batch = [transform_test_img(x) for x in X_batch]
-                # X is a list of numpy arrrays at this point, convert it to a
+                # X is a list of numpy arrays at this point, convert it to a
                 # single numpy array.
                 try:
                     X_batch = [x[np.newaxis, :, :, :] for x in X_batch]
@@ -252,7 +250,7 @@ class BatchGeneratorBuilder(object):
                 # n_jobs=self.n_jobs, backend='threading')(delayed(
                 #     self.transform_img)(x) for x in X)
                 X = np.array([self.transform_img(x) for x in X])
-                # # X is a list of numpy arrrays at this point, convert it to a
+                # # X is a list of numpy arrays at this point, convert it to a
                 # single numpy array.
                 try:
                     X = [x[np.newaxis, :, :, :] for x in X]

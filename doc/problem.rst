@@ -267,7 +267,7 @@ file. It is worth taking a look at the `whole file
 6. Specify a cross-validation scheme
    Specify a way to split the 'train' data into training and validation sets.
    This should be done by defining a ``get_cv()`` function that takes
-   the feature and target data as parameters and returns indicies that can
+   the feature and target data as parameters and returns indices that can
    be used to split the data. If you are using a function with a random
    element, e.g., ``StratifiedShuffleSplit()`` `from scikit-learn
    <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedShuffleSplit.html#sklearn.model_selection.StratifiedShuffleSplit.split>`_,

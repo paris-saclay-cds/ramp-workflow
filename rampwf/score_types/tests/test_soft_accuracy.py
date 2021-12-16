@@ -1,5 +1,3 @@
-from __future__ import division
-
 import numpy as np
 
 from rampwf.score_types.soft_accuracy import SoftAccuracy

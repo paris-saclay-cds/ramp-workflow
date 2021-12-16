@@ -136,7 +136,6 @@ def _get_next_best_submission(predictions_list, ground_truths,
         else:
             is_improved = new_score > best_score + min_improvement
         if is_improved:
-            best_predictions = combined_predictions
             best_index = i
             best_score = new_score
     if best_index > -1:

@@ -174,7 +174,7 @@ To submit your solution to `RAMP studio`_:
    able to see the status of your submission in "My submissions". When your
    submission is waiting in the queue to be trained, it will appear in the
    table "New submissions". Once trained it will either appear in "Trained
-   submissions" (if it trained sucessfully) or in "Failed submissions". If your
+   submissions" (if it trained successfully) or in "Failed submissions". If your
    submission failed, you can click on the error to see part of the trace.
 
    .. image:: images/ramp_my_submissions.png

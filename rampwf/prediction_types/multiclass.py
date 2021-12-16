@@ -51,12 +51,12 @@ def _multiclass_init(self, y_pred=None, y_true=None, n_samples=None,
 
 
 def _init_from_pred_labels(self, y_pred_labels):
-    """Initalize y_pred to uniform for (positive) labels in y_pred_labels.
+    """Initialize y_pred to uniform for (positive) labels in y_pred_labels.
 
     Initialize multiclass Predictions from ground truth. y_pred_labels
     can be a single (positive) label in which case the corresponding
     column gets probability of 1.0. In the case of multilabel (k > 1
-    positive labels), the columns corresponing the positive labels
+    positive labels), the columns corresponding to the positive labels
     get probabilities 1/k.
 
     Parameters

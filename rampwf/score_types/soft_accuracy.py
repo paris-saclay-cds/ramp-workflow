@@ -8,8 +8,6 @@ predicted output levels are coming from a fixed set) by allowing to define
 arbitrary misclassification scores.
 """
 
-from __future__ import division
-
 import numpy as np
 from .base import BaseScoreType
 
@@ -33,7 +31,7 @@ class SoftAccuracy(BaseScoreType):
         # Smooth true probabilities with score_matrix
         y_true_smoothed = y_true_proba.dot(self.score_matrix)
         # Compute dot product between the predicted probabilities and
-        # the smoothed true "probabilites" ("" because it does not sum to 1)
+        # the smoothed true "probabilities" ("" because it does not sum to 1)
         scores = np.sum(y_proba_normalized * y_true_smoothed, axis=1)
         scores = np.nan_to_num(scores)
         score = np.mean(scores)

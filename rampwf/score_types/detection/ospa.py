@@ -1,5 +1,3 @@
-from __future__ import division
-
 import numpy as np
 from sklearn.utils import indices_to_mask
 
