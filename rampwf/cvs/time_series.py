@@ -177,17 +177,12 @@ class InsideEpisode(object):
         for fold_i in range(n_cv):
             train_is = []
             test_is = []
-            # if fold_i > 0:
-                # X_df.iloc[train_idx[0], restart_col] = 0
-                # X_df.iloc[test_idx[0], restart_col] = 0
             for episode, curr_range in zip(episode_list, ranges):
                 train_idx, test_idx = next(episode)
                 train_idx = curr_range[train_idx]
                 test_idx = curr_range[test_idx]
                 train_is += list(train_idx)
                 test_is += list(test_idx)
-                # X_df.iloc[train_idx[0], restart_col] = 1
-                # X_df.iloc[test_idx[0], restart_col] = 1
             print('CV fold {}: train {} valid {}'.format(
                 fold_i, fold_to_str(train_is), fold_to_str(test_is)))
             yield (train_is, test_is)
