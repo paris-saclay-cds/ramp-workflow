@@ -37,7 +37,6 @@ def _combined_init(self, y_pred=None, y_true=None, n_samples=None,
             start += n_columns
     elif n_samples is not None:
         for Predictions in self.Predictions_list:
-            n_columns = Predictions.n_columns
             predictions = Predictions(n_samples=n_samples)
             self.predictions_list.append(predictions)
     else:
