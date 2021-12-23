@@ -65,6 +65,11 @@ def get_submissions(ctx, args, incomplete):
 @click.option('--pickle', is_flag=True,
               help='Specify this flag to pickle the submission after '
               'training.')
+@click.option('--partial-train', is_flag=True,
+              help='Specify this flag to partial train an existing trained '
+              'workflow, previously saved by setting --pickle. The '
+              'workflow.train_submission needs to accept '
+              'prev_trained_workflow.')
 @click.option('--save-output', is_flag=True,
               help='Specify this flag to save predictions, scores, eventual '
               'error trace, and state after training.')
@@ -74,8 +79,8 @@ def get_submissions(ctx, args, incomplete):
 @click.option('--ignore-warning', is_flag=True,
               help='Will filters all warning and avoid to print them.')
 def main(submission, ramp_kit_dir, ramp_data_dir, data_label,
-         ramp_submission_dir, notebook, quick_test, pickle, save_output,
-         retrain, ignore_warning):
+         ramp_submission_dir, notebook, quick_test, pickle, partial_train,
+         save_output, retrain, ignore_warning):
     """Test a submission and/or a notebook before to submit on RAMP studio."""
     if quick_test:
         os.environ['RAMP_TEST_MODE'] = '1'
@@ -100,6 +105,7 @@ def main(submission, ramp_kit_dir, ramp_data_dir, data_label,
                           ramp_submission_dir=ramp_submission_dir,
                           submission=sub,
                           is_pickle=pickle,
+                          is_partial_train=partial_train,
                           save_output=save_output,
                           retrain=retrain)
 
