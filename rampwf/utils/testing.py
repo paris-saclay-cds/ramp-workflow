@@ -305,7 +305,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         combined_predictions_test_list, training_output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output, score_table_title='Combined bagged scores',
-        score_f_name_prefix='foldwise_best')
+        score_f_name_prefix='combined')
     if save_output:
         shutil.move(
             os.path.join(training_output_path, 'bagged_scores.csv'),
@@ -318,7 +318,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output,
         score_table_title='Foldwise best bagged scores',
-        score_f_name_prefix='combined')
+        score_f_name_prefix='foldwise_best')
     if save_output:
         shutil.move(
             os.path.join(training_output_path, 'bagged_scores.csv'),
