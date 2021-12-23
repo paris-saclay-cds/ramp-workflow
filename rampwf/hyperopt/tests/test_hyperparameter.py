@@ -36,10 +36,28 @@ def test_hyperparameter():
 
 
 @pytest.mark.parametrize("submission", ['starting_kit', 'one_hyper_kit'])
-def test_hyperopt(submission):
+def test_hyperopt_with_data_label(submission):
+    # we can remove the creation of the folder
+    # when only python >= 3.8 is supported by using
+    # dirs_exist_ok
     ramp_kit_dir = os.path.join(
-        PATH, 'interfaces', 'header_in_files', 'titanic')
+        PATH, 'interfaces', 'header_in_files', 'classifier_kit')
+    destination_folder = \
+        os.path.join(ramp_kit_dir, 'submissions',
+                     'one_hyper_kit_titanic_hyperopt')
+    if not os.path.exists(destination_folder):
+        os.mkdir(destination_folder)
     run_hyperopt(
         ramp_kit_dir, ramp_kit_dir,
-        os.path.join(ramp_kit_dir, 'submissions'),
-        submission, 'random', 64, is_cleanup=True)
+        os.path.join(ramp_kit_dir, 'submissions'), 'titanic',
+        submission, 'random', 64, True)
+
+
+@pytest.mark.parametrize("submission", ['starting_kit', 'one_hyper_kit'])
+def test_hyperopt_without_data_label(submission):
+    ramp_kit_dir = os.path.join(
+        PATH, 'interfaces', 'header_in_files', 'classifier_kit')
+    run_hyperopt(
+        ramp_kit_dir, ramp_kit_dir,
+        os.path.join(ramp_kit_dir, 'submissions'), None,
+        submission, 'random', 64, True)
