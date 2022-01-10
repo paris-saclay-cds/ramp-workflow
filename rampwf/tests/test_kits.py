@@ -106,6 +106,15 @@ def test_submission(path_kit):
                 ramp_submission_dir=os.path.join(path_kit, 'submissions'),
                 submission=os.path.basename(sub), is_pickle=True,
                 save_output=False, retrain=True)
+        # testing the partial training workflow
+        if 'titanic_old' in sub or 'air_passengers_old' in sub:
+            assert_submission(
+                ramp_kit_dir=path_kit,
+                ramp_data_dir=path_kit,
+                ramp_submission_dir=os.path.join(path_kit, 'submissions'),
+                submission=os.path.basename(sub), is_pickle=True,
+                is_partial_train=True,
+                save_output=False, retrain=True)
 
 
 def test_blending():

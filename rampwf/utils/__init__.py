@@ -2,6 +2,7 @@ from .testing import (
     assert_title, assert_data, assert_cv, assert_read_problem,
     assert_submission, assert_notebook, blend_submissions)
 from .submission import run_submission_on_cv_fold
+from .submission import pickle_trained_model, unpickle_trained_model
 from .combine import get_score_cv_bags
 from .importing import import_module_from_source
 from .generative_regression import MAX_MIXTURE_PARAMS, distributions_dispatcher
@@ -18,6 +19,7 @@ __all__ = ['assert_cv',
            'blend_submissions',
            'get_score_cv_bags',
            'import_module_from_source',
+           'pickle_trained_model',
            'run_submission_on_cv_fold',
            'distributions_dispatcher',
            'MAX_MIXTURE_PARAMS',
@@ -27,4 +29,5 @@ __all__ = ['assert_cv',
            'get_n_params',
            'MixtureYPred',
            'BaseGenerativeRegressor'
+           'unpickle_trained_model',
            ]
