@@ -250,7 +250,7 @@ def parse_hyperparameters(module_path, workflow_element_name):
 def parse_all_hyperparameters(module_path, workflow):
     """Parse hyperparameters in a submission.
 
-    Load all the the modules, take all Hyperparameter objects, and set the name
+    Load all the modules, take all Hyperparameter objects, and set the name
     of each to the name of the hyperparameter the user chose and the workflow
     element name of each to the corresponding workflow_element_name.
 
