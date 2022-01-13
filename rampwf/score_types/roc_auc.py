@@ -14,7 +14,7 @@ class ROCAUC(BaseScoreType):
     def score_function(self, ground_truths, predictions):
         """A hybrid score.
 
-        It tests the the predicted _probability_ of the second class
+        It tests the predicted _probability_ of the second class
         against the true _label index_ (which is 0 if the first label is the
         ground truth, and 1 if it is not, in other words, it is the
         true probability of the second class). Thus we have to override the
