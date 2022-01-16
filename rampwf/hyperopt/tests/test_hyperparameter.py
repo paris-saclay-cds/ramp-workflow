@@ -50,7 +50,7 @@ def test_hyperopt_with_data_label(submission):
     run_hyperopt(
         ramp_kit_dir, ramp_kit_dir,
         os.path.join(ramp_kit_dir, 'submissions'), 'titanic',
-        submission, 'random', 64, True)
+        submission, 'hebo', 64, True)
 
 
 @pytest.mark.parametrize("submission", ['starting_kit', 'one_hyper_kit'])
