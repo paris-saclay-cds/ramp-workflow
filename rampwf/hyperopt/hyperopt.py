@@ -490,6 +490,9 @@ class HyperparameterOptimization(object):
         for column, dtype in zip(scores_columns, dtypes):
             self.df_scores_[column] = self.df_scores_[column].astype(dtype)
 
+        self.df_best_scores_ = pd.DataFrame(columns=['valid_' + name for name in self.score_names])
+
+
     def _run_next_experiment(self, module_path, fold_i):
         _, _, df_scores = run_submission_on_cv_fold(
             self.problem, module_path=module_path, fold=self.cv[fold_i],
@@ -528,6 +531,8 @@ class HyperparameterOptimization(object):
     def _save_best_model(self):
         official_scores = self.df_summary_[
             'valid_' + self.problem.score_types[0].name + '_m']
+
+        print("official scores", official_scores)
         if self.problem.score_types[0].is_lower_the_better:
             best_defaults = official_scores.idxmin()
         else:
@@ -568,14 +573,29 @@ class HyperparameterOptimization(object):
 
             df_scores = self._run_next_experiment(
                 output_submission_dir, fold_i)
-            print("df_scores here", df_scores.loc['train', self.problem.score_types[0].name])
+            # print("df_scores here", [df_scores.loc['valid', self.problem.score_types[i].name]
+            #                          for i in range(len(self.problem.score_types))])
+            # for idx in range(len(self.problem.score_types)):
+            #     new_score = df_scores.loc['valid', self.problem.score_types[idx].name]
+            #     col_name = "valid_" + self.problem.score_types[idx].name
+            #     row = {
+            #         col_name:
+            #     }
+            #     row[idx] = max(best_scores_per_iteration[idx], new_score)
+            #
+            # self.df_best_scores_.append(row)
             if self.engine == 'hebo':
                 self._opt.observe(self.cv[fold_i][0], df_scores.loc['valid', self.problem.score_types[0].name])
             self._update_df_scores(df_scores, fold_i)
             shutil.rmtree(output_submission_dir)
         self._make_and_save_summary(hyperopt_output_path)
         self._save_best_model()
+        scores_columns = ['valid_' + name for name in self.score_names]
+        rolling_window = 1
+        for score in scores_columns:
+            self.df_scores_[score +"_max"] = self.df_scores_[score].rolling(n_iter, min_periods=1).max()
 
+        print("ll", self.df_scores_)
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
                   engine_name, data_label):
