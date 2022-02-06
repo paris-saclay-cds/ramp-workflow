@@ -43,14 +43,21 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               '<submission>_<data_label>_hyperopt '
               '(or <submission>_hyperopt if <data_label> is None)'
               'in the "submissions" dir with the best submission.')
+@click.option('--test', is_flag=True, default=False,
+              show_default=True,
+              help='If true, the saving folder should be '
+                   '<submission>_<data_label>_<engine>_hyperopt')
+@click.option('--label', is_flag=True, default=False,
+              show_default=True,
+              help='')
 def main(submission, ramp_kit_dir, ramp_data_dir, data_label,
-         ramp_submission_dir, engine, n_iter, save_best):
+         ramp_submission_dir, engine, n_iter, save_best, test, label):
     """Hyperopt a submission."""
     run_hyperopt(
         ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir,
         ramp_submission_dir=ramp_submission_dir, data_label=data_label,
         submission=submission, engine_name=engine, n_iter=n_iter,
-        save_best=save_best)
+        save_best=save_best, test=test, label=label)
 
 
 def start():

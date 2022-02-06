@@ -4,11 +4,15 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
+import optuna
+
 from tempfile import mkdtemp
 from ..utils import (
     assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
 from hebo.design_space.design_space import DesignSpace
 from hebo.optimizers.hebo import HEBO
+from optuna.samplers import TPESampler
+
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
@@ -375,7 +379,7 @@ class RandomEngine(object):
                 next_value_indices.append(selected_index)
         return fold_i, next_value_indices
 
-class HEBOEngine(object):
+class HEBOCVEngine(object):
     """Random search hyperopt engine.
 
     Attributes:
@@ -386,8 +390,8 @@ class HEBOEngine(object):
         self.hyperparameters = hyperparameters
         print("hypers", self.hyperparameters)
         self.converted_hyperparams_ = []
+
         for h in self.hyperparameters:
-            print("xoxo", h.name, h.values)
             self.converted_hyperparams_.append({
                 "name": h.name,
                 "type": "cat",
@@ -395,11 +399,6 @@ class HEBOEngine(object):
             })
         self.space = DesignSpace().parse(self.converted_hyperparams_)
         self._opt = HEBO(self.space)
-        # # for i in range(5):
-        #     rec = opt.suggest(n_suggestions=1)
-        #     # print("rec", rec, opt.y, obj(rec), dir(opt))
-        #     opt.observe(rec, obj(rec))
-        #     print('After %d iterations, best obj is %.2f' % (i, opt.y.min()))
 
     def next_hyperparameter_indices(self, df_scores, n_folds):
         """Return the next hyperparameter indices to try.
@@ -431,13 +430,52 @@ class HEBOEngine(object):
         else:
             fold_i = 0
             next_value_indices = []
-            print("LOL", next_value_indices)
             next = self._opt.suggest(n_suggestions=1)
-            print("next is", next)
             for h in self.hyperparameters:
-                print("what to compare", h.values, next.loc[0, h.name], type(h.values))
                 next_value_indices.append(np.where(h.values == next.loc[0, h.name])[0][0])
-            print("LOLO", next_value_indices)
+
+        return fold_i, next_value_indices
+
+class HEBOINDEngine(object):
+    """Random search hyperopt engine.
+
+    Attributes:
+        hyperparameters: a list of Hyperparameters
+    """
+
+    def __init__(self, hyperparameters):
+        self.hyperparameters = hyperparameters
+        print("hypers", self.hyperparameters)
+        self.converted_hyperparams_ = []
+
+        for h in self.hyperparameters:
+            self.converted_hyperparams_.append({
+                "name": h.name,
+                "type": "cat",
+                "categories": h.values
+            })
+        self.space = DesignSpace().parse(self.converted_hyperparams_)
+        self._opt = HEBO(self.space)
+
+    def next_hyperparameter_indices(self, df_scores, n_folds):
+        """Return the next hyperparameter indices to try.
+
+        Parameters:
+            df_scores : pandas DataFrame
+                It represents the results of the experiments that have been
+                run so far.
+        Return:
+            next_value_indices : list of int
+                The indices in corresponding to the values to try in
+                hyperparameters.
+        """
+        # First finish incomplete cv's.
+
+        fold_i = len(df_scores) % n_folds
+        next_value_indices = []
+        next = self._opt.suggest(n_suggestions=1)
+        for h in self.hyperparameters:
+            next_value_indices.append(np.where(h.values == next.loc[0, h.name])[0][0])
 
         return fold_i, next_value_indices
 
@@ -461,12 +499,17 @@ class HyperparameterOptimization(object):
         if data_label is not None:
             self.X_train, self.y_train = self.problem.get_train_data(
                 path=ramp_kit_dir, data_label=data_label)
+            self.X_test, self.y_test = self.problem.get_test_data(
+                path=ramp_kit_dir, data_label=data_label)
         else:
             self.X_train, self.y_train = self.problem.get_train_data(
+                path=ramp_kit_dir)
+            self.X_test, self.y_test = self.problem.get_test_data(
                 path=ramp_kit_dir)
         self.cv = list(self.problem.get_cv(self.X_train, self.y_train))
         self.submission_dir = submission_dir
         self.hyperparameter_names = [h.name for h in hyperparameters]
+        self.hyperparameters_indices = [h.name + "_i" for h in hyperparameters]
         self.score_names = [s.name for s in self.problem.score_types]
         self.df_summary_ = None
 
@@ -480,11 +523,12 @@ class HyperparameterOptimization(object):
 
         # Set up df_scores_ which will contain one row per experiment
         scores_columns = ['fold_i']
-        scores_columns += self.hyperparameter_names
+        scores_columns += self.hyperparameter_names + self.hyperparameters_indices
         scores_columns += ['train_' + name for name in self.score_names]
         scores_columns += ['valid_' + name for name in self.score_names]
         scores_columns += ['train_time', 'valid_time', 'n_train', 'n_valid']
         dtypes = ['int'] + [h.dtype for h in self.hyperparameters] +\
+                 ['int'] * len(self.hyperparameters) + \
             ['float'] * 2 * len(self.score_names) + ['float'] * 2 + ['int'] * 2
         self.df_scores_ = pd.DataFrame(columns=scores_columns)
         for column, dtype in zip(scores_columns, dtypes):
@@ -496,37 +540,70 @@ class HyperparameterOptimization(object):
     def _run_next_experiment(self, module_path, fold_i):
         _, _, df_scores = run_submission_on_cv_fold(
             self.problem, module_path=module_path, fold=self.cv[fold_i],
-            X_train=self.X_train, y_train=self.y_train)
+            X_train=self.X_train, y_train=self.y_train, X_test=self.X_test, y_test=self.y_test)
         return df_scores
 
-    def _update_df_scores(self, df_scores, fold_i):
+    def _update_df_scores(self, df_scores, fold_i, test):
         row = {'fold_i': fold_i}
         for h in self.hyperparameters:
             row[h.name] = h.default
+            row[h.name + "_i"] = h.default_index
         for name in self.score_names:
             row['train_' + name] = df_scores.loc['train'][name]
             row['valid_' + name] = df_scores.loc['valid'][name]
+            if test:
+                row['test_' + name] = df_scores.loc['test'][name]
         row['train_time'] = float(df_scores.loc['train']['time'])
         row['valid_time'] = float(df_scores.loc['valid']['time'])
+        row['valid_time'] = float(df_scores.loc['test']['time'])
+
         row['n_train'] = len(self.cv[fold_i][0])
         row['n_valid'] = len(self.cv[fold_i][1])
+        row['n_test'] = len(self.X_test[0])
+
+
         self.df_scores_ = self.df_scores_.append(row, ignore_index=True)
 
+    # def _make_and_save_summary(self, hyperopt_output_path):
+    #     summary_groupby = self.df_scores_.groupby(
+    #         self.hyperparameter_names)
+    #     means = summary_groupby.mean().drop(columns=['fold_i'])
+    #     stds = summary_groupby.std().drop(columns=['fold_i'])
+    #     counts = summary_groupby.count()[['n_train']].rename(
+    #         columns={'n_train': 'n_folds'})
+    #     self.df_summary_ = pd.merge(
+    #         means, stds, left_index=True, right_index=True,
+    #         suffixes=('_m', '_s'))
+    #     self.df_summary_ = pd.merge(
+    #         counts, self.df_summary_, left_index=True, right_index=True)
+    #     print(self.df_summary_)
+    #     summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
+    #     self.df_summary_.to_csv(summary_fname)
+
     def _make_and_save_summary(self, hyperopt_output_path):
-        summary_groupby = self.df_scores_.groupby(
-            self.hyperparameter_names)
-        means = summary_groupby.mean().drop(columns=['fold_i'])
-        stds = summary_groupby.std().drop(columns=['fold_i'])
-        counts = summary_groupby.count()[['n_train']].rename(
-            columns={'n_train': 'n_folds'})
-        self.df_summary_ = pd.merge(
-            means, stds, left_index=True, right_index=True,
-            suffixes=('_m', '_s'))
-        self.df_summary_ = pd.merge(
-            counts, self.df_summary_, left_index=True, right_index=True)
-        print(self.df_summary_)
         summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
-        self.df_summary_.to_csv(summary_fname)
+        self.df_scores_.to_csv(summary_fname)
+
+    # def _save_best_model(self):
+    #     official_scores = self.df_summary_[
+    #         'valid_' + self.problem.score_types[0].name + '_m']
+    # 
+    #     print("official scores", official_scores)
+    #     if self.problem.score_types[0].is_lower_the_better:
+    #         best_defaults = official_scores.idxmin()
+    #     else:
+    #         best_defaults = official_scores.idxmax()
+    #     print('Best hyperparameters: ', best_defaults)
+    #     try:
+    #         for bd, h in zip(best_defaults, self.hyperparameters):
+    #             h.set_default(bd)
+    #     except(TypeError):
+    #         # single hyperparameter
+    #         self.hyperparameters[0].set_default(best_defaults)
+    #     # Overwrite the submission with the best hyperparameter values
+    #     write_hyperparameters(
+    #         self.submission_dir, self.submission_dir,
+    #         self.hypers_per_workflow_element)
 
     def _save_best_model(self):
         official_scores = self.df_summary_[
@@ -549,8 +626,9 @@ class HyperparameterOptimization(object):
             self.submission_dir, self.submission_dir,
             self.hypers_per_workflow_element)
 
-    def run(self, n_iter):
+    def run(self, n_iter, test):
         # Create hyperopt output directory
+        mean = 0
         hyperopt_output_path = os.path.join(
             self.submission_dir, 'hyperopt_output')
         if not os.path.exists(hyperopt_output_path):
@@ -561,7 +639,6 @@ class HyperparameterOptimization(object):
                 self.engine.next_hyperparameter_indices(
                     self.df_scores_, len(self.cv))
             # Updating hyperparameters
-            print("next_value_indices", next_value_indices)
             for h, i in zip(self.hyperparameters, next_value_indices):
                 h.default_index = i
             # Writing submission files with new hyperparameter values
@@ -573,38 +650,31 @@ class HyperparameterOptimization(object):
 
             df_scores = self._run_next_experiment(
                 output_submission_dir, fold_i)
-            # print("df_scores here", [df_scores.loc['valid', self.problem.score_types[i].name]
-            #                          for i in range(len(self.problem.score_types))])
-            # for idx in range(len(self.problem.score_types)):
-            #     new_score = df_scores.loc['valid', self.problem.score_types[idx].name]
-            #     col_name = "valid_" + self.problem.score_types[idx].name
-            #     row = {
-            #         col_name:
-            #     }
-            #     row[idx] = max(best_scores_per_iteration[idx], new_score)
-            #
-            # self.df_best_scores_.append(row)
-            if self.engine == 'hebo':
-                self._opt.observe(self.cv[fold_i][0], df_scores.loc['valid', self.problem.score_types[0].name])
-            self._update_df_scores(df_scores, fold_i)
+
+            mean += df_scores.loc['valid', self.problem.score_types[0].name]
+            if self.engine == 'hebo_cv' and fold_i == len(self.cv) - 1:
+                self._opt.observe(self.X_train[0], mean/len(self.cv))
+                mean = 0
+            # if self.engine == "optuna":
+            #     self.study.tell(self.trial, df_scores.loc['valid', self.problem.score_types[0].name])
+            self._update_df_scores(df_scores, fold_i, test)
             shutil.rmtree(output_submission_dir)
         self._make_and_save_summary(hyperopt_output_path)
-        self._save_best_model()
+        # self._save_best_model()
         scores_columns = ['valid_' + name for name in self.score_names]
-        rolling_window = 1
         for score in scores_columns:
             self.df_scores_[score +"_max"] = self.df_scores_[score].rolling(n_iter, min_periods=1).max()
 
         print("ll", self.df_scores_)
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
-                  engine_name, data_label):
+                  engine_name, data_label, label):
     problem = assert_read_problem(ramp_kit_dir)
     if data_label is None:
         hyperopt_submission = submission + '_hyperopt'
     else:
-        hyperopt_submission = submission + '_' + data_label + '_hyperopt'
-
+        hyperopt_submission = submission + '_' + data_label + '_hyperopt' \
+            if not label else submission + '_' + data_label + '_' + engine_name + '_hyperopt'
     hyperopt_submission_dir = os.path.join(
         ramp_submission_dir, hyperopt_submission)
     submission_dir = os.path.join(
@@ -616,8 +686,12 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         hyperopt_submission_dir, problem.workflow)
     if engine_name == 'random':
         engine = RandomEngine(hyperparameters)
-    elif engine_name == 'hebo':
-        engine = HEBOEngine(hyperparameters)
+    elif engine_name == 'hebo_cv':
+        engine = HEBOCVEngine(hyperparameters)
+    elif engine_name == "hebo_ind":
+        engine = HEBOINDEngine(hyperparameters)
+    # elif engine_name == "optuna":
+    #     engine = OptunaEngine(hyperparameters)
     else:
         raise ValueError('{} is not a valid engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
@@ -628,9 +702,9 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
 
 
 def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
-                 submission, engine_name, n_iter, save_best=False):
+                 submission, engine_name, n_iter, save_best, test, label):
     hyperparameter_experiment = init_hyperopt(
-        ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label)
-    hyperparameter_experiment.run(n_iter)
+        ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label, label)
+    hyperparameter_experiment.run(n_iter, test)
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
