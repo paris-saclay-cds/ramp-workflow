@@ -399,6 +399,7 @@ class HEBOCVEngine(object):
             })
         self.space = DesignSpace().parse(self.converted_hyperparams_)
         self._opt = HEBO(self.space)
+        self._mean = 0
 
     def next_hyperparameter_indices(self, df_scores, n_folds):
         """Return the next hyperparameter indices to try.
@@ -435,6 +436,14 @@ class HEBOCVEngine(object):
                 next_value_indices.append(np.where(h.values == next.loc[0, h.name])[0][0])
 
         return fold_i, next_value_indices
+
+    def pass_feedback(self, fold_i, n_folds, df_scores, input, score_name):
+
+        self._mean += df_scores.loc['valid', score_name]
+        if fold_i == n_folds - 1:
+            self._opt.observe(input, self._mean / n_folds)
+            self._mean = 0
+
 
 class HEBOINDEngine(object):
     """Random search hyperopt engine.
@@ -650,11 +659,7 @@ class HyperparameterOptimization(object):
 
             df_scores = self._run_next_experiment(
                 output_submission_dir, fold_i)
-
-            mean += df_scores.loc['valid', self.problem.score_types[0].name]
-            if self.engine == 'hebo_cv' and fold_i == len(self.cv) - 1:
-                self._opt.observe(self.X_train[0], mean/len(self.cv))
-                mean = 0
+            self.engine.pass_feedback(fold_i, len(self.cv), df_scores, self.X_train[0], self.problem.score_types[0].name)
             # if self.engine == "optuna":
             #     self.study.tell(self.trial, df_scores.loc['valid', self.problem.score_types[0].name])
             self._update_df_scores(df_scores, fold_i, test)
