@@ -397,6 +397,7 @@ class HEBOCVEngine(object):
                 "type": "cat",
                 "categories": h.values
             })
+
         self.space = DesignSpace().parse(self.converted_hyperparams_)
         self._opt = HEBO(self.space)
         self._mean = 0
@@ -431,17 +432,19 @@ class HEBOCVEngine(object):
         else:
             fold_i = 0
             next_value_indices = []
-            next = self._opt.suggest(n_suggestions=1)
+            self.next = self._opt.suggest(n_suggestions=1)
+            print("MT next", self.next, type(self.next))
             for h in self.hyperparameters:
-                next_value_indices.append(np.where(h.values == next.loc[0, h.name])[0][0])
+                next_value_indices.append(np.where(h.values == self.next.loc[0, h.name])[0][0])
 
         return fold_i, next_value_indices
 
-    def pass_feedback(self, fold_i, n_folds, df_scores, input, score_name):
+    def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
 
         self._mean += df_scores.loc['valid', score_name]
         if fold_i == n_folds - 1:
-            self._opt.observe(input, self._mean / n_folds)
+            print("MTi", [self._mean / n_folds])
+            self._opt.observe(self.next, np.asarray([self._mean / n_folds]).reshape(-1, 1))
             self._mean = 0
 
 
@@ -460,9 +463,11 @@ class HEBOINDEngine(object):
         for h in self.hyperparameters:
             self.converted_hyperparams_.append({
                 "name": h.name,
-                "type": "cat",
-                "categories": h.values
+                "type": "int",
+                "lb": 0,
+                "ub": 1
             })
+        print("converted", self.converted_hyperparams_)
         self.space = DesignSpace().parse(self.converted_hyperparams_)
         self._opt = HEBO(self.space)
 
@@ -484,7 +489,8 @@ class HEBOINDEngine(object):
         next_value_indices = []
         next = self._opt.suggest(n_suggestions=1)
         for h in self.hyperparameters:
-            next_value_indices.append(np.where(h.values == next.loc[0, h.name])[0][0])
+            # next_value_indices.append(np.where(h.values == next.loc[0, h.name])[0][0])
+            print("this next", next)
 
         return fold_i, next_value_indices
 
@@ -659,7 +665,7 @@ class HyperparameterOptimization(object):
 
             df_scores = self._run_next_experiment(
                 output_submission_dir, fold_i)
-            self.engine.pass_feedback(fold_i, len(self.cv), df_scores, self.X_train[0], self.problem.score_types[0].name)
+            self.engine.pass_feedback(fold_i, len(self.cv), df_scores, self.problem.score_types[0].name)
             # if self.engine == "optuna":
             #     self.study.tell(self.trial, df_scores.loc['valid', self.problem.score_types[0].name])
             self._update_df_scores(df_scores, fold_i, test)
