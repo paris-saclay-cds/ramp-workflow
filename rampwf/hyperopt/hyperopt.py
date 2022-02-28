@@ -435,7 +435,7 @@ class HEBOCVEngine(object):
             self.next = self._opt.suggest(n_suggestions=1)
             print("MT next", self.next, type(self.next))
             for h in self.hyperparameters:
-                next_value_indices.append(np.where(h.values == self.next.loc[0, h.name])[0][0])
+                next_value_indices.append(np.where(h.values == self.next.iloc[0][h.name])[0][0])
 
         return fold_i, next_value_indices
 
