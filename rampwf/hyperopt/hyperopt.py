@@ -726,7 +726,7 @@ class OptunaEngine(object):
             fold_i = 0
             next_value_indices = []
             for h in self.hyperparameters:
-                next = self.trial.suggest_int(h.name, 0, len(h.values))
+                next = self.trial.suggest_int(h.name, 0, len(h.values) - 1)
                 next_value_indices.append(next)
 
         return fold_i, next_value_indices
