@@ -670,17 +670,70 @@ class HyperparameterOptimization(object):
             df_scores = self._run_next_experiment(
                 output_submission_dir, fold_i)
             self.engine.pass_feedback(fold_i, len(self.cv), df_scores, self.problem.score_types[0].name)
-            # if self.engine == "optuna":
-            #     self.study.tell(self.trial, df_scores.loc['valid', self.problem.score_types[0].name])
             self._update_df_scores(df_scores, fold_i, test)
             shutil.rmtree(output_submission_dir)
         self._make_and_save_summary(hyperopt_output_path)
         # self._save_best_model()
         scores_columns = ['valid_' + name for name in self.score_names]
         for score in scores_columns:
-            self.df_scores_[score +"_max"] = self.df_scores_[score].rolling(n_iter, min_periods=1).max()
+            self.df_scores_[score + "_max"] = self.df_scores_[score].rolling(n_iter, min_periods=1).max()
 
         print("ll", self.df_scores_)
+
+
+class OptunaEngine(object):
+    """Random search hyperopt engine.
+
+    Attributes:
+        hyperparameters: a list of Hyperparameters
+    """
+
+    def __init__(self, hyperparameters):
+        self.hyperparameters = hyperparameters
+        sampler = TPESampler(**TPESampler.hyperopt_parameters())
+        self.study = optuna.create_study(direction="maximize", sampler=sampler)
+
+
+    def next_hyperparameter_indices(self, df_scores, n_folds):
+        """Return the next hyperparameter indices to try.
+
+        Parameters:
+            df_scores : pandas DataFrame
+                It represents the results of the experiments that have been
+                run so far.
+        Return:
+            next_value_indices : list of int
+                The indices in corresponding to the values to try in
+                hyperparameters.
+        """
+        # First finish incomplete cv's.
+        self.trial = self.study.ask()
+        hyperparameter_names = [h.name for h in self.hyperparameters]
+        df_n_folds = df_scores.groupby(hyperparameter_names).count()
+        incomplete_folds = df_n_folds[(df_n_folds['fold_i'] % n_folds > 0)]
+        if len(incomplete_folds) > 0:
+            incomplete_folds = incomplete_folds.reset_index()
+            next_values = incomplete_folds.iloc[0][
+                [h.name for h in self.hyperparameters]].values
+            next_value_indices = [
+                h.get_index(v) for h, v
+                in zip(self.hyperparameters, next_values)]
+            # for some reason iloc converts int to float
+            fold_i = int(incomplete_folds.iloc[0]['fold_i']) % n_folds
+        # Otherwise select hyperparameter values from those that haven't
+        # been selected yet, using also prior
+        else:
+            fold_i = 0
+            next_value_indices = []
+            for h in self.hyperparameters:
+                next = self.trial.suggest_int(h.name, 0, len(h.values))
+                next_value_indices.append(next)
+
+        return fold_i, next_value_indices
+
+    def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
+        self.study.tell(self.trial, df_scores.loc['valid', score_name])
+
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
                   engine_name, data_label, label):
@@ -705,8 +758,8 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         engine = HEBOCVEngine(hyperparameters)
     elif engine_name == "hebo_ind":
         engine = HEBOINDEngine(hyperparameters)
-    # elif engine_name == "optuna":
-    #     engine = OptunaEngine(hyperparameters)
+    elif engine_name == "optuna":
+        engine = OptunaEngine(hyperparameters)
     else:
         raise ValueError('{} is not a valid engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
