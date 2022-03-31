@@ -5,6 +5,7 @@ import shutil
 import numpy as np
 import pandas as pd
 import optuna
+from ray import tune
 
 from tempfile import mkdtemp
 from ..utils import (
@@ -14,6 +15,7 @@ from hebo.optimizers.hebo import HEBO
 from optuna.samplers import TPESampler
 from skopt.space import Categorical
 from skopt import Optimizer
+
 
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
@@ -533,6 +535,7 @@ class HyperparameterOptimization(object):
         self.hyperparameters_indices = [h.name + "_i" for h in hyperparameters]
         self.score_names = [s.name for s in self.problem.score_types]
         self.df_summary_ = None
+        self.fold_i = 0
 
         # Set up hypers_per_workflow_element dictionary: keys are
         # workflow element names, values are lists are hypers belonging
@@ -647,13 +650,66 @@ class HyperparameterOptimization(object):
             self.submission_dir, self.submission_dir,
             self.hypers_per_workflow_element)
 
+
+
+    def run_tune(self):
+
+        def easy_objective(config):
+            next_value_indices = []
+            for idx, h in enumerate(self.hyperparameters):
+                next_value_indices.append(np.where(h.values == config[h.name])[0][0])
+                # Writing submission files with new hyperparameter values
+            for h, i in zip(self.hyperparameters, next_value_indices):
+                h.default_index = i
+            print("MTos", os.getcwd())
+            output_submission_dir = mkdtemp()
+            os.chdir(self.current_dir)
+            write_hyperparameters(
+                self.submission_dir, output_submission_dir,
+                self.hypers_per_workflow_element)
+            # Calling the training script.
+            self.fold_i = (self.fold_i + 1) % len(self.cv)
+            df_scores = self._run_next_experiment(
+                output_submission_dir, self.fold_i)
+            shutil.rmtree(output_submission_dir)
+            self._update_df_scores(df_scores, self.fold_i, False)
+            print("here", i)
+            tune.report(accuracy=df_scores.loc['valid', self.score_names[0]])
+
+        self.converted_hyperparams_ = dict()
+
+        for h in self.hyperparameters:
+            print(h.values)
+            self.converted_hyperparams_[h.name] = tune.choice(h.values)
+
+        self.current_dir = os.getcwd()
+        print('MT os', self.current_dir)
+        analysis = tune.run(
+        easy_objective,
+        metric="accuracy",
+        mode="max",
+        num_samples=self.n_iter,
+        name="hebo_exp_with_warmstart",
+        config=self.converted_hyperparams_)
+
+        print("MT analysis", analysis.results_df)
+
+
+
     def run(self, n_iter, test):
         # Create hyperopt output directory
+
         mean = 0
         hyperopt_output_path = os.path.join(
             self.submission_dir, 'hyperopt_output')
         if not os.path.exists(hyperopt_output_path):
             os.makedirs(hyperopt_output_path)
+
+        if not self.engine:
+            self.n_iter = n_iter
+            self.run_tune()
+            return
+
         for i in range(n_iter):
             # Getting new hyperparameter values from engine
             fold_i, next_value_indices =\
@@ -804,7 +860,7 @@ class SKOptEngine(object):
         return fold_i, next_value_indices
 
     def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
-        self._opt.tell(self.next, df_scores.loc['valid', score_name])
+        self._opt.tell(self.next, -df_scores.loc['valid', score_name])
 
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
@@ -834,6 +890,8 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         engine = OptunaEngine(hyperparameters)
     elif engine_name == "skopt":
         engine = SKOptEngine(hyperparameters)
+    elif engine_name == "tune":
+        engine = None
     else:
         raise ValueError('{} is not a valid engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
