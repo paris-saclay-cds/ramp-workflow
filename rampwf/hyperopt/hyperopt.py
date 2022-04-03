@@ -64,7 +64,10 @@ class Hyperparameter(object):
             self.default_index = 0
         else:
             if default not in self.values:
-                raise ValueError('Default must be among values.')
+                message = 'Default must be among values.\n'
+                message += f'default: {default}\n'
+                message += f'values: {self.values}'
+                raise ValueError(message)
             else:
                 self.set_default(default)
 
@@ -478,7 +481,7 @@ class HyperparameterOptimization(object):
             self.run_tune(hyperopt_output_path)
             return
 
-        for i in range(n_iter):
+        for i_iter in range(n_iter):
             # Getting new hyperparameter values from engine
             fold_i, next_value_indices =\
                 self.engine.next_hyperparameter_indices(
@@ -498,6 +501,7 @@ class HyperparameterOptimization(object):
             self.engine.pass_feedback(fold_i, len(self.cv), df_scores, self.problem.score_types[0].name)
             self._update_df_scores(df_scores, fold_i, test)
             shutil.rmtree(output_submission_dir)
+            print(f'Done {i_iter + 1} / {n_iter}.')
         self._make_and_save_summary(hyperopt_output_path)
         scores_columns = ['valid_' + name for name in self.score_names]
         for score in scores_columns:
