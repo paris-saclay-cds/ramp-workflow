@@ -1,10 +1,12 @@
 import numpy as np
+from .generic_engine import GenericEngine
 
-class RandomEngine(object):
+
+class RandomEngine(GenericEngine):
     def __init__(self, hyperparameters):
         self.hyperparameters = hyperparameters
 
-    def next_hyperparameter_indices(self, df_scores, n_folds):
+    def next_hyperparameter_indices(self, df_scores, n_folds, problem):
         """Return the next hyperparameter indices to try.
 
         Parameters:

@@ -1,8 +1,10 @@
 from hebo.design_space.design_space import DesignSpace
 from hebo.optimizers.hebo import HEBO
 import numpy as np
+from .generic_engine import GenericEngine
 
-class HEBOINDEngine(object):
+
+class HEBOINDEngine(GenericEngine):
     def __init__(self, hyperparameters):
         self.hyperparameters = hyperparameters
         print("hypers", self.hyperparameters)
@@ -18,7 +20,7 @@ class HEBOINDEngine(object):
         self.space = DesignSpace().parse(self.converted_hyperparams_)
         self._opt = HEBO(self.space)
 
-    def next_hyperparameter_indices(self, df_scores, n_folds):
+    def next_hyperparameter_indices(self, df_scores, n_folds, problem):
         """Return the next hyperparameter indices to try.
 
         Parameters:
@@ -30,8 +32,6 @@ class HEBOINDEngine(object):
                 The indices in corresponding to the values to try in
                 hyperparameters.
         """
-        # First finish incomplete cv's.
-
         fold_i = len(df_scores) % n_folds
         next_value_indices = []
         self.next = self._opt.suggest(n_suggestions=1)

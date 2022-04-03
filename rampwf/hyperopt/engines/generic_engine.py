@@ -12,7 +12,7 @@ class GenericEngine(ABC):
     def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
         pass
 
-    def finish_incomplete_cvs(self, incomplete_folds, n_folds):
+    def finish_incomplete_cvs(self, incomplete_folds, n_folds, problem):
         incomplete_folds = incomplete_folds.reset_index()
         next_values = incomplete_folds.iloc[0][
             [h.name for h in self.hyperparameters]].values

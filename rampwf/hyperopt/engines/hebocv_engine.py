@@ -1,8 +1,10 @@
 from hebo.design_space.design_space import DesignSpace
 from hebo.optimizers.hebo import HEBO
 import numpy as np
+from .generic_engine import GenericEngine
 
-class HEBOCVEngine(object):
+
+class HEBOCVEngine(GenericEngine):
 
     def __init__(self, hyperparameters):
         self.hyperparameters = hyperparameters
@@ -19,7 +21,7 @@ class HEBOCVEngine(object):
         self._opt = HEBO(self.space)
         self._mean = 0
 
-    def next_hyperparameter_indices(self, df_scores, n_folds):
+    def next_hyperparameter_indices(self, df_scores, n_folds, problem):
         """Return the next hyperparameter indices to try.
 
         Parameters:

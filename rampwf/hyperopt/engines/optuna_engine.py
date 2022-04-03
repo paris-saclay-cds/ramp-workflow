@@ -1,8 +1,9 @@
 import optuna
 from optuna.samplers import TPESampler
-import numpy as np
+from .generic_engine import GenericEngine
 
-class OptunaEngine(object):
+
+class OptunaIndEngine(GenericEngine):
     def __init__(self, hyperparameters):
         self.hyperparameters = hyperparameters
         sampler = TPESampler(**TPESampler.hyperopt_parameters())
@@ -10,7 +11,7 @@ class OptunaEngine(object):
         self._mean = 0
 
 
-    def next_hyperparameter_indices(self, df_scores, n_folds):
+    def next_hyperparameter_indices(self, df_scores, n_folds, problem):
         """Return the next hyperparameter indices to try.
 
         Parameters:

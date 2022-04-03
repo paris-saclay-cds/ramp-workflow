@@ -1,8 +1,10 @@
 from skopt.space import Categorical
 from skopt import Optimizer
 import numpy as np
+from .generic_engine import GenericEngine
 
-class SKOptEngine(object):
+
+class SKOptEngine(GenericEngine):
     def __init__(self, hyperparameters):
         self.hyperparameters = hyperparameters
         self.converted_hyperparams_ = []
@@ -20,7 +22,7 @@ class SKOptEngine(object):
         self._mean = 0
 
 
-    def next_hyperparameter_indices(self, df_scores, n_folds):
+    def next_hyperparameter_indices(self, df_scores, n_folds, problem):
         """Return the next hyperparameter indices to try.
 
         Parameters:
@@ -37,14 +39,7 @@ class SKOptEngine(object):
         df_n_folds = df_scores.groupby(hyperparameter_names).count()
         incomplete_folds = df_n_folds[(df_n_folds['fold_i'] % n_folds > 0)]
         if len(incomplete_folds) > 0:
-            incomplete_folds = incomplete_folds.reset_index()
-            next_values = incomplete_folds.iloc[0][
-                [h.name for h in self.hyperparameters]].values
-            next_value_indices = [
-                h.get_index(v) for h, v
-                in zip(self.hyperparameters, next_values)]
-            # for some reason iloc converts int to float
-            fold_i = int(incomplete_folds.iloc[0]['fold_i']) % n_folds
+            fold_i, next_value_indices = self.finish_incomplete_cvs(incomplete_folds, n_folds)
         # Otherwise select hyperparameter values from those that haven't
         # been selected yet, using also prior
         else:
@@ -56,5 +51,6 @@ class SKOptEngine(object):
         return fold_i, next_value_indices
 
     def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
+
         self._opt.tell(self.next, -df_scores.loc['valid', score_name])
 

@@ -10,7 +10,7 @@ from tempfile import mkdtemp
 from ..utils import (
     assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
 
-from .engines import HEBOCVEngine, HEBOINDEngine, RandomEngine, SKOptEngine, OptunaEngine, TuneEngine
+from .engines import HEBOCVEngine, HEBOINDEngine, RandomEngine, SKOptEngine, OptunaIndEngine, TuneEngine
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
@@ -485,7 +485,7 @@ class HyperparameterOptimization(object):
             # Getting new hyperparameter values from engine
             fold_i, next_value_indices =\
                 self.engine.next_hyperparameter_indices(
-                    self.df_scores_, len(self.cv))
+                    self.df_scores_, len(self.cv), self.problem)
             # Updating hyperparameters
             for h, i in zip(self.hyperparameters, next_value_indices):
                 h.default_index = i
