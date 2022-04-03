@@ -4,19 +4,13 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
-import optuna
 from ray import tune
 
 from tempfile import mkdtemp
 from ..utils import (
     assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
-from hebo.design_space.design_space import DesignSpace
-from hebo.optimizers.hebo import HEBO
-from optuna.samplers import TPESampler
-from skopt.space import Categorical
-from skopt import Optimizer
 
-
+from .engines import HEBOCVEngine, HEBOINDEngine, RandomEngine, SKOptEngine, OptunaEngine, TuneEngine
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
@@ -316,193 +310,6 @@ def write_hyperparameters(submission_dir, output_submission_dir,
             f.write(content)
 
 
-class RandomEngine(object):
-    """Random search hyperopt engine.
-
-    Attributes:
-        hyperparameters: a list of Hyperparameters
-    """
-
-    def __init__(self, hyperparameters):
-        self.hyperparameters = hyperparameters
-
-    def next_hyperparameter_indices(self, df_scores, n_folds):
-        """Return the next hyperparameter indices to try.
-
-        Parameters:
-            df_scores : pandas DataFrame
-                It represents the results of the experiments that have been
-                run so far.
-        Return:
-            next_value_indices : list of int
-                The indices in corresponding to the values to try in
-                hyperparameters.
-        """
-        # First finish incomplete cv's.
-        hyperparameter_names = [h.name for h in self.hyperparameters]
-        df_n_folds = df_scores.groupby(hyperparameter_names).count()
-        incomplete_folds = df_n_folds[(df_n_folds['fold_i'] % n_folds > 0)]
-        if len(incomplete_folds) > 0:
-            incomplete_folds = incomplete_folds.reset_index()
-            next_values = incomplete_folds.iloc[0][
-                [h.name for h in self.hyperparameters]].values
-            next_value_indices = [
-                h.get_index(v) for h, v
-                in zip(self.hyperparameters, next_values)]
-            # for some reason iloc converts int to float
-            fold_i = int(incomplete_folds.iloc[0]['fold_i']) % n_folds
-        # Otherwise select hyperparameter values from those that haven't
-        # been selected yet, using also prior
-        else:
-            fold_i = 0
-            next_value_indices = []
-            df_scores_local = df_scores.copy()
-            for h in self.hyperparameters:
-                # unnormalized but positive prior
-                prior = np.clip(h.prior, 1e-15, None)
-                # How many times each hyperparameter value was tried, given the
-                # selected values next_value_indices so far
-                frequencies = np.zeros(len(prior))
-                if len(df_scores_local) > 0:
-                    for i, v in np.ndenumerate(h.values):
-                        frequencies[i] = len(
-                            df_scores_local[df_scores_local[h.name] == v])
-                # How many times each hyperparameter value was not tried, given
-                # the selected values next_value_indices so far, in this round
-                # of full grid search
-                frequencies = max(frequencies) - frequencies
-                prior *= frequencies
-                if prior.sum() <= 0:
-                    prior = np.ones(len(prior))
-                prior /= prior.sum()
-                selected_index = np.random.choice(
-                    range(len(h.values)), p=prior)
-                # keep only experiments that used the selected values so far
-                df_scores_local = df_scores_local[(
-                    df_scores_local[h.name] == h.values[selected_index])]
-                next_value_indices.append(selected_index)
-        return fold_i, next_value_indices
-
-    def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
-        pass
-
-class HEBOCVEngine(object):
-    """Random search hyperopt engine.
-
-    Attributes:
-        hyperparameters: a list of Hyperparameters
-    """
-
-    def __init__(self, hyperparameters):
-        self.hyperparameters = hyperparameters
-        print("hypers", self.hyperparameters)
-        self.converted_hyperparams_ = []
-
-        for h in self.hyperparameters:
-            self.converted_hyperparams_.append({
-                "name": h.name,
-                "type": "cat",
-                "categories": h.values
-            })
-
-        self.space = DesignSpace().parse(self.converted_hyperparams_)
-        self._opt = HEBO(self.space)
-        self._mean = 0
-
-    def next_hyperparameter_indices(self, df_scores, n_folds):
-        """Return the next hyperparameter indices to try.
-
-        Parameters:
-            df_scores : pandas DataFrame
-                It represents the results of the experiments that have been
-                run so far.
-        Return:
-            next_value_indices : list of int
-                The indices in corresponding to the values to try in
-                hyperparameters.
-        """
-        # First finish incomplete cv's.
-        hyperparameter_names = [h.name for h in self.hyperparameters]
-        df_n_folds = df_scores.groupby(hyperparameter_names).count()
-        incomplete_folds = df_n_folds[(df_n_folds['fold_i'] % n_folds > 0)]
-        if len(incomplete_folds) > 0:
-            incomplete_folds = incomplete_folds.reset_index()
-            next_values = incomplete_folds.iloc[0][
-                [h.name for h in self.hyperparameters]].values
-            next_value_indices = [
-                h.get_index(v) for h, v
-                in zip(self.hyperparameters, next_values)]
-            # for some reason iloc converts int to float
-            fold_i = int(incomplete_folds.iloc[0]['fold_i']) % n_folds
-        # Otherwise select hyperparameter values from those that haven't
-        # been selected yet, using also prior
-        else:
-            fold_i = 0
-            next_value_indices = []
-            self.next = self._opt.suggest(n_suggestions=1)
-            print("MT next", self.next, type(self.next))
-            for h in self.hyperparameters:
-                next_value_indices.append(np.where(h.values == self.next.iloc[0][h.name])[0][0])
-
-        return fold_i, next_value_indices
-
-    def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
-
-        self._mean += df_scores.loc['valid', score_name]
-        if fold_i == n_folds - 1:
-            print("MTi", [self._mean / n_folds])
-            self._opt.observe(self.next, np.asarray([self._mean / n_folds]).reshape(-1, 1))
-            self._mean = 0
-
-
-class HEBOINDEngine(object):
-    """Random search hyperopt engine.
-
-    Attributes:
-        hyperparameters: a list of Hyperparameters
-    """
-
-    def __init__(self, hyperparameters):
-        self.hyperparameters = hyperparameters
-        print("hypers", self.hyperparameters)
-        self.converted_hyperparams_ = []
-
-        for h in self.hyperparameters:
-            self.converted_hyperparams_.append({
-                "name": h.name,
-                "type": "cat",
-                "categories": h.values,
-            })
-        print("converted", self.converted_hyperparams_)
-        self.space = DesignSpace().parse(self.converted_hyperparams_)
-        self._opt = HEBO(self.space)
-
-    def next_hyperparameter_indices(self, df_scores, n_folds):
-        """Return the next hyperparameter indices to try.
-
-        Parameters:
-            df_scores : pandas DataFrame
-                It represents the results of the experiments that have been
-                run so far.
-        Return:
-            next_value_indices : list of int
-                The indices in corresponding to the values to try in
-                hyperparameters.
-        """
-        # First finish incomplete cv's.
-
-        fold_i = len(df_scores) % n_folds
-        next_value_indices = []
-        self.next = self._opt.suggest(n_suggestions=1)
-        for h in self.hyperparameters:
-            next_value_indices.append(np.where(h.values == self.next.iloc[0][h.name])[0][0])
-        return fold_i, next_value_indices
-    
-    def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
-
-        score_ = df_scores.loc['valid', score_name]
-        self._opt.observe(self.next, np.asarray([score_]).reshape(-1, 1))
-
 class HyperparameterOptimization(object):
     """A hyperparameter optimization.
 
@@ -588,51 +395,14 @@ class HyperparameterOptimization(object):
 
         self.df_scores_ = self.df_scores_.append(row, ignore_index=True)
 
-    # def _make_and_save_summary(self, hyperopt_output_path):
-    #     summary_groupby = self.df_scores_.groupby(
-    #         self.hyperparameter_names)
-    #     means = summary_groupby.mean().drop(columns=['fold_i'])
-    #     stds = summary_groupby.std().drop(columns=['fold_i'])
-    #     counts = summary_groupby.count()[['n_train']].rename(
-    #         columns={'n_train': 'n_folds'})
-    #     self.df_summary_ = pd.merge(
-    #         means, stds, left_index=True, right_index=True,
-    #         suffixes=('_m', '_s'))
-    #     self.df_summary_ = pd.merge(
-    #         counts, self.df_summary_, left_index=True, right_index=True)
-    #     print(self.df_summary_)
-    #     summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
-    #     self.df_summary_.to_csv(summary_fname)
 
     def _make_and_save_summary(self, hyperopt_output_path):
         summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
         self.df_scores_.to_csv(summary_fname)
 
-    # def _save_best_model(self):
-    #     official_scores = self.df_summary_[
-    #         'valid_' + self.problem.score_types[0].name + '_m']
-    # 
-    #     print("official scores", official_scores)
-    #     if self.problem.score_types[0].is_lower_the_better:
-    #         best_defaults = official_scores.idxmin()
-    #     else:
-    #         best_defaults = official_scores.idxmax()
-    #     print('Best hyperparameters: ', best_defaults)
-    #     try:
-    #         for bd, h in zip(best_defaults, self.hyperparameters):
-    #             h.set_default(bd)
-    #     except(TypeError):
-    #         # single hyperparameter
-    #         self.hyperparameters[0].set_default(best_defaults)
-    #     # Overwrite the submission with the best hyperparameter values
-    #     write_hyperparameters(
-    #         self.submission_dir, self.submission_dir,
-    #         self.hypers_per_workflow_element)
-
     def _save_best_model(self):
         official_scores = self.df_summary_[
             'valid_' + self.problem.score_types[0].name + '_m']
-
         print("official scores", official_scores)
         if self.problem.score_types[0].is_lower_the_better:
             best_defaults = official_scores.idxmin()
@@ -651,8 +421,7 @@ class HyperparameterOptimization(object):
             self.hypers_per_workflow_element)
 
 
-
-    def run_tune(self):
+    def run_tune(self, hyperopt_output_path):
 
         def easy_objective(config):
             next_value_indices = []
@@ -661,7 +430,6 @@ class HyperparameterOptimization(object):
                 # Writing submission files with new hyperparameter values
             for h, i in zip(self.hyperparameters, next_value_indices):
                 h.default_index = i
-            print("MTos", os.getcwd())
             output_submission_dir = mkdtemp()
             os.chdir(self.current_dir)
             write_hyperparameters(
@@ -673,7 +441,6 @@ class HyperparameterOptimization(object):
                 output_submission_dir, self.fold_i)
             shutil.rmtree(output_submission_dir)
             self._update_df_scores(df_scores, self.fold_i, False)
-            print("here", i)
             tune.report(accuracy=df_scores.loc['valid', self.score_names[0]])
 
         self.converted_hyperparams_ = dict()
@@ -683,7 +450,6 @@ class HyperparameterOptimization(object):
             self.converted_hyperparams_[h.name] = tune.choice(h.values)
 
         self.current_dir = os.getcwd()
-        print('MT os', self.current_dir)
         analysis = tune.run(
         easy_objective,
         metric="accuracy",
@@ -692,7 +458,9 @@ class HyperparameterOptimization(object):
         name="hebo_exp_with_warmstart",
         config=self.converted_hyperparams_)
 
-        print("MT analysis", analysis.results_df)
+        print("analysis", analysis.results_df)
+        summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
+        analysis.results_df.to_csv(summary_fname)
 
 
 
@@ -705,9 +473,9 @@ class HyperparameterOptimization(object):
         if not os.path.exists(hyperopt_output_path):
             os.makedirs(hyperopt_output_path)
 
-        if not self.engine:
+        if isinstance(self.engine, TuneEngine):
             self.n_iter = n_iter
-            self.run_tune()
+            self.run_tune(hyperopt_output_path)
             return
 
         for i in range(n_iter):
@@ -731,136 +499,9 @@ class HyperparameterOptimization(object):
             self._update_df_scores(df_scores, fold_i, test)
             shutil.rmtree(output_submission_dir)
         self._make_and_save_summary(hyperopt_output_path)
-        # self._save_best_model()
         scores_columns = ['valid_' + name for name in self.score_names]
         for score in scores_columns:
             self.df_scores_[score + "_max"] = self.df_scores_[score].rolling(n_iter, min_periods=1).max()
-
-        print("ll", self.df_scores_)
-
-
-class OptunaEngine(object):
-    """Random search hyperopt engine.
-
-    Attributes:
-        hyperparameters: a list of Hyperparameters
-    """
-
-    def __init__(self, hyperparameters):
-        self.hyperparameters = hyperparameters
-        sampler = TPESampler(**TPESampler.hyperopt_parameters())
-        self.study = optuna.create_study(direction="maximize", sampler=sampler)
-        self._mean = 0
-
-
-    def next_hyperparameter_indices(self, df_scores, n_folds):
-        """Return the next hyperparameter indices to try.
-
-        Parameters:
-            df_scores : pandas DataFrame
-                It represents the results of the experiments that have been
-                run so far.
-        Return:
-            next_value_indices : list of int
-                The indices in corresponding to the values to try in
-                hyperparameters.
-        """
-        # First finish incomplete cv's.
-        self.trial = self.study.ask()
-        hyperparameter_names = [h.name for h in self.hyperparameters]
-        df_n_folds = df_scores.groupby(hyperparameter_names).count()
-        incomplete_folds = df_n_folds[(df_n_folds['fold_i'] % n_folds > 0)]
-        if len(incomplete_folds) > 0:
-            incomplete_folds = incomplete_folds.reset_index()
-            next_values = incomplete_folds.iloc[0][
-                [h.name for h in self.hyperparameters]].values
-            next_value_indices = [
-                h.get_index(v) for h, v
-                in zip(self.hyperparameters, next_values)]
-            # for some reason iloc converts int to float
-            fold_i = int(incomplete_folds.iloc[0]['fold_i']) % n_folds
-        # Otherwise select hyperparameter values from those that haven't
-        # been selected yet, using also prior
-        else:
-            fold_i = 0
-            next_value_indices = []
-            for h in self.hyperparameters:
-                next = self.trial.suggest_int(h.name, 0, len(h.values) - 1)
-                next_value_indices.append(next)
-
-        return fold_i, next_value_indices
-
-    def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
-        self._mean += df_scores.loc['valid', score_name]
-        if fold_i == n_folds - 1:
-            print("MTi", [self._mean / n_folds])
-            self._opt.observe(self.next, np.asarray([self._mean / n_folds]).reshape(-1, 1))
-            self._mean = 0
-        self.study.tell(self.trial, df_scores.loc['valid', score_name])
-
-class SKOptEngine(object):
-    """Random search hyperopt engine.
-
-    Attributes:
-        hyperparameters: a list of Hyperparameters
-    """
-
-    def __init__(self, hyperparameters):
-        self.hyperparameters = hyperparameters
-        self.converted_hyperparams_ = []
-
-        for h in self.hyperparameters:
-            print(h.values)
-            self.converted_hyperparams_.append(
-                Categorical(h.values, name=h.name)
-            )
-        self._opt = Optimizer(
-            dimensions=self.converted_hyperparams_,
-            random_state=1,
-            base_estimator='gp'
-        )
-        self._mean = 0
-
-
-    def next_hyperparameter_indices(self, df_scores, n_folds):
-        """Return the next hyperparameter indices to try.
-
-        Parameters:
-            df_scores : pandas DataFrame
-                It represents the results of the experiments that have been
-                run so far.
-        Return:
-            next_value_indices : list of int
-                The indices in corresponding to the values to try in
-                hyperparameters.
-        """
-        # First finish incomplete cv's.
-        hyperparameter_names = [h.name for h in self.hyperparameters]
-        df_n_folds = df_scores.groupby(hyperparameter_names).count()
-        incomplete_folds = df_n_folds[(df_n_folds['fold_i'] % n_folds > 0)]
-        if len(incomplete_folds) > 0:
-            incomplete_folds = incomplete_folds.reset_index()
-            next_values = incomplete_folds.iloc[0][
-                [h.name for h in self.hyperparameters]].values
-            next_value_indices = [
-                h.get_index(v) for h, v
-                in zip(self.hyperparameters, next_values)]
-            # for some reason iloc converts int to float
-            fold_i = int(incomplete_folds.iloc[0]['fold_i']) % n_folds
-        # Otherwise select hyperparameter values from those that haven't
-        # been selected yet, using also prior
-        else:
-            fold_i = 0
-            next_value_indices = []
-            self.next = self._opt.ask()
-            for idx, h in enumerate(self.hyperparameters):
-                next_value_indices.append(np.where(h.values == self.next[idx])[0][0])
-            print("MT next calues", next_value_indices)
-            print("MT df scores", df_scores)
-        return fold_i, next_value_indices
-
-    def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
-        self._opt.tell(self.next, -df_scores.loc['valid', score_name])
 
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
@@ -891,7 +532,7 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
     elif engine_name == "skopt":
         engine = SKOptEngine(hyperparameters)
     elif engine_name == "tune":
-        engine = None
+        engine = TuneEngine()
     else:
         raise ValueError('{} is not a valid engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
