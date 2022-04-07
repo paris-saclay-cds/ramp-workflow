@@ -488,6 +488,7 @@ class HyperparameterOptimization(object):
         if resume:
             self._load_summary(hyperopt_output_path)
             start_iter = len(self.df_scores_)
+        start = pd.Timestamp.now()
         for i_iter in range(start_iter, n_iter):
             # Getting new hyperparameter values from engine
             fold_i, next_value_indices =\
@@ -508,7 +509,9 @@ class HyperparameterOptimization(object):
             self.engine.pass_feedback(fold_i, len(self.cv), df_scores, self.problem.score_types[0].name)
             self._update_df_scores(df_scores, fold_i, test)
             shutil.rmtree(output_submission_dir)
-            print(f'Done {i_iter + 1} / {n_iter}.')
+            now = pd.Timestamp.now()
+            eta = start + (now - start) / (i_iter + 1 - start_iter) * (n_iter - start_iter)
+            print(f'Done {i_iter + 1} / {n_iter} at {now}. ETA = {eta}.')
             self._make_and_save_summary(hyperopt_output_path)
         scores_columns = ['valid_' + name for name in self.score_names]
         for score in scores_columns:
