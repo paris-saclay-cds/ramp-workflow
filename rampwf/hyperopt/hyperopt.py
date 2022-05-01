@@ -6,11 +6,22 @@ import numpy as np
 import pandas as pd
 from ray import tune
 
+from ray.tune.suggest.ax import AxSearch
+# dragonfly doesn't work with integer grid
+from ray.tune.suggest.skopt import SkOptSearch
+from ray.tune.suggest.hyperopt import HyperOptSearch
+from ray.tune.suggest.bayesopt import BayesOptSearch
+from ray.tune.suggest.nevergrad import NevergradSearch
+import nevergrad as ng
+from ray.tune.suggest.hebo import HEBOSearch
+from ray.tune.suggest.optuna import OptunaSearch
+from ray.tune.suggest.sigopt import SigOptSearch
+
 from tempfile import mkdtemp
 from ..utils import (
     assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
 
-from .engines import HEBOCVEngine, HEBOINDEngine, RandomEngine, SKOptEngine, OptunaIndEngine, TuneEngine
+from .engines import HEBOCVEngine, HEBOINDEngine, RandomEngine, OptunaIndEngine, TuneEngine
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
@@ -424,7 +435,19 @@ class HyperparameterOptimization(object):
             self.hypers_per_workflow_element)
 
 
-    def run_tune(self, hyperopt_output_path):
+    def run_tune(self, n_iter):
+
+        mean = 0
+
+        is_lower_the_better = self.problem.score_types[0].is_lower_the_better
+        engine_mode = 'min' if is_lower_the_better else 'max'
+
+        hyperopt_output_path = os.path.join(
+            self.submission_dir, 'hyperopt_output')
+        if not os.path.exists(hyperopt_output_path):
+            os.makedirs(hyperopt_output_path)
+
+        self.n_iter = n_iter
 
         def easy_objective(config):
             next_value_indices = []
@@ -444,7 +467,7 @@ class HyperparameterOptimization(object):
                 output_submission_dir, self.fold_i)
             shutil.rmtree(output_submission_dir)
             self._update_df_scores(df_scores, self.fold_i, False)
-            tune.report(accuracy=df_scores.loc['valid', self.score_names[0]])
+            tune.report(mean_loss=df_scores.loc['valid', self.score_names[0]])
 
         self.converted_hyperparams_ = dict()
 
@@ -455,17 +478,18 @@ class HyperparameterOptimization(object):
         self.current_dir = os.getcwd()
         analysis = tune.run(
         easy_objective,
-        metric="accuracy",
-        mode="max",
+        metric="mean_loss",
+        mode=engine_mode,
         num_samples=self.n_iter,
-        name="hebo_exp_with_warmstart",
+        name="ray",
+        search_alg= HEBOSearch(),
         config=self.converted_hyperparams_)
 
         print("analysis", analysis.results_df)
         summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
         analysis.results_df.to_csv(summary_fname)
 
-
+    #search_alg = NevergradSearch(optimizer=ng.optimizers.OnePlusOne),
 
     def run(self, n_iter, test):
         # Create hyperopt output directory
@@ -475,11 +499,6 @@ class HyperparameterOptimization(object):
             self.submission_dir, 'hyperopt_output')
         if not os.path.exists(hyperopt_output_path):
             os.makedirs(hyperopt_output_path)
-
-        if isinstance(self.engine, TuneEngine):
-            self.n_iter = n_iter
-            self.run_tune(hyperopt_output_path)
-            return
 
         for i_iter in range(n_iter):
             # Getting new hyperparameter values from engine
@@ -550,6 +569,10 @@ def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
                  submission, engine_name, n_iter, save_best, test, label):
     hyperparameter_experiment = init_hyperopt(
         ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label, label)
-    hyperparameter_experiment.run(n_iter, test)
+    if engine_name == "tune":
+        hyperparameter_experiment.run_tune(n_iter)
+    else:
+        hyperparameter_experiment.run(n_iter, test)
+
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
