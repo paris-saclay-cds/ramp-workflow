@@ -380,6 +380,20 @@ class HyperparameterOptimization(object):
             self.df_scores_[column] = self.df_scores_[column].astype(dtype)
 
         self.df_best_scores_ = pd.DataFrame(columns=['valid_' + name for name in self.score_names])
+        from ray.tune.suggest.ax import AxSearch
+        # dragonfly doesn't work with integer grid
+        from ray.tune.suggest.skopt import SkOptSearch
+        from ray.tune.suggest.hyperopt import HyperOptSearch
+        from ray.tune.suggest.bayesopt import BayesOptSearch
+        from ray.tune.suggest.nevergrad import NevergradSearch
+
+        import nevergrad as ng
+        from ray.tune.suggest.hebo import HEBOSearch
+        from ray.tune.suggest.optuna import OptunaSearch
+        from ray.tune.suggest.sigopt import SigOptSearch
+        self.mapping = {"ray_ax": AxSearch, "ray_skopt": SkOptSearch, "ray_hyper": HyperOptSearch,
+                         "ray_hebo": HEBOSearch, "ray_optuna": OptunaSearch,
+                        "ray_sigopt": SigOptSearch}
 
 
     def _run_next_experiment(self, module_path, fold_i):
@@ -485,8 +499,9 @@ class HyperparameterOptimization(object):
         metric="mean_loss",
         mode=engine_mode,
         num_samples=self.n_iter,
-        name="ray",
-        search_alg= OptunaSearch(),
+        name=self.engine.name,
+        search_alg= self.mapping[self.engine.name]() if self.engine.name in self.mapping else NevergradSearch(
+            optimizer=ng.optimizers.OnePlusOne),
         config=self.converted_hyperparams_)
 
         print("analysis", analysis.results_df)
@@ -567,8 +582,8 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         engine = OptunaEngine(hyperparameters)
     elif engine_name == "skopt":
         engine = SKOptEngine(hyperparameters)
-    elif engine_name == "tune":
-        engine = TuneEngine()
+    elif engine_name.startswith("ray"):
+        engine = TuneEngine(engine_name)
     else:
         raise ValueError('{} is not a valid engine name'.format(engine_name))
     hyperparameter_experiment = HyperparameterOptimization(
@@ -582,9 +597,20 @@ def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
                  submission, engine_name, n_iter, save_best, test, label, resume):
     hyperparameter_experiment = init_hyperopt(
         ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label, label, resume)
-    if engine_name == "tune":
+    if engine_name.startswith("ray"):
         hyperparameter_experiment.run_tune(n_iter)
     else:
         hyperparameter_experiment.run(n_iter, test)
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
+
+class TuneEngine:
+    def __init__(self, engine_name):
+        self._name = engine_name
+
+    @property
+    def name(self):
+        return self._name
+
+
+
