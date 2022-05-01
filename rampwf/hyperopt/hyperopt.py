@@ -482,7 +482,7 @@ class HyperparameterOptimization(object):
         mode=engine_mode,
         num_samples=self.n_iter,
         name="ray",
-        search_alg= HEBOSearch(),
+        search_alg= OptunaSearch(),
         config=self.converted_hyperparams_)
 
         print("analysis", analysis.results_df)
@@ -490,6 +490,7 @@ class HyperparameterOptimization(object):
         analysis.results_df.to_csv(summary_fname)
 
     #search_alg = NevergradSearch(optimizer=ng.optimizers.OnePlusOne),
+    #HEBOSearch()
 
     def run(self, n_iter, test):
         # Create hyperopt output directory
