@@ -50,14 +50,19 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--label', is_flag=True, default=False,
               show_default=True,
               help='')
+@click.option('--resume', is_flag=True, default=False,
+              show_default=True,
+              help='To resume a broken run. If False, summary.csv will '
+              'be created from scratch.' )
 def main(submission, ramp_kit_dir, ramp_data_dir, data_label,
-         ramp_submission_dir, engine, n_iter, save_best, test, label):
+         ramp_submission_dir, engine, n_iter, save_best, test, label,
+         resume):
     """Hyperopt a submission."""
     run_hyperopt(
         ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir,
         ramp_submission_dir=ramp_submission_dir, data_label=data_label,
         submission=submission, engine_name=engine, n_iter=n_iter,
-        save_best=save_best, test=test, label=label)
+        save_best=save_best, test=test, label=label, resume=resume)
 
 
 def start():
