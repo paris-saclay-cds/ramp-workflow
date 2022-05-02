@@ -123,7 +123,7 @@ class Hyperparameter(object):
             default_repr : str
                 The string representation of the default value.
         """
-        if self.dtype == 'object':
+        if self.dtype in ['object', 'str']:
             return '\'{}\''.format(self.default)
         else:
             return str(self.default)
@@ -142,7 +142,7 @@ class Hyperparameter(object):
         """
         s = '['
         for v in self.values:
-            if self.dtype == 'object':
+            if self.dtype in ['object', 'str']:
                 s += '\'{}\', '.format(v)
             else:
                 s += '{}, '.format(v)
