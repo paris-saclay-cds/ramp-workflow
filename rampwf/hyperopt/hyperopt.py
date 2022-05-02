@@ -4,8 +4,6 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
-from ray import tune
-
 from tempfile import mkdtemp
 from ..utils import (
     assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
@@ -112,7 +110,7 @@ class Hyperparameter(object):
             default_repr : str
                 The string representation of the default value.
         """
-        if self.dtype == 'object':
+        if self.dtype in ['object', 'str']:
             return '\'{}\''.format(self.default)
         else:
             return str(self.default)
@@ -131,7 +129,7 @@ class Hyperparameter(object):
         """
         s = '['
         for v in self.values:
-            if self.dtype == 'object':
+            if self.dtype in ['object', 'str']:
                 s += '\'{}\', '.format(v)
             else:
                 s += '{}, '.format(v)
