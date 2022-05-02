@@ -380,17 +380,6 @@ class HyperparameterOptimization(object):
             self.df_scores_[column] = self.df_scores_[column].astype(dtype)
 
         self.df_best_scores_ = pd.DataFrame(columns=['valid_' + name for name in self.score_names])
-        from ray.tune.suggest.ax import AxSearch
-        # dragonfly doesn't work with integer grid
-        from ray.tune.suggest.skopt import SkOptSearch
-        from ray.tune.suggest.hyperopt import HyperOptSearch
-        from ray.tune.suggest.bayesopt import BayesOptSearch
-        from ray.tune.suggest.nevergrad import NevergradSearch
-
-        import nevergrad as ng
-        from ray.tune.suggest.hebo import HEBOSearch
-        from ray.tune.suggest.optuna import OptunaSearch
-        from ray.tune.suggest.sigopt import SigOptSearch
         self.mapping = {"ray_ax": AxSearch, "ray_skopt": SkOptSearch, "ray_hyper": HyperOptSearch,
                          "ray_hebo": HEBOSearch, "ray_optuna": OptunaSearch,
                         "ray_sigopt": SigOptSearch}
@@ -470,7 +459,9 @@ class HyperparameterOptimization(object):
         def easy_objective(config):
             next_value_indices = []
             for idx, h in enumerate(self.hyperparameters):
-                next_value_indices.append(np.where(h.values == config[h.name])[0][0])
+                #next_value_indices.append(np.where(h.values == config[h.name])[0][0])
+                next_value_indices.append(config[h.name])
+
                 # Writing submission files with new hyperparameter values
             for h, i in zip(self.hyperparameters, next_value_indices):
                 h.default_index = i
@@ -491,7 +482,7 @@ class HyperparameterOptimization(object):
 
         for h in self.hyperparameters:
             print(h.values)
-            self.converted_hyperparams_[h.name] = tune.choice(h.values)
+            self.converted_hyperparams_[h.name] = tune.randint(0, len(h.values) - 1)
 
         self.current_dir = os.getcwd()
         analysis = tune.run(
