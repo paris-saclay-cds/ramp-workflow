@@ -455,20 +455,20 @@ class HyperparameterOptimization(object):
 
         self.n_iter = n_iter
 
-        def easy_objective(config):
+        def objective(config, run_params=None):
             next_value_indices = []
-            for idx, h in enumerate(self.hyperparameters):
+            for idx, h in enumerate(run_params["hyperparameters"]):
                 #next_value_indices.append(np.where(h.values == config[h.name])[0][0])
                 next_value_indices.append(config[h.name])
 
                 # Writing submission files with new hyperparameter values
-            for h, i in zip(self.hyperparameters, next_value_indices):
+            for h, i in zip(run_params["hyperparameters"], next_value_indices):
                 h.default_index = i
             output_submission_dir = mkdtemp()
-            os.chdir(self.current_dir)
+            os.chdir(run_params["current_dir"])
             write_hyperparameters(
-                self.submission_dir, output_submission_dir,
-                self.hypers_per_workflow_element)
+                run_params["submission_dir"], output_submission_dir,
+                run_params["hypers_per_workflow_element"])
             # Calling the training script.
             self.fold_i = (self.fold_i + 1) % len(self.cv)
             df_scores = self._run_next_experiment(
@@ -476,15 +476,20 @@ class HyperparameterOptimization(object):
             shutil.rmtree(output_submission_dir)
             tune.report(mean_loss=df_scores.loc['valid', self.score_names[0]], summary=df_scores)
 
+
         self.converted_hyperparams_ = dict()
 
         for h in self.hyperparameters:
             print(h.values)
             self.converted_hyperparams_[h.name] = tune.randint(0, len(h.values) - 1)
 
-        self.current_dir = os.getcwd()
+        run_params = {
+            "hyperparameters": self.hyperparameters, "current_dir": os.getcwd(),
+            "submission_dir": self.submission_dir, "hypers_per_workflow_element": self.hypers_per_workflow_element
+        }
         results = tune.run(
-        easy_objective,
+        tune.with_parameters(objective, run_params = run_params),
+        max_concurrent_trials=1,
         metric="mean_loss",
         mode=engine_mode,
         num_samples=self.n_iter,
@@ -492,6 +497,7 @@ class HyperparameterOptimization(object):
         search_alg= self.mapping[self.engine.name]() if self.engine.name in self.mapping else NevergradSearch(
             optimizer=ng.optimizers.OnePlusOne),
         config=self.converted_hyperparams_)
+        print("sdsf", tune.run)
 
         for trial_result in results.results_df["summary"]:
             self._update_df_scores(trial_result, self.fold_i, False)
