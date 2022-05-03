@@ -7,7 +7,6 @@ import pandas as pd
 from ray import tune
 
 from ray.tune.suggest.ax import AxSearch
-# dragonfly doesn't work with integer grid
 from ray.tune.suggest.skopt import SkOptSearch
 from ray.tune.suggest.hyperopt import HyperOptSearch
 from ray.tune.suggest.bayesopt import BayesOptSearch
@@ -379,6 +378,7 @@ class HyperparameterOptimization(object):
         for column, dtype in zip(scores_columns, dtypes):
             self.df_scores_[column] = self.df_scores_[column].astype(dtype)
 
+
         self.df_best_scores_ = pd.DataFrame(columns=['valid_' + name for name in self.score_names])
         self.mapping = {"ray_ax": AxSearch, "ray_skopt": SkOptSearch, "ray_hyper": HyperOptSearch,
                          "ray_hebo": HEBOSearch, "ray_optuna": OptunaSearch,
@@ -408,7 +408,6 @@ class HyperparameterOptimization(object):
         row['n_train'] = len(self.cv[fold_i][0])
         row['n_valid'] = len(self.cv[fold_i][1])
         row['n_test'] = len(self.X_test[0])
-
 
         self.df_scores_ = self.df_scores_.append(row, ignore_index=True)
 
@@ -475,8 +474,7 @@ class HyperparameterOptimization(object):
             df_scores = self._run_next_experiment(
                 output_submission_dir, self.fold_i)
             shutil.rmtree(output_submission_dir)
-            self._update_df_scores(df_scores, self.fold_i, False)
-            tune.report(mean_loss=df_scores.loc['valid', self.score_names[0]])
+            tune.report(mean_loss=df_scores.loc['valid', self.score_names[0]], summary=df_scores)
 
         self.converted_hyperparams_ = dict()
 
@@ -485,7 +483,7 @@ class HyperparameterOptimization(object):
             self.converted_hyperparams_[h.name] = tune.randint(0, len(h.values) - 1)
 
         self.current_dir = os.getcwd()
-        analysis = tune.run(
+        results = tune.run(
         easy_objective,
         metric="mean_loss",
         mode=engine_mode,
@@ -495,12 +493,13 @@ class HyperparameterOptimization(object):
             optimizer=ng.optimizers.OnePlusOne),
         config=self.converted_hyperparams_)
 
-        print("analysis", analysis.results_df)
-        summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
-        analysis.results_df.to_csv(summary_fname)
+        for trial_result in results.results_df["summary"]:
+            self._update_df_scores(trial_result, self.fold_i, False)
 
-    #search_alg = NevergradSearch(optimizer=ng.optimizers.OnePlusOne),
-    #HEBOSearch()
+
+        summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
+        self.df_scores_.to_csv(summary_fname)
+
 
     def run(self, n_iter, test, resume):
         # Create hyperopt output directory
