@@ -596,7 +596,7 @@ def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
     if engine_name.startswith("ray"):
         hyperparameter_experiment.run_tune(n_iter)
     else:
-        hyperparameter_experiment.run(n_iter, test)
+        hyperparameter_experiment.run(n_iter, test, resume)
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
 
