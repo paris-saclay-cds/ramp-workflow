@@ -4,17 +4,6 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
-from ray import tune
-
-from ray.tune.suggest.ax import AxSearch
-from ray.tune.suggest.skopt import SkOptSearch
-from ray.tune.suggest.hyperopt import HyperOptSearch
-from ray.tune.suggest.bayesopt import BayesOptSearch
-from ray.tune.suggest.nevergrad import NevergradSearch
-import nevergrad as ng
-from ray.tune.suggest.hebo import HEBOSearch
-from ray.tune.suggest.optuna import OptunaSearch
-from ray.tune.suggest.sigopt import SigOptSearch
 
 from tempfile import mkdtemp
 from ..utils import (
@@ -378,13 +367,6 @@ class HyperparameterOptimization(object):
         for column, dtype in zip(scores_columns, dtypes):
             self.df_scores_[column] = self.df_scores_[column].astype(dtype)
 
-
-        self.df_best_scores_ = pd.DataFrame(columns=['valid_' + name for name in self.score_names])
-        self.mapping = {"ray_ax": AxSearch, "ray_skopt": SkOptSearch, "ray_hyper": HyperOptSearch,
-                         "ray_hebo": HEBOSearch, "ray_optuna": OptunaSearch,
-                        "ray_sigopt": SigOptSearch}
-
-
     def _run_next_experiment(self, module_path, fold_i):
         _, _, df_scores = run_submission_on_cv_fold(
             self.problem, module_path=module_path, fold=self.cv[fold_i],
@@ -395,7 +377,7 @@ class HyperparameterOptimization(object):
         row = {'fold_i': fold_i}
         for h in self.hyperparameters:
             row[h.name] = h.default
-            row[h.name + "_i"] = h.default_index
+            row[h.name + '_i'] = h.default_index
         for name in self.score_names:
             row['train_' + name] = df_scores.loc['train'][name]
             row['valid_' + name] = df_scores.loc['valid'][name]
@@ -410,7 +392,10 @@ class HyperparameterOptimization(object):
         row['n_test'] = len(self.X_test[0])
 
         self.df_scores_ = self.df_scores_.append(row, ignore_index=True)
-
+        self.df_scores_['fold_i'] = self.df_scores_['fold_i'].astype(int)
+        for h in self.hyperparameters:
+            col = h.name + '_i'
+            self.df_scores_[col] = self.df_scores_[col].astype(int)
 
     def _make_and_save_summary(self, hyperopt_output_path):
         summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
@@ -440,11 +425,8 @@ class HyperparameterOptimization(object):
             self.submission_dir, self.submission_dir,
             self.hypers_per_workflow_element)
 
-
-    def run_tune(self, n_iter):
-
-        mean = 0
-
+    def run_tune(self, n_iter, test):
+        from ray import tune
         is_lower_the_better = self.problem.score_types[0].is_lower_the_better
         engine_mode = 'min' if is_lower_the_better else 'max'
 
@@ -453,55 +435,51 @@ class HyperparameterOptimization(object):
         if not os.path.exists(hyperopt_output_path):
             os.makedirs(hyperopt_output_path)
 
-        self.n_iter = n_iter
-
+        config = {h.name: tune.randint(0, len(h.values)) for h in self.hyperparameters}
+        
         def objective(config, run_params=None):
-            next_value_indices = []
-            for idx, h in enumerate(run_params["hyperparameters"]):
-                #next_value_indices.append(np.where(h.values == config[h.name])[0][0])
-                next_value_indices.append(config[h.name])
-
-                # Writing submission files with new hyperparameter values
-            for h, i in zip(run_params["hyperparameters"], next_value_indices):
-                h.default_index = i
+            for h in run_params['hyperparameters']:
+                h.default_index = config[h.name]
             output_submission_dir = mkdtemp()
-            os.chdir(run_params["current_dir"])
+            os.chdir(run_params['current_dir'])
             write_hyperparameters(
-                run_params["submission_dir"], output_submission_dir,
-                run_params["hypers_per_workflow_element"])
+                self.submission_dir, output_submission_dir,
+                run_params['hypers_per_workflow_element'])
             # Calling the training script.
-            self.fold_i = (self.fold_i + 1) % len(self.cv)
-            df_scores = self._run_next_experiment(
-                output_submission_dir, self.fold_i)
+            valid_scores = np.zeros(len(self.cv))
+            df_scores_list = []
+            for fold_i in range(len(self.cv)):
+                df_scores = self._run_next_experiment(
+                    output_submission_dir, fold_i)
+                valid_scores[fold_i] = df_scores.loc['valid', self.score_names[0]]
+                df_scores_list.append(df_scores)
             shutil.rmtree(output_submission_dir)
-            tune.report(mean_loss=df_scores.loc['valid', self.score_names[0]], summary=df_scores)
-
-
-        self.converted_hyperparams_ = dict()
-
-        for h in self.hyperparameters:
-            print(h.values)
-            self.converted_hyperparams_[h.name] = tune.randint(0, len(h.values) - 1)
+            tune.report(
+                valid_score=valid_scores.mean(),
+                df_scores_list=df_scores_list,
+            )
 
         run_params = {
-            "hyperparameters": self.hyperparameters, "current_dir": os.getcwd(),
-            "submission_dir": self.submission_dir, "hypers_per_workflow_element": self.hypers_per_workflow_element
+            'hyperparameters': self.hyperparameters, 'current_dir': os.getcwd(),
+            'submission_dir': self.submission_dir,
+            'hypers_per_workflow_element': self.hypers_per_workflow_element
         }
         results = tune.run(
-        tune.with_parameters(objective, run_params = run_params),
-        max_concurrent_trials=1,
-        metric="mean_loss",
-        mode=engine_mode,
-        num_samples=self.n_iter,
-        name=self.engine.name,
-        search_alg= self.mapping[self.engine.name]() if self.engine.name in self.mapping else NevergradSearch(
-            optimizer=ng.optimizers.OnePlusOne),
-        config=self.converted_hyperparams_)
-        print("sdsf", tune.run)
+            tune.with_parameters(objective, run_params=run_params),
+            max_concurrent_trials=1,
+            metric='valid_score',
+            mode=engine_mode,
+            num_samples=int(n_iter / len(self.cv)),
+            name=self.engine.name,
+            search_alg=self.engine.ray_engine,
+            config=config
+        )
 
-        for trial_result in results.results_df["summary"]:
-            self._update_df_scores(trial_result, self.fold_i, False)
-
+        for _, row in results.results_df.iterrows():
+            for h in self.hyperparameters:
+                h.default_index = int(row[f'config.{h.name}'])
+            for fold_i, df_scores in enumerate(row['df_scores_list']):
+                self._update_df_scores(df_scores, fold_i, test=test)
 
         summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
         self.df_scores_.to_csv(summary_fname)
@@ -549,6 +527,46 @@ class HyperparameterOptimization(object):
         for score in scores_columns:
             self.df_scores_[score + "_max"] = self.df_scores_[score].rolling(n_iter, min_periods=1).max()
 
+class RayEngine:
+    def __init__(self, engine_name):
+        self.name = engine_name
+        if engine_name[4:] == 'ax':
+            from ray.tune.suggest.ax import AxSearch
+            self.ray_engine = AxSearch()
+        elif engine_name[4:] == 'blend_search':
+            from ray.tune.suggest.flaml import BlendSearch
+            self.ray_engine = BlendSearch()
+        elif engine_name[4:] == 'cfo':
+            from ray.tune.suggest.flaml import CFO
+            self.ray_engine = CFO()
+        elif engine_name[4:] == 'skopt':
+            from ray.tune.suggest.skopt import SkOptSearch
+            self.ray_engine = SkOptSearch()
+        elif engine_name[4:] == 'hyperopt':
+            from ray.tune.suggest.hyperopt import HyperOptSearch
+            self.ray_engine = HyperOptSearch()
+        elif engine_name[4:] == 'bayesopt':
+            from ray.tune.suggest.bayesopt import BayesOptSearch
+            self.ray_engine = BayesOptSearch()
+        elif engine_name[4:] == 'bohb':
+            from ray.tune.suggest.bohb import TuneBOHB
+            self.ray_engine = TuneBOHB()
+        elif engine_name[4:] == 'nevergrad':
+            from ray.tune.suggest.nevergrad import NevergradSearch
+            import nevergrad as ng
+            self.ray_engine = NevergradSearch(
+                ray_engine=ng.optimizers.OnePlusOne
+            )
+        elif engine_name[4:] == 'hebo':
+            from ray.tune.suggest.hebo import HEBOSearch
+            self.ray_engine = HEBOSearch()
+        elif engine_name[4:] == 'optuna':
+            from ray.tune.suggest.optuna import OptunaSearch
+            self.ray_engine = OptunaSearch()
+        else:
+            raise ValueError(
+                f'Engine {engine_name[4:]} not found in Ray Tune')
+
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
                   engine_name, data_label, label, resume):
@@ -578,10 +596,10 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         engine = OptunaEngine(hyperparameters)
     elif engine_name == "skopt":
         engine = SKOptEngine(hyperparameters)
-    elif engine_name.startswith("ray"):
-        engine = TuneEngine(engine_name)
+    elif engine_name.startswith('ray_'):
+        engine = RayEngine(engine_name)
     else:
-        raise ValueError('{} is not a valid engine name'.format(engine_name))
+        raise ValueError(f'{engine_name} is not a valid engine name')
     hyperparameter_experiment = HyperparameterOptimization(
         hyperparameters, engine, ramp_kit_dir,
         hyperopt_submission_dir, data_label)
@@ -593,20 +611,12 @@ def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
                  submission, engine_name, n_iter, save_best, test, label, resume):
     hyperparameter_experiment = init_hyperopt(
         ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label, label, resume)
-    if engine_name.startswith("ray"):
-        hyperparameter_experiment.run_tune(n_iter)
+    if engine_name.startswith('ray_'):
+        hyperparameter_experiment.run_tune(n_iter, test)
     else:
         hyperparameter_experiment.run(n_iter, test, resume)
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
-
-class TuneEngine:
-    def __init__(self, engine_name):
-        self._name = engine_name
-
-    @property
-    def name(self):
-        return self._name
 
 
 
