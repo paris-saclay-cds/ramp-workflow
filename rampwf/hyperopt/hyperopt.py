@@ -6,21 +6,11 @@ import numpy as np
 import pandas as pd
 from ray import tune
 
-from ray.tune.suggest.ax import AxSearch
-from ray.tune.suggest.skopt import SkOptSearch
-from ray.tune.suggest.hyperopt import HyperOptSearch
-from ray.tune.suggest.bayesopt import BayesOptSearch
-from ray.tune.suggest.nevergrad import NevergradSearch
-import nevergrad as ng
-from ray.tune.suggest.hebo import HEBOSearch
-from ray.tune.suggest.optuna import OptunaSearch
-from ray.tune.suggest.sigopt import SigOptSearch
-
 from tempfile import mkdtemp
 from ..utils import (
     assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
 
-from .engines import HEBOCVEngine, HEBOINDEngine, RandomEngine, OptunaIndEngine, TuneEngine
+from .engines import RandomEngine
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
@@ -380,9 +370,7 @@ class HyperparameterOptimization(object):
 
 
         self.df_best_scores_ = pd.DataFrame(columns=['valid_' + name for name in self.score_names])
-        self.mapping = {"ray_ax": AxSearch, "ray_skopt": SkOptSearch, "ray_hyper": HyperOptSearch,
-                         "ray_hebo": HEBOSearch, "ray_optuna": OptunaSearch,
-                        "ray_sigopt": SigOptSearch}
+
 
 
     def _run_next_experiment(self, module_path, fold_i):
@@ -494,10 +482,8 @@ class HyperparameterOptimization(object):
         mode=engine_mode,
         num_samples=self.n_iter,
         name=self.engine.name,
-        search_alg= self.mapping[self.engine.name]() if self.engine.name in self.mapping else NevergradSearch(
-            optimizer=ng.optimizers.OnePlusOne),
+        search_alg= self.engine.module(),
         config=self.converted_hyperparams_)
-        print("sdsf", tune.run)
 
         for trial_result in results.results_df["summary"]:
             self._update_df_scores(trial_result, self.fold_i, False)
@@ -507,7 +493,7 @@ class HyperparameterOptimization(object):
         self.df_scores_.to_csv(summary_fname)
 
 
-    def run(self, n_iter, test, resume):
+    def run(self, n_iter, test, resume = False):
         # Create hyperopt output directory
 
         mean = 0
@@ -570,14 +556,6 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         hyperopt_submission_dir, problem.workflow)
     if engine_name == 'random':
         engine = RandomEngine(hyperparameters)
-    elif engine_name == 'hebo_cv':
-        engine = HEBOCVEngine(hyperparameters)
-    elif engine_name == "hebo_ind":
-        engine = HEBOINDEngine(hyperparameters)
-    elif engine_name == "optuna":
-        engine = OptunaEngine(hyperparameters)
-    elif engine_name == "skopt":
-        engine = SKOptEngine(hyperparameters)
     elif engine_name.startswith("ray"):
         engine = TuneEngine(engine_name)
     else:
@@ -600,13 +578,64 @@ def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
 
+const_message = "missing module install it using pip install"
 class TuneEngine:
     def __init__(self, engine_name):
         self._name = engine_name
 
+
+        if engine_name == "ray_ax":
+            try:
+                from ray.tune.suggest.ax import AxSearch
+                self.module = AxSearch
+            except:
+                raise EnvironmentError(const_message + "ax-platform sqlalchemy")
+        elif engine_name == "ray_skopt":
+            try:
+                from ray.tune.suggest.skopt import SkOptSearch
+                self.module = SkOptSearch
+
+            except:
+                raise EnvironmentError(const_message + "scikit-optimize")
+        elif engine_name == "ray_hyper":
+            try:
+                from ray.tune.suggest.hyperopt import HyperOptSearch
+                self.module = HyperOptSearch
+            except:
+                raise EnvironmentError(const_message + "hyperopt")
+        elif engine_name == "ray_optuna":
+            try:
+                from ray.tune.suggest.optuna import OptunaSearch
+                self.module = OptunaSearch
+            except:
+                raise EnvironmentError(const_message + "optuna")
+        elif engine_name == "ray_hebo":
+            try:
+                from ray.tune.suggest.hebo import HEBOSearch
+                self.module = HEBOSearch
+            except:
+                raise EnvironmentError(const_message + "hebo")
+        elif engine_name == "ray_sigopt":
+            try:
+                from ray.tune.suggest.sigopt import SigOptSearch
+                self.module = SigOptSearch
+            except:
+                raise EnvironmentError(const_message + "sigopt")
+        elif engine_name == "ray_nevergrad":
+            try:
+                from ray.tune.suggest.nevergrad import NevergradSearch
+                import nevergrad as ng
+                self.module = NevergradSearch(optimizer=ng.optimizers.OnePlusOne)
+            except:
+                raise EnvironmentError(const_message + "nevergrad")
+
     @property
     def name(self):
         return self._name
+
+    @property
+    def mapping(self):
+        return self._mapping
 
 
 
