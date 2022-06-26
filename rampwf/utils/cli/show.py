@@ -155,7 +155,7 @@ def leaderboard(ramp_kit_dir, data_label, metric, step, sort_by, ascending,
     }
     if bagged:  # bagged scores
         df, headers = _bagged_table_and_headers(
-            all_submissions, metric, data_label)
+            all_submissions, metric[0], data_label)
     else:  # mean scores with std
         df, headers = _mean_table_and_headers(
             all_submissions, metric, step, data_label)
@@ -163,7 +163,7 @@ def leaderboard(ramp_kit_dir, data_label, metric, step, sort_by, ascending,
     df = df.round(precision)
     if sort_by:
         df = df.sort_values(sort_by, ascending=ascending, axis=0)
-
+    
     click.echo(tabulate(df, headers=headers, tablefmt='grid'))
 
 
