@@ -372,7 +372,7 @@ class HyperparameterOptimization(object):
         _, _, df_scores = run_submission_on_cv_fold(
             self.problem, module_path=module_path, fold=self.cv[fold_i],
             X_train=self.X_train, y_train=self.y_train,
-            X_test=self.X_test, y_t est=self.y_test)
+            X_test=self.X_test, y_test=self.y_test)
         return df_scores
 
     def _update_df_scores(self, df_scores, fold_i, test):
@@ -549,7 +549,7 @@ class RayEngine:
                 )
             except:
                 self.raise_except("zoopt")
-        if engine_name[4:] == 'ax':
+        elif engine_name[4:] == 'ax':
             try:
                 from ray.tune.suggest.ax import AxSearch
                 self.ray_engine = AxSearch()
