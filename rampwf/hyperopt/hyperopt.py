@@ -528,9 +528,16 @@ class HyperparameterOptimization(object):
             self.df_scores_[score + "_max"] = self.df_scores_[score].rolling(n_iter, min_periods=1).max()
 
 class RayEngine:
-    def __init__(self, engine_name):
+    # n_iter is only needed by zoopt at init time
+    def __init__(self, engine_name, n_iter=None):
         self.name = engine_name
-        if engine_name[4:] == 'ax':
+        if engine_name[4:] == 'zoopt':
+            from ray.tune.suggest.zoopt import ZOOptSearch
+            self.ray_engine = ZOOptSearch( # gets stuck
+                algo="Asracos",  # only support ASRacos currently
+                budget=n_iter,  # with grid_size it got stuck
+            )
+        elif engine_name[4:] == 'ax':
             from ray.tune.suggest.ax import AxSearch
             self.ray_engine = AxSearch()
         elif engine_name[4:] == 'blend_search':
@@ -555,7 +562,7 @@ class RayEngine:
             from ray.tune.suggest.nevergrad import NevergradSearch
             import nevergrad as ng
             self.ray_engine = NevergradSearch(
-                ray_engine=ng.optimizers.OnePlusOne
+                optimizer=ng.optimizers.OnePlusOne
             )
         elif engine_name[4:] == 'hebo':
             from ray.tune.suggest.hebo import HEBOSearch
@@ -569,7 +576,8 @@ class RayEngine:
 
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
-                  engine_name, data_label, label, resume):
+                  engine_name, data_label, label, resume, n_iter=None):
+    # n_iter is only needed by ray_zoopt at init time
     problem = assert_read_problem(ramp_kit_dir)
     if data_label is None:
         hyperopt_submission = submission + '_hyperopt'
@@ -597,7 +605,7 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
     elif engine_name == "skopt":
         engine = SKOptEngine(hyperparameters)
     elif engine_name.startswith('ray_'):
-        engine = RayEngine(engine_name)
+        engine = RayEngine(engine_name, n_iter)
     else:
         raise ValueError(f'{engine_name} is not a valid engine name')
     hyperparameter_experiment = HyperparameterOptimization(
