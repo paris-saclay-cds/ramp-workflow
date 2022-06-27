@@ -9,12 +9,14 @@ from tempfile import mkdtemp
 from ..utils import (
     assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
 
-from .engines import HEBOCVEngine, HEBOINDEngine, RandomEngine, OptunaIndEngine, TuneEngine
+from .engines import RandomEngine
 
 HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
 HYPERPARAMS_REPL_REGEX = re.compile('{}.*{}'.format(
     HYPERPARAMS_SECTION_START, HYPERPARAMS_SECTION_END), re.S)
+CONST_MESSAGE = "missing module install it using pip install"
+
 
 
 class Hyperparameter(object):
@@ -485,7 +487,7 @@ class HyperparameterOptimization(object):
         self.df_scores_.to_csv(summary_fname)
 
 
-    def run(self, n_iter, test, resume):
+    def run(self, n_iter, test, resume = False):
         # Create hyperopt output directory
 
         mean = 0
@@ -532,47 +534,83 @@ class RayEngine:
     def __init__(self, engine_name, n_iter=None):
         self.name = engine_name
         if engine_name[4:] == 'zoopt':
-            from ray.tune.suggest.zoopt import ZOOptSearch
-            self.ray_engine = ZOOptSearch( # gets stuck
-                algo="Asracos",  # only support ASRacos currently
-                budget=n_iter,  # with grid_size it got stuck
-            )
-        elif engine_name[4:] == 'ax':
-            from ray.tune.suggest.ax import AxSearch
-            self.ray_engine = AxSearch()
+            try:
+                from ray.tune.suggest.zoopt import ZOOptSearch
+                self.ray_engine = ZOOptSearch( # gets stuck
+                    algo="Asracos",  # only support ASRacos currently
+                    budget=n_iter,  # with grid_size it got stuck
+                )
+            except:
+                self.raise_except("zoopt")
+        if engine_name[4:] == 'ax':
+            try:
+                from ray.tune.suggest.ax import AxSearch
+                self.ray_engine = AxSearch()
+            except:
+                self.raise_except("ax-platform sqlalchemy")
         elif engine_name[4:] == 'blend_search':
-            from ray.tune.suggest.flaml import BlendSearch
-            self.ray_engine = BlendSearch()
+            try:
+                from ray.tune.suggest.flaml import BlendSearch
+                self.ray_engine = BlendSearch()
+            except:
+                self.raise_except("flaml")
         elif engine_name[4:] == 'cfo':
-            from ray.tune.suggest.flaml import CFO
-            self.ray_engine = CFO()
+            try:
+                from ray.tune.suggest.flaml import CFO
+                self.ray_engine = CFO()
+            except:
+                self.raise_except("flaml")
         elif engine_name[4:] == 'skopt':
-            from ray.tune.suggest.skopt import SkOptSearch
-            self.ray_engine = SkOptSearch()
+            try:
+                from ray.tune.suggest.skopt import SkOptSearch
+                self.ray_engine = SkOptSearch()
+            except:
+                self.raise_except("scikit-optimize")
         elif engine_name[4:] == 'hyperopt':
-            from ray.tune.suggest.hyperopt import HyperOptSearch
-            self.ray_engine = HyperOptSearch()
+            try:
+                from ray.tune.suggest.hyperopt import HyperOptSearch
+                self.ray_engine = HyperOptSearch()
+            except:
+                self.raise_except("hyperopt")
         elif engine_name[4:] == 'bayesopt':
-            from ray.tune.suggest.bayesopt import BayesOptSearch
-            self.ray_engine = BayesOptSearch()
+            try:
+                from ray.tune.suggest.bayesopt import BayesOptSearch
+                self.ray_engine = BayesOptSearch()
+            except:
+                self.raise_except("bayesian-optimization")
         elif engine_name[4:] == 'bohb':
-            from ray.tune.suggest.bohb import TuneBOHB
-            self.ray_engine = TuneBOHB()
+            try:
+                from ray.tune.suggest.bohb import TuneBOHB
+                self.ray_engine = TuneBOHB()
+            except:
+                self.raise_except("hpbandster")
         elif engine_name[4:] == 'nevergrad':
-            from ray.tune.suggest.nevergrad import NevergradSearch
-            import nevergrad as ng
-            self.ray_engine = NevergradSearch(
-                optimizer=ng.optimizers.OnePlusOne
-            )
+            try:
+                from ray.tune.suggest.nevergrad import NevergradSearch
+                import nevergrad as ng
+                self.ray_engine = NevergradSearch(
+                    ray_engine=ng.optimizers.OnePlusOne
+                )
+            except:
+                self.raise_except("nevergrad")
         elif engine_name[4:] == 'hebo':
-            from ray.tune.suggest.hebo import HEBOSearch
-            self.ray_engine = HEBOSearch()
+            try:
+                from ray.tune.suggest.hebo import HEBOSearch
+                self.ray_engine = HEBOSearch()
+            except:
+                self.raise_except("hebo")
         elif engine_name[4:] == 'optuna':
-            from ray.tune.suggest.optuna import OptunaSearch
-            self.ray_engine = OptunaSearch()
+            try:
+                from ray.tune.suggest.optuna import OptunaSearch
+                self.ray_engine = OptunaSearch()
+            except:
+                self.raise_except("optuna")
         else:
             raise ValueError(
                 f'Engine {engine_name[4:]} not found in Ray Tune')
+
+    def raise_except(message):
+        raise EnvironmentError(CONST_MESSAGE + message)
 
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
@@ -596,14 +634,6 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
         hyperopt_submission_dir, problem.workflow)
     if engine_name == 'random':
         engine = RandomEngine(hyperparameters)
-    elif engine_name == 'hebo_cv':
-        engine = HEBOCVEngine(hyperparameters)
-    elif engine_name == "hebo_ind":
-        engine = HEBOINDEngine(hyperparameters)
-    elif engine_name == "optuna":
-        engine = OptunaEngine(hyperparameters)
-    elif engine_name == "skopt":
-        engine = SKOptEngine(hyperparameters)
     elif engine_name.startswith('ray_'):
         engine = RayEngine(engine_name, n_iter)
     else:
@@ -625,6 +655,4 @@ def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
         hyperparameter_experiment.run(n_iter, test, resume)
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
-
-
 
