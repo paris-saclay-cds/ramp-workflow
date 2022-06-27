@@ -371,7 +371,8 @@ class HyperparameterOptimization(object):
     def _run_next_experiment(self, module_path, fold_i):
         _, _, df_scores = run_submission_on_cv_fold(
             self.problem, module_path=module_path, fold=self.cv[fold_i],
-            X_train=self.X_train, y_train=self.y_train, X_test=self.X_test, y_t est=self.y_test)
+            X_train=self.X_train, y_train=self.y_train,
+            X_test=self.X_test, y_t est=self.y_test)
         return df_scores
 
     def _update_df_scores(self, df_scores, fold_i, test):
@@ -436,7 +437,8 @@ class HyperparameterOptimization(object):
         if not os.path.exists(hyperopt_output_path):
             os.makedirs(hyperopt_output_path)
 
-        config = {h.name: tune.randint(0, len(h.values)) for h in self.hyperparameters}
+        config = {h.name: tune.randint(0, len(h.values))
+                  for h in self.hyperparameters}
         
         def objective(config, run_params=None):
             for h in run_params['hyperparameters']:
@@ -452,7 +454,8 @@ class HyperparameterOptimization(object):
             for fold_i in range(len(self.cv)):
                 df_scores = self._run_next_experiment(
                     output_submission_dir, fold_i)
-                valid_scores[fold_i] = df_scores.loc['valid', self.score_names[0]]
+                sn = self.score_names[0]
+                valid_scores[fold_i] = df_scores.loc['valid', sn]
                 df_scores_list.append(df_scores)
             shutil.rmtree(output_submission_dir)
             tune.report(
@@ -461,7 +464,8 @@ class HyperparameterOptimization(object):
             )
 
         run_params = {
-            'hyperparameters': self.hyperparameters, 'current_dir': os.getcwd(),
+            'hyperparameters': 
+                self.hyperparameters, 'current_dir': os.getcwd(),
             'submission_dir': self.submission_dir,
             'hypers_per_workflow_element': self.hypers_per_workflow_element
         }
@@ -517,16 +521,20 @@ class HyperparameterOptimization(object):
 
             df_scores = self._run_next_experiment(
                 output_submission_dir, fold_i)
-            self.engine.pass_feedback(fold_i, len(self.cv), df_scores, self.problem.score_types[0].name)
+            sn = self.problem.score_types[0].name
+            self.engine.pass_feedback(
+                fold_i, len(self.cv), df_scores, sn)
             self._update_df_scores(df_scores, fold_i, test)
             shutil.rmtree(output_submission_dir)
             now = pd.Timestamp.now()
-            eta = start + (now - start) / (i_iter + 1 - start_iter) * (n_trials - start_iter)
+            eta = start + (now - start) / (i_iter + 1 - start_iter)\
+                * (n_trials - start_iter)
             print(f'Done {i_iter + 1} / {n_trials} at {now}. ETA = {eta}.')
             self._make_and_save_summary(hyperopt_output_path)
         scores_columns = ['valid_' + name for name in self.score_names]
         for score in scores_columns:
-            self.df_scores_[score + "_max"] = self.df_scores_[score].rolling(n_trials, min_periods=1).max()
+            self.df_scores_[score + "_max"] = \
+                self.df_scores_[score].rolling(n_trials, min_periods=1).max()
 
 class RayEngine:
     # n_trials is only needed by zoopt at init time
@@ -619,8 +627,9 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
     if data_label is None:
         hyperopt_submission = submission + '_hyperopt'
     else:
-        hyperopt_submission = submission + '_' + data_label + '_hyperopt' \
-            if not label else submission + '_' + data_label + '_' + engine_name + '_hyperopt'
+        hyperopt_submission = submission + '_' + data_label + '_hyperopt'\
+            if not label else submission + '_' + data_label + '_'\
+                + engine_name + '_hyperopt'
     hyperopt_submission_dir = os.path.join(
         ramp_submission_dir, hyperopt_submission)
     submission_dir = os.path.join(
@@ -645,9 +654,11 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
 
 
 def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
-                 submission, engine_name, n_trials, save_best, test, label, resume):
+                 submission, engine_name, n_trials, save_best, test, label,
+                 resume):
     hyperparameter_experiment = init_hyperopt(
-        ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label, label, resume)
+        ramp_kit_dir, ramp_submission_dir, submission, engine_name,
+        data_label, label, resume)
     if engine_name.startswith('ray_'):
         hyperparameter_experiment.run_tune(n_trials, test)
     else:
