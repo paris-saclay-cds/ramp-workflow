@@ -23,7 +23,8 @@ class RandomEngine(GenericEngine):
         df_n_folds = df_scores.groupby(hyperparameter_names).count()
         incomplete_folds = df_n_folds[(df_n_folds['fold_i'] % n_folds > 0)]
         if len(incomplete_folds) > 0:
-           fold_i, next_value_indices = self.finish_incomplete_cvs(incomplete_folds, n_folds)
+            fold_i, next_value_indices = \
+                self.finish_incomplete_cvs(incomplete_folds, n_folds)
         # Otherwise select hyperparameter values from those that haven't
         # been selected yet, using also prior
         else:
@@ -58,4 +59,3 @@ class RandomEngine(GenericEngine):
 
     def pass_feedback(self, fold_i, n_folds, df_scores, score_name):
         pass
-
