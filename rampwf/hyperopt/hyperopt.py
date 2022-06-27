@@ -18,7 +18,6 @@ HYPERPARAMS_REPL_REGEX = re.compile('{}.*{}'.format(
 CONST_MESSAGE = "missing module install it using pip install"
 
 
-
 class Hyperparameter(object):
     """Discrete grid hyperparameter.
 
@@ -372,7 +371,7 @@ class HyperparameterOptimization(object):
     def _run_next_experiment(self, module_path, fold_i):
         _, _, df_scores = run_submission_on_cv_fold(
             self.problem, module_path=module_path, fold=self.cv[fold_i],
-            X_train=self.X_train, y_train=self.y_train, X_test=self.X_test, y_test=self.y_test)
+            X_train=self.X_train, y_train=self.y_train, X_test=self.X_test, y_t est=self.y_test)
         return df_scores
 
     def _update_df_scores(self, df_scores, fold_i, test):
@@ -427,7 +426,7 @@ class HyperparameterOptimization(object):
             self.submission_dir, self.submission_dir,
             self.hypers_per_workflow_element)
 
-    def run_tune(self, n_iter, test):
+    def run_tune(self, n_trials, test):
         from ray import tune
         is_lower_the_better = self.problem.score_types[0].is_lower_the_better
         engine_mode = 'min' if is_lower_the_better else 'max'
@@ -471,7 +470,7 @@ class HyperparameterOptimization(object):
             max_concurrent_trials=1,
             metric='valid_score',
             mode=engine_mode,
-            num_samples=int(n_iter / len(self.cv)),
+            num_samples=int(n_trials / len(self.cv)),
             name=self.engine.name,
             search_alg=self.engine.ray_engine,
             config=config
@@ -487,7 +486,7 @@ class HyperparameterOptimization(object):
         self.df_scores_.to_csv(summary_fname)
 
 
-    def run(self, n_iter, test, resume = False):
+    def run(self, n_trials, test, resume = False):
         # Create hyperopt output directory
 
         mean = 0
@@ -501,7 +500,7 @@ class HyperparameterOptimization(object):
             self._load_summary(hyperopt_output_path)
             start_iter = len(self.df_scores_)
         start = pd.Timestamp.now()
-        for i_iter in range(start_iter, n_iter):
+        for i_iter in range(start_iter, n_trials):
             # Getting new hyperparameter values from engine
             fold_i, next_value_indices =\
                 self.engine.next_hyperparameter_indices(
@@ -522,23 +521,23 @@ class HyperparameterOptimization(object):
             self._update_df_scores(df_scores, fold_i, test)
             shutil.rmtree(output_submission_dir)
             now = pd.Timestamp.now()
-            eta = start + (now - start) / (i_iter + 1 - start_iter) * (n_iter - start_iter)
-            print(f'Done {i_iter + 1} / {n_iter} at {now}. ETA = {eta}.')
+            eta = start + (now - start) / (i_iter + 1 - start_iter) * (n_trials - start_iter)
+            print(f'Done {i_iter + 1} / {n_trials} at {now}. ETA = {eta}.')
             self._make_and_save_summary(hyperopt_output_path)
         scores_columns = ['valid_' + name for name in self.score_names]
         for score in scores_columns:
-            self.df_scores_[score + "_max"] = self.df_scores_[score].rolling(n_iter, min_periods=1).max()
+            self.df_scores_[score + "_max"] = self.df_scores_[score].rolling(n_trials, min_periods=1).max()
 
 class RayEngine:
-    # n_iter is only needed by zoopt at init time
-    def __init__(self, engine_name, n_iter=None):
+    # n_trials is only needed by zoopt at init time
+    def __init__(self, engine_name, n_trials=None):
         self.name = engine_name
         if engine_name[4:] == 'zoopt':
             try:
                 from ray.tune.suggest.zoopt import ZOOptSearch
                 self.ray_engine = ZOOptSearch( # gets stuck
                     algo="Asracos",  # only support ASRacos currently
-                    budget=n_iter,  # with grid_size it got stuck
+                    budget=n_trials,  # with grid_size it got stuck
                 )
             except:
                 self.raise_except("zoopt")
@@ -614,8 +613,8 @@ class RayEngine:
 
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
-                  engine_name, data_label, label, resume, n_iter=None):
-    # n_iter is only needed by ray_zoopt at init time
+                  engine_name, data_label, label, resume, n_trials=None):
+    # n_trials is only needed by ray_zoopt at init time
     problem = assert_read_problem(ramp_kit_dir)
     if data_label is None:
         hyperopt_submission = submission + '_hyperopt'
@@ -635,7 +634,7 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
     if engine_name == 'random':
         engine = RandomEngine(hyperparameters)
     elif engine_name.startswith('ray_'):
-        engine = RayEngine(engine_name, n_iter)
+        engine = RayEngine(engine_name, n_trials)
     else:
         raise ValueError(f'{engine_name} is not a valid engine name')
     hyperparameter_experiment = HyperparameterOptimization(
@@ -646,13 +645,13 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
 
 
 def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
-                 submission, engine_name, n_iter, save_best, test, label, resume):
+                 submission, engine_name, n_trials, save_best, test, label, resume):
     hyperparameter_experiment = init_hyperopt(
         ramp_kit_dir, ramp_submission_dir, submission, engine_name, data_label, label, resume)
     if engine_name.startswith('ray_'):
-        hyperparameter_experiment.run_tune(n_iter, test)
+        hyperparameter_experiment.run_tune(n_trials, test)
     else:
-        hyperparameter_experiment.run(n_iter, test, resume)
+        hyperparameter_experiment.run(n_trials, test, resume)
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
 

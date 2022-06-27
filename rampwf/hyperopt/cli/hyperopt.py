@@ -31,12 +31,12 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               'that contains the individual submission subdirectories.')
 @click.option('--engine', default='random', show_default=True,
               help='The name of the hyperopt engine, e.g., "random".')
-@click.option('--n-iter', default=10, show_default=True,
+@click.option('--n-trials', default=10, show_default=True,
               help='The number of hyperopt iterations, inputted to the '
               'engine. The granularity is per cv fold, so if you want to '
               'fully test 7 hyperparameter combinations for example with the '
               'random engine and you have 8 CV folds, you should enter '
-              '--n-iter 56')
+              '--n-trials 56')
 @click.option('--save-best', is_flag=True, default=False,
               show_default=True,
               help='Specify this flag to create a '
@@ -55,13 +55,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               help='To resume a broken run. If False, summary.csv will '
               'be created from scratch.' )
 def main(submission, ramp_kit_dir, ramp_data_dir, data_label,
-         ramp_submission_dir, engine, n_iter, save_best, test, label,
+         ramp_submission_dir, engine, n_trials, save_best, test, label,
          resume):
     """Hyperopt a submission."""
     run_hyperopt(
         ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir,
         ramp_submission_dir=ramp_submission_dir, data_label=data_label,
-        submission=submission, engine_name=engine, n_iter=n_iter,
+        submission=submission, engine_name=engine, n_trials=n_trials,
         save_best=save_best, test=test, label=label, resume=resume)
 
 
