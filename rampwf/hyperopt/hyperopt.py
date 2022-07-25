@@ -15,7 +15,6 @@ HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
 HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
 HYPERPARAMS_REPL_REGEX = re.compile('{}.*{}'.format(
     HYPERPARAMS_SECTION_START, HYPERPARAMS_SECTION_END), re.S)
-CONST_MESSAGE = "missing module install it using pip install"
 
 
 class Hyperparameter(object):
@@ -428,7 +427,11 @@ class HyperparameterOptimization(object):
             self.hypers_per_workflow_element)
 
     def run_tune(self, n_trials, test):
-        from ray import tune
+        try:
+            from ray import tune
+        except:
+            self.raise_except('ray')
+        
         is_lower_the_better = self.problem.score_types[0].is_lower_the_better
         engine_mode = 'min' if is_lower_the_better else 'max'
 
@@ -493,7 +496,6 @@ class HyperparameterOptimization(object):
     def run(self, n_trials, test, resume = False):
         # Create hyperopt output directory
 
-        mean = 0
         hyperopt_output_path = os.path.join(
             self.submission_dir, 'hyperopt_output')
         if not os.path.exists(hyperopt_output_path):
@@ -543,54 +545,54 @@ class RayEngine:
         if engine_name[4:] == 'zoopt':
             try:
                 from ray.tune.suggest.zoopt import ZOOptSearch
-                self.ray_engine = ZOOptSearch( # gets stuck
-                    algo="Asracos",  # only support ASRacos currently
-                    budget=n_trials,  # with grid_size it got stuck
+                self.ray_engine = ZOOptSearch( # gets stuck often
+                    algo='Asracos',  # only support ASRacos currently
+                    budget=n_trials,
                 )
             except:
-                self.raise_except("zoopt")
+                self.raise_except('zoopt')
         elif engine_name[4:] == 'ax':
             try:
                 from ray.tune.suggest.ax import AxSearch
                 self.ray_engine = AxSearch()
             except:
-                self.raise_except("ax-platform sqlalchemy")
+                self.raise_except('ax-platform sqlalchemy')
         elif engine_name[4:] == 'blend_search':
             try:
                 from ray.tune.suggest.flaml import BlendSearch
                 self.ray_engine = BlendSearch()
             except:
-                self.raise_except("flaml")
+                self.raise_except('flaml')
         elif engine_name[4:] == 'cfo':
             try:
                 from ray.tune.suggest.flaml import CFO
                 self.ray_engine = CFO()
             except:
-                self.raise_except("flaml")
+                self.raise_except('flaml')
         elif engine_name[4:] == 'skopt':
             try:
                 from ray.tune.suggest.skopt import SkOptSearch
                 self.ray_engine = SkOptSearch()
             except:
-                self.raise_except("scikit-optimize")
+                self.raise_except('scikit-optimize')
         elif engine_name[4:] == 'hyperopt':
             try:
                 from ray.tune.suggest.hyperopt import HyperOptSearch
                 self.ray_engine = HyperOptSearch()
             except:
-                self.raise_except("hyperopt")
+                self.raise_except('hyperopt')
         elif engine_name[4:] == 'bayesopt':
             try:
                 from ray.tune.suggest.bayesopt import BayesOptSearch
                 self.ray_engine = BayesOptSearch()
             except:
-                self.raise_except("bayesian-optimization")
+                self.raise_except('bayesian-optimization')
         elif engine_name[4:] == 'bohb':
             try:
                 from ray.tune.suggest.bohb import TuneBOHB
                 self.ray_engine = TuneBOHB()
             except:
-                self.raise_except("hpbandster")
+                self.raise_except('hpbandster')
         elif engine_name[4:] == 'nevergrad':
             try:
                 from ray.tune.suggest.nevergrad import NevergradSearch
@@ -599,25 +601,26 @@ class RayEngine:
                     ray_engine=ng.optimizers.OnePlusOne
                 )
             except:
-                self.raise_except("nevergrad")
+                self.raise_except('nevergrad')
         elif engine_name[4:] == 'hebo':
             try:
                 from ray.tune.suggest.hebo import HEBOSearch
                 self.ray_engine = HEBOSearch()
             except:
-                self.raise_except("hebo")
+                self.raise_except('hebo')
         elif engine_name[4:] == 'optuna':
             try:
                 from ray.tune.suggest.optuna import OptunaSearch
                 self.ray_engine = OptunaSearch()
             except:
-                self.raise_except("optuna")
+                self.raise_except('optuna')
         else:
             raise ValueError(
                 f'Engine {engine_name[4:]} not found in Ray Tune')
 
-    def raise_except(message):
-        raise EnvironmentError(CONST_MESSAGE + message)
+    def raise_except(library):
+        raise EnvironmentError(
+            'Missing module: install it using pip install ' + library)
 
 
 def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
