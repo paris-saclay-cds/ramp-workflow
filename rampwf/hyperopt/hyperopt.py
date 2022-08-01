@@ -445,9 +445,12 @@ def run(hyperparameter_experiment, n_trials, test, resume = False):
         # Getting new hyperparameter values from engine
         fold_i, next_value_indices =\
             hyperparameter_experiment.engine.next_hyperparameter_indices(
-                hyperparameter_experiment.df_scores_, len(hyperparameter_experiment.cv), hyperparameter_experiment.problem)
+                hyperparameter_experiment.df_scores_,
+                len(hyperparameter_experiment.cv),
+                hyperparameter_experiment.problem)
         # Updating hyperparameters
-        for h, i in zip(hyperparameter_experiment.hyperparameters, next_value_indices):
+        for h, i in zip(
+                hyperparameter_experiment.hyperparameters, next_value_indices):
             h.default_index = i
         # Writing submission files with new hyperparameter values
         output_submission_dir = mkdtemp()
@@ -468,11 +471,12 @@ def run(hyperparameter_experiment, n_trials, test, resume = False):
             * (n_trials - start_iter)
         print(f'Done {i_iter + 1} / {n_trials} at {now}. ETA = {eta}.')
         hyperparameter_experiment._make_and_save_summary(hyperopt_output_path)
-    scores_columns = ['valid_' + name for name in hyperparameter_experiment.score_names]
+    scores_columns = [
+        'valid_' + name for name in hyperparameter_experiment.score_names]
     for score in scores_columns:
         hyperparameter_experiment.df_scores_[score + "_max"] = \
-            hyperparameter_experiment.df_scores_[score].rolling(n_trials, min_periods=1).max()
-
+            hyperparameter_experiment.df_scores_[score].rolling(
+                n_trials, min_periods=1).max()
 
 
 def objective(config, run_params=None):
@@ -502,7 +506,8 @@ def objective(config, run_params=None):
 
 def run_tune(hyperparameter_experiment, n_trials, test):
 
-    is_lower_the_better = hyperparameter_experiment.problem.score_types[0].is_lower_the_better
+    is_lower_the_better =\
+        hyperparameter_experiment.problem.score_types[0].is_lower_the_better
     engine_mode = 'min' if is_lower_the_better else 'max'
 
     hyperopt_output_path = os.path.join(
@@ -532,7 +537,8 @@ def run_tune(hyperparameter_experiment, n_trials, test):
         for h in hyperparameter_experiment.hyperparameters:
             h.default_index = int(row[f'config.{h.name}'])
         for fold_i, df_scores in enumerate(row['df_scores_list']):
-            hyperparameter_experiment._update_df_scores(df_scores, fold_i, test=test)
+            hyperparameter_experiment._update_df_scores(
+                df_scores, fold_i, test=test)
 
     summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
     hyperparameter_experiment.df_scores_.to_csv(summary_fname)
