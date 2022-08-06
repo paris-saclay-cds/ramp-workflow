@@ -11,6 +11,7 @@ logreg_C = Hyperparameter(dtype="float", default=1.0, values=[0.01, 0.1, 0.9, 1.
 
 
 class Classifier(BaseEstimator):
+    # flake8: noqa: E501
     def __init__(self):
         self.clf = Pipeline(
             [

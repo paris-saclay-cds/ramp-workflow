@@ -3,6 +3,8 @@ import pandas as pd
 import rampwf as rw
 from sklearn.model_selection import StratifiedShuffleSplit
 
+# flake8: noqa: E501
+
 problem_title = "Titanic survival classification"
 _target_column_name = "Survived"
 _ignore_column_names = ["PassengerId"]

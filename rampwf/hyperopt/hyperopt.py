@@ -357,7 +357,8 @@ class HyperparameterOptimization(object):
 
         # Set up df_scores_ which will contain one row per experiment
         scores_columns = ['fold_i']
-        scores_columns += self.hyperparameter_names + self.hyperparameters_indices
+        scores_columns += self.hyperparameter_names
+        scores_columns += self.hyperparameters_indices
         scores_columns += ['train_' + name for name in self.score_names]
         scores_columns += ['valid_' + name for name in self.score_names]
         scores_columns += ['train_time', 'valid_time', 'n_train', 'n_valid']
@@ -428,9 +429,8 @@ class HyperparameterOptimization(object):
             self.hypers_per_workflow_element)
 
 
-def run(hyperparameter_experiment, n_trials, test, resume = False):
+def run(hyperparameter_experiment, n_trials, test, resume=False):
     # Create hyperopt output directory
-
     hyperopt_output_path = os.path.join(
         hyperparameter_experiment.submission_dir, 'hyperopt_output')
     if not os.path.exists(hyperopt_output_path):
@@ -551,53 +551,53 @@ class RayEngine:
         if engine_name[4:] == 'zoopt':
             try:
                 from ray.tune.suggest.zoopt import ZOOptSearch
-                self.ray_engine = ZOOptSearch( # gets stuck often
+                self.ray_engine = ZOOptSearch(  # gets stuck often
                     algo='Asracos',  # only support ASRacos currently
                     budget=n_trials,
                 )
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('zoopt')
         elif engine_name[4:] == 'ax':
             try:
                 from ray.tune.suggest.ax import AxSearch
                 self.ray_engine = AxSearch()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('ax-platform sqlalchemy')
         elif engine_name[4:] == 'blend_search':
             try:
                 from ray.tune.suggest.flaml import BlendSearch
                 self.ray_engine = BlendSearch()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('flaml')
         elif engine_name[4:] == 'cfo':
             try:
                 from ray.tune.suggest.flaml import CFO
                 self.ray_engine = CFO()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('flaml')
         elif engine_name[4:] == 'skopt':
             try:
                 from ray.tune.suggest.skopt import SkOptSearch
                 self.ray_engine = SkOptSearch()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('scikit-optimize')
         elif engine_name[4:] == 'hyperopt':
             try:
                 from ray.tune.suggest.hyperopt import HyperOptSearch
                 self.ray_engine = HyperOptSearch()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('hyperopt')
         elif engine_name[4:] == 'bayesopt':
             try:
                 from ray.tune.suggest.bayesopt import BayesOptSearch
                 self.ray_engine = BayesOptSearch()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('bayesian-optimization')
         elif engine_name[4:] == 'bohb':
             try:
                 from ray.tune.suggest.bohb import TuneBOHB
                 self.ray_engine = TuneBOHB()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('hpbandster')
         elif engine_name[4:] == 'nevergrad':
             try:
@@ -606,19 +606,19 @@ class RayEngine:
                 self.ray_engine = NevergradSearch(
                     ray_engine=ng.optimizers.OnePlusOne
                 )
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('nevergrad')
         elif engine_name[4:] == 'hebo':
             try:
                 from ray.tune.suggest.hebo import HEBOSearch
                 self.ray_engine = HEBOSearch()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('hebo')
         elif engine_name[4:] == 'optuna':
             try:
                 from ray.tune.suggest.optuna import OptunaSearch
                 self.ray_engine = OptunaSearch()
-            except:
+            except ModuleNotFoundError:
                 self.raise_except('optuna')
         else:
             raise ValueError(
@@ -638,7 +638,7 @@ def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
     else:
         hyperopt_submission = submission + '_' + data_label + '_hyperopt'\
             if not label else submission + '_' + data_label + '_'\
-                + engine_name + '_hyperopt'
+                                         + engine_name + '_hyperopt'
     hyperopt_submission_dir = os.path.join(
         ramp_submission_dir, hyperopt_submission)
     submission_dir = os.path.join(
@@ -674,4 +674,3 @@ def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
         run(hyperparameter_experiment, n_trials, test, resume)
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
-

@@ -1,6 +1,7 @@
 import pandas as pd
 
 
+# flake8: noqa: E501
 class FeatureExtractor:
     def __init__(self):
         pass
@@ -9,6 +10,7 @@ class FeatureExtractor:
         pass
 
     def transform(self, X_df):
+
         X_df_new = pd.concat(
             [
                 X_df.get(["Fare", "Age", "SibSp", "Parch"]),

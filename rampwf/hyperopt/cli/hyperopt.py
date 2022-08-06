@@ -5,6 +5,8 @@ from ..hyperopt import run_hyperopt
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
+# flake8: noqa: E501
+
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
     "--submission",

@@ -14,7 +14,9 @@ class FeatureExtractor:
     def fit(self, X_df, y):
         pass
 
+    # flake8: noqa: E501
     def transform(self, X_df):
+
         if int(complex_features):
             X_df = X_df.assign(LogFare=lambda x: np.log(x.Fare + 10.0))
             X_df = X_df.assign(Cab=lambda x: x.Cabin == x.Cabin)
