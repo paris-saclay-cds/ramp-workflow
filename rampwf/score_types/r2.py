@@ -7,7 +7,7 @@ class R2(BaseScoreType):
     minimum = -1.0
     maximum = 1.0
 
-    def __init__(self, name='r2', precision=2):
+    def __init__(self, name="r2", precision=2):
         self.name = name
         self.precision = precision
 
