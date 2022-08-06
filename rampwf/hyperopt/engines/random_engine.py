@@ -51,7 +51,8 @@ class RandomEngine(GenericEngine):
                 if prior.sum() <= 0:
                     prior = np.ones(len(prior))
                 prior /= prior.sum()
-                selected_index = np.random.choice(range(len(h.values)), p=prior,)
+                lenh = len(h.values)
+                selected_index = np.random.choice(range(lenh), p=prior)
                 # keep only experiments that used the selected values so far
                 df_scores_local = df_scores_local[
                     (df_scores_local[h.name] == h.values[selected_index])
