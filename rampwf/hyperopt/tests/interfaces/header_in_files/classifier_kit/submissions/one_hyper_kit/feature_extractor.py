@@ -1,7 +1,6 @@
 import pandas as pd
 
 
-# flake8: noqa: E501
 class FeatureExtractor:
     def __init__(self):
         pass
@@ -14,9 +13,21 @@ class FeatureExtractor:
         X_df_new = pd.concat(
             [
                 X_df.get(["Fare", "Age", "SibSp", "Parch"]),
-                pd.get_dummies(X_df.Sex, prefix="Sex", drop_first=True),
-                pd.get_dummies(X_df.Pclass, prefix="Pclass", drop_first=True),
-                pd.get_dummies(X_df.Embarked, prefix="Embarked", drop_first=True),
+                pd.get_dummies(
+                    X_df.Sex,
+                    prefix="Sex",
+                    drop_first=True,
+                ),
+                pd.get_dummies(
+                    X_df.Pclass,
+                    prefix="Pclass",
+                    drop_first=True,
+                ),
+                pd.get_dummies(
+                    X_df.Embarked,
+                    prefix="Embarked",
+                    drop_first=True,
+                ),
             ],
             axis=1,
         )

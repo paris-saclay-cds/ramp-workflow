@@ -3,14 +3,15 @@ import pandas as pd
 import rampwf as rw
 from sklearn.model_selection import StratifiedShuffleSplit
 
-# flake8: noqa: E501
 
 problem_title = "Titanic survival classification"
 _target_column_name = "Survived"
 _ignore_column_names = ["PassengerId"]
 _prediction_label_names = [0, 1]
 # A type (class) which will be used to create wrapper objects for y_pred
-Predictions = rw.prediction_types.make_multiclass(label_names=_prediction_label_names)
+Predictions = rw.prediction_types.make_multiclass(
+    label_names=_prediction_label_names,
+)
 # An object implementing the workflow
 workflow = rw.workflows.FeatureExtractorClassifier()
 

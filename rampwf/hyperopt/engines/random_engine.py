@@ -6,7 +6,6 @@ class RandomEngine(GenericEngine):
     def __init__(self, hyperparameters):
         self.hyperparameters = hyperparameters
 
-    # flake8: noqa: E501
     def next_hyperparameter_indices(self, df_scores, n_folds, problem):
         """Return the next hyperparameter indices to try.
 
@@ -52,7 +51,7 @@ class RandomEngine(GenericEngine):
                 if prior.sum() <= 0:
                     prior = np.ones(len(prior))
                 prior /= prior.sum()
-                selected_index = np.random.choice(range(len(h.values)), p=prior)
+                selected_index = np.random.choice(range(len(h.values)), p=prior,)
                 # keep only experiments that used the selected values so far
                 df_scores_local = df_scores_local[
                     (df_scores_local[h.name] == h.values[selected_index])
