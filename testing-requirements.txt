@@ -13,3 +13,4 @@ keras<2.4
 tensorflow == 2.0.4
 ray==1.12.0
 protobuf==3.19.0
+tabulate==0.8.9
