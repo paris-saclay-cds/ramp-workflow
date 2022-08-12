@@ -8,14 +8,21 @@ from ray import tune
 
 from tempfile import mkdtemp
 from ..utils import (
-    assert_read_problem, import_module_from_source, run_submission_on_cv_fold)
+    assert_read_problem,
+    import_module_from_source,
+    run_submission_on_cv_fold,
+)
+
+# flake8: noqa: E501
+
 
 from .engines import RandomEngine
 
-HYPERPARAMS_SECTION_START = '# RAMP START HYPERPARAMETERS'
-HYPERPARAMS_SECTION_END = '# RAMP END HYPERPARAMETERS'
-HYPERPARAMS_REPL_REGEX = re.compile('{}.*{}'.format(
-    HYPERPARAMS_SECTION_START, HYPERPARAMS_SECTION_END), re.S)
+HYPERPARAMS_SECTION_START = "# RAMP START HYPERPARAMETERS"
+HYPERPARAMS_SECTION_END = "# RAMP END HYPERPARAMETERS"
+HYPERPARAMS_REPL_REGEX = re.compile(
+    "{}.*{}".format(HYPERPARAMS_SECTION_START, HYPERPARAMS_SECTION_END), re.S
+)
 
 
 class Hyperparameter(object):
@@ -48,36 +55,37 @@ class Hyperparameter(object):
     """
 
     def __init__(self, dtype, default=None, values=None, prior=None):
-        self.name = ''
-        self.workflow_element_name = ''
+        self.name = ""
+        self.workflow_element_name = ""
         self.dtype = dtype
         if default is None and values is None:
-            raise ValueError('Either default or values must be defined.')
+            raise ValueError("Either default or values must be defined.")
         if values is None:
             self.values = np.array([default], dtype=self.dtype)
         else:
             if len(values) < 1:
-                raise ValueError(
-                    'Values needs to contain at least one element.')
+                raise ValueError("Values needs to contain at least one element.")
             self.values = np.array(values, dtype=self.dtype)
         if default is None:
             self.default_index = 0
         else:
             if default not in self.values:
-                message = 'Default must be among values.\n'
-                message += f'default: {default}\n'
-                message += f'values: {self.values}'
+                message = "Default must be among values.\n"
+                message += f"default: {default}\n"
+                message += f"values: {self.values}"
                 raise ValueError(message)
             else:
                 self.set_default(default)
 
         if prior is None:
-            self.prior = np.array([1. / self.n_values] * self.n_values)
+            self.prior = np.array([1.0 / self.n_values] * self.n_values)
         else:
             if len(prior) != len(values):
                 raise ValueError(
-                    'len(values) == {} != {} == len(prior)'.format(
-                        len(values), len(prior)))
+                    "len(values) == {} != {} == len(prior)".format(
+                        len(values), len(prior)
+                    )
+                )
             self.prior = prior
 
     @property
@@ -112,8 +120,8 @@ class Hyperparameter(object):
             default_repr : str
                 The string representation of the default value.
         """
-        if self.dtype in ['object', 'str']:
-            return '\'{}\''.format(self.default)
+        if self.dtype in ["object", "str"]:
+            return "'{}'".format(self.default)
         else:
             return str(self.default)
 
@@ -129,13 +137,13 @@ class Hyperparameter(object):
             values_repr : list of str
                 The string representation of the list of values.
         """
-        s = '['
+        s = "["
         for v in self.values:
-            if self.dtype in ['object', 'str']:
-                s += '\'{}\', '.format(v)
+            if self.dtype in ["object", "str"]:
+                s += "'{}', ".format(v)
             else:
-                s += '{}, '.format(v)
-        s += ']'
+                s += "{}, ".format(v)
+        s += "]"
         return s
 
     @property
@@ -151,10 +159,10 @@ class Hyperparameter(object):
             python_repr : str
                 The string representation of the hyperparameter.
         """
-        repr = '{} = Hyperparameter(\n'.format(self.name)
+        repr = "{} = Hyperparameter(\n".format(self.name)
         repr += "\tdtype='{}'".format(str(self.dtype))
-        repr += ', default={}'.format(self.default_repr)
-        repr += ', values={})\n'.format(self.values_repr)
+        repr += ", default={}".format(self.default_repr)
+        repr += ", values={})\n".format(self.values_repr)
         return repr
 
     def set_names(self, name, workflow_element_name):
@@ -243,8 +251,7 @@ def parse_hyperparameters(module_path, workflow_element_name):
     """
     hyperparameters = []
     workflow_element = import_module_from_source(
-        os.path.join(module_path, workflow_element_name + '.py'),
-        workflow_element_name
+        os.path.join(module_path, workflow_element_name + ".py"), workflow_element_name
     )
     for object_name in dir(workflow_element):
         o = getattr(workflow_element, object_name)
@@ -275,8 +282,9 @@ def parse_all_hyperparameters(module_path, workflow):
     return hyperparameters
 
 
-def write_hyperparameters(submission_dir, output_submission_dir,
-                          hypers_per_workflow_element):
+def write_hyperparameters(
+    submission_dir, output_submission_dir, hypers_per_workflow_element
+):
     """Write hyperparameters in a submission.
 
     Read workflow elements from submission_dir, replace the hyperparameter
@@ -300,16 +308,16 @@ def write_hyperparameters(submission_dir, output_submission_dir,
             the workflow element.
     """
     for wen, hs in hypers_per_workflow_element.items():
-        hyper_section = '{}\n'.format(HYPERPARAMS_SECTION_START)
+        hyper_section = "{}\n".format(HYPERPARAMS_SECTION_START)
         for h in hs:
             hyper_section += h.python_repr
         hyper_section += HYPERPARAMS_SECTION_END
-        f_name = os.path.join(submission_dir, wen + '.py')
+        f_name = os.path.join(submission_dir, wen + ".py")
         with open(f_name) as f:
             content = f.read()
             content = HYPERPARAMS_REPL_REGEX.sub(hyper_section, content)
-        output_f_name = os.path.join(output_submission_dir, wen + '.py')
-        with open(output_f_name, 'w') as f:
+        output_f_name = os.path.join(output_submission_dir, wen + ".py")
+        with open(output_f_name, "w") as f:
             f.write(content)
 
 
@@ -324,21 +332,22 @@ class HyperparameterOptimization(object):
             is found
     """
 
-    def __init__(self, hyperparameters, engine, ramp_kit_dir,
-                 submission_dir, data_label):
+    def __init__(
+        self, hyperparameters, engine, ramp_kit_dir, submission_dir, data_label
+    ):
         self.hyperparameters = hyperparameters
         self.engine = engine
         self.problem = assert_read_problem(ramp_kit_dir)
         if data_label is not None:
             self.X_train, self.y_train = self.problem.get_train_data(
-                path=ramp_kit_dir, data_label=data_label)
+                path=ramp_kit_dir, data_label=data_label
+            )
             self.X_test, self.y_test = self.problem.get_test_data(
-                path=ramp_kit_dir, data_label=data_label)
+                path=ramp_kit_dir, data_label=data_label
+            )
         else:
-            self.X_train, self.y_train = self.problem.get_train_data(
-                path=ramp_kit_dir)
-            self.X_test, self.y_test = self.problem.get_test_data(
-                path=ramp_kit_dir)
+            self.X_train, self.y_train = self.problem.get_train_data(path=ramp_kit_dir)
+            self.X_test, self.y_test = self.problem.get_test_data(path=ramp_kit_dir)
         self.cv = list(self.problem.get_cv(self.X_train, self.y_train))
         self.submission_dir = submission_dir
         self.hyperparameter_names = [h.name for h in hyperparameters]
@@ -351,88 +360,101 @@ class HyperparameterOptimization(object):
         # workflow element names, values are lists are hypers belonging
         # to the workflow element
         self.hypers_per_workflow_element = {
-            wen: [] for wen in self.problem.workflow.element_names}
+            wen: [] for wen in self.problem.workflow.element_names
+        }
         for h in self.hyperparameters:
             self.hypers_per_workflow_element[h.workflow_element_name].append(h)
 
         # Set up df_scores_ which will contain one row per experiment
-        scores_columns = ['fold_i']
-        scores_columns += self.hyperparameter_names + self.hyperparameters_indices
-        scores_columns += ['train_' + name for name in self.score_names]
-        scores_columns += ['valid_' + name for name in self.score_names]
-        scores_columns += ['train_time', 'valid_time', 'n_train', 'n_valid']
-        dtypes = ['int'] + [h.dtype for h in self.hyperparameters] +\
-                 ['int'] * len(self.hyperparameters) + \
-            ['float'] * 2 * len(self.score_names) + ['float'] * 2 + ['int'] * 2
+        scores_columns = ["fold_i"]
+        scores_columns += self.hyperparameter_names
+        scores_columns += self.hyperparameters_indices
+        scores_columns += ["train_" + name for name in self.score_names]
+        scores_columns += ["valid_" + name for name in self.score_names]
+        scores_columns += ["train_time", "valid_time", "n_train", "n_valid"]
+        dtypes = (
+            ["int"]
+            + [h.dtype for h in self.hyperparameters]
+            + ["int"] * len(self.hyperparameters)
+            + ["float"] * 2 * len(self.score_names)
+            + ["float"] * 2
+            + ["int"] * 2
+        )
         self.df_scores_ = pd.DataFrame(columns=scores_columns)
         for column, dtype in zip(scores_columns, dtypes):
             self.df_scores_[column] = self.df_scores_[column].astype(dtype)
 
     def _update_df_scores(self, df_scores, fold_i, test):
-        row = {'fold_i': fold_i}
+        row = {"fold_i": fold_i}
         for h in self.hyperparameters:
             row[h.name] = h.default
-            row[h.name + '_i'] = h.default_index
+            row[h.name + "_i"] = h.default_index
         for name in self.score_names:
-            row['train_' + name] = df_scores.loc['train'][name]
-            row['valid_' + name] = df_scores.loc['valid'][name]
+            row["train_" + name] = df_scores.loc["train"][name]
+            row["valid_" + name] = df_scores.loc["valid"][name]
             if test:
-                row['test_' + name] = df_scores.loc['test'][name]
-        row['train_time'] = float(df_scores.loc['train']['time'])
-        row['valid_time'] = float(df_scores.loc['valid']['time'])
-        row['valid_time'] = float(df_scores.loc['test']['time'])
+                row["test_" + name] = df_scores.loc["test"][name]
+        row["train_time"] = float(df_scores.loc["train"]["time"])
+        row["valid_time"] = float(df_scores.loc["valid"]["time"])
+        row["valid_time"] = float(df_scores.loc["test"]["time"])
 
-        row['n_train'] = len(self.cv[fold_i][0])
-        row['n_valid'] = len(self.cv[fold_i][1])
-        row['n_test'] = len(self.X_test[0])
+        row["n_train"] = len(self.cv[fold_i][0])
+        row["n_valid"] = len(self.cv[fold_i][1])
+        row["n_test"] = len(self.X_test[0])
 
         self.df_scores_ = self.df_scores_.append(row, ignore_index=True)
-        self.df_scores_['fold_i'] = self.df_scores_['fold_i'].astype(int)
+        self.df_scores_["fold_i"] = self.df_scores_["fold_i"].astype(int)
         for h in self.hyperparameters:
-            col = h.name + '_i'
+            col = h.name + "_i"
             self.df_scores_[col] = self.df_scores_[col].astype(int)
 
     def _run_next_experiment(self, module_path, fold_i):
         _, _, df_scores = run_submission_on_cv_fold(
-            self.problem, module_path=module_path, fold=self.cv[fold_i],
-            X_train=self.X_train, y_train=self.y_train,
-            X_test=self.X_test, y_test=self.y_test)
+            self.problem,
+            module_path=module_path,
+            fold=self.cv[fold_i],
+            X_train=self.X_train,
+            y_train=self.y_train,
+            X_test=self.X_test,
+            y_test=self.y_test,
+        )
         return df_scores
 
     def _make_and_save_summary(self, hyperopt_output_path):
-        summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
+        summary_fname = os.path.join(hyperopt_output_path, "summary.csv")
         self.df_scores_.to_csv(summary_fname)
 
     def _load_summary(self, hyperopt_output_path):
-        summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
+        summary_fname = os.path.join(hyperopt_output_path, "summary.csv")
         self.df_scores_ = pd.read_csv(summary_fname, index_col=0)
 
     def _save_best_model(self):
         official_scores = self.df_summary_[
-            'valid_' + self.problem.score_types[0].name + '_m']
+            "valid_" + self.problem.score_types[0].name + "_m"
+        ]
         print("official scores", official_scores)
         if self.problem.score_types[0].is_lower_the_better:
             best_defaults = official_scores.idxmin()
         else:
             best_defaults = official_scores.idxmax()
-        print('Best hyperparameters: ', best_defaults)
+        print("Best hyperparameters: ", best_defaults)
         try:
             for bd, h in zip(best_defaults, self.hyperparameters):
                 h.set_default(bd)
-        except(TypeError):
+        except (TypeError):
             # single hyperparameter
             self.hyperparameters[0].set_default(best_defaults)
         # Overwrite the submission with the best hyperparameter values
         write_hyperparameters(
-            self.submission_dir, self.submission_dir,
-            self.hypers_per_workflow_element)
+            self.submission_dir, self.submission_dir, self.hypers_per_workflow_element
+        )
 
 
-def run(hyperparameter_experiment, n_trials, test, resume = False):
+def run(hyperparameter_experiment, n_trials, test, resume=False):
     # Create hyperopt output directory
-
     hyperopt_output_path = os.path.join(
-        hyperparameter_experiment.submission_dir, 'hyperopt_output')
+        hyperparameter_experiment.submission_dir, "hyperopt_output"
+    )
     if not os.path.exists(hyperopt_output_path):
         os.makedirs(hyperopt_output_path)
 
@@ -443,59 +465,68 @@ def run(hyperparameter_experiment, n_trials, test, resume = False):
     start = pd.Timestamp.now()
     for i_iter in range(start_iter, n_trials):
         # Getting new hyperparameter values from engine
-        fold_i, next_value_indices =\
-            hyperparameter_experiment.engine.next_hyperparameter_indices(
-                hyperparameter_experiment.df_scores_,
-                len(hyperparameter_experiment.cv),
-                hyperparameter_experiment.problem)
+        (
+            fold_i,
+            next_value_indices,
+        ) = hyperparameter_experiment.engine.next_hyperparameter_indices(
+            hyperparameter_experiment.df_scores_,
+            len(hyperparameter_experiment.cv),
+            hyperparameter_experiment.problem,
+        )
         # Updating hyperparameters
-        for h, i in zip(
-                hyperparameter_experiment.hyperparameters, next_value_indices):
+        for h, i in zip(hyperparameter_experiment.hyperparameters, next_value_indices):
             h.default_index = i
         # Writing submission files with new hyperparameter values
         output_submission_dir = mkdtemp()
         write_hyperparameters(
-            hyperparameter_experiment.submission_dir, output_submission_dir,
-            hyperparameter_experiment.hypers_per_workflow_element)
+            hyperparameter_experiment.submission_dir,
+            output_submission_dir,
+            hyperparameter_experiment.hypers_per_workflow_element,
+        )
         # Calling the training script.
 
         df_scores = hyperparameter_experiment._run_next_experiment(
-            output_submission_dir, fold_i)
+            output_submission_dir, fold_i
+        )
         sn = hyperparameter_experiment.problem.score_types[0].name
         hyperparameter_experiment.engine.pass_feedback(
-            fold_i, len(hyperparameter_experiment.cv), df_scores, sn)
+            fold_i, len(hyperparameter_experiment.cv), df_scores, sn
+        )
         hyperparameter_experiment._update_df_scores(df_scores, fold_i, test)
         shutil.rmtree(output_submission_dir)
         now = pd.Timestamp.now()
-        eta = start + (now - start) / (i_iter + 1 - start_iter)\
-            * (n_trials - start_iter)
-        print(f'Done {i_iter + 1} / {n_trials} at {now}. ETA = {eta}.')
+        eta = start + (now - start) / (i_iter + 1 - start_iter) * (
+            n_trials - start_iter
+        )
+        print(f"Done {i_iter + 1} / {n_trials} at {now}. ETA = {eta}.")
         hyperparameter_experiment._make_and_save_summary(hyperopt_output_path)
-    scores_columns = [
-        'valid_' + name for name in hyperparameter_experiment.score_names]
+    scores_columns = ["valid_" + name for name in hyperparameter_experiment.score_names]
     for score in scores_columns:
-        hyperparameter_experiment.df_scores_[score + "_max"] = \
-            hyperparameter_experiment.df_scores_[score].rolling(
-                n_trials, min_periods=1).max()
+        hyperparameter_experiment.df_scores_[score + "_max"] = (
+            hyperparameter_experiment.df_scores_[score]
+            .rolling(n_trials, min_periods=1)
+            .max()
+        )
 
 
 def objective(config, run_params=None):
-    hyperparam_opt = run_params['hyperparam_opt']
+    hyperparam_opt = run_params["hyperparam_opt"]
     for h in hyperparam_opt.hyperparameters:
         h.default_index = config[h.name]
     output_submission_dir = mkdtemp()
     os.chdir(run_params["current_dir"])
     write_hyperparameters(
-        hyperparam_opt.submission_dir, output_submission_dir,
-        hyperparam_opt.hypers_per_workflow_element)
+        hyperparam_opt.submission_dir,
+        output_submission_dir,
+        hyperparam_opt.hypers_per_workflow_element,
+    )
     # Calling the training script.
     valid_scores = np.zeros(len(hyperparam_opt.cv))
     df_scores_list = []
     for fold_i in range(len(hyperparam_opt.cv)):
-        df_scores = hyperparam_opt._run_next_experiment(
-            output_submission_dir, fold_i)
+        df_scores = hyperparam_opt._run_next_experiment(output_submission_dir, fold_i)
         sn = hyperparam_opt.score_names[0]
-        valid_scores[fold_i] = df_scores.loc['valid', sn]
+        valid_scores[fold_i] = df_scores.loc["valid", sn]
         df_scores_list.append(df_scores)
     shutil.rmtree(output_submission_dir)
     tune.report(
@@ -506,41 +537,48 @@ def objective(config, run_params=None):
 
 def run_tune(hyperparameter_experiment, n_trials, test):
 
-    is_lower_the_better =\
-        hyperparameter_experiment.problem.score_types[0].is_lower_the_better
-    engine_mode = 'min' if is_lower_the_better else 'max'
+    is_lower_the_better = hyperparameter_experiment.problem.score_types[
+        0
+    ].is_lower_the_better
+    engine_mode = "min" if is_lower_the_better else "max"
 
     hyperopt_output_path = os.path.join(
-        hyperparameter_experiment.submission_dir, 'hyperopt_output')
+        hyperparameter_experiment.submission_dir, "hyperopt_output"
+    )
     if not os.path.exists(hyperopt_output_path):
         os.makedirs(hyperopt_output_path)
 
-    config = {h.name: tune.randint(0, len(h.values))
-              for h in hyperparameter_experiment.hyperparameters}
+    config = {
+        h.name: tune.randint(0, len(h.values))
+        for h in hyperparameter_experiment.hyperparameters
+    }
 
     run_params = {
-        'current_dir': os.getcwd(),
-        'hyperparam_opt': hyperparameter_experiment
+        "current_dir": os.getcwd(),
+        "hyperparam_opt": hyperparameter_experiment,
     }
     results = tune.run(
         tune.with_parameters(objective, run_params=run_params),
         max_concurrent_trials=1,
-        metric='valid_score',
+        metric="valid_score",
         mode=engine_mode,
         num_samples=int(n_trials / len(hyperparameter_experiment.cv)),
         name=hyperparameter_experiment.engine.name,
         search_alg=hyperparameter_experiment.engine.ray_engine,
-        config=config
+        config=config,
     )
 
     for _, row in results.results_df.iterrows():
         for h in hyperparameter_experiment.hyperparameters:
-            h.default_index = int(row[f'config.{h.name}'])
-        for fold_i, df_scores in enumerate(row['df_scores_list']):
+            h.default_index = int(row[f"config.{h.name}"])
+        for fold_i, df_scores in enumerate(row["df_scores_list"]):
             hyperparameter_experiment._update_df_scores(
-                df_scores, fold_i, test=test)
+                df_scores,
+                fold_i,
+                test=test,
+            )
 
-    summary_fname = os.path.join(hyperopt_output_path, 'summary.csv')
+    summary_fname = os.path.join(hyperopt_output_path, "summary.csv")
     hyperparameter_experiment.df_scores_.to_csv(summary_fname)
 
 
@@ -548,130 +586,172 @@ class RayEngine:
     # n_trials is only needed by zoopt at init time
     def __init__(self, engine_name, n_trials=None):
         self.name = engine_name
-        if engine_name[4:] == 'zoopt':
+        if engine_name[4:] == "zoopt":
             try:
                 from ray.tune.suggest.zoopt import ZOOptSearch
-                self.ray_engine = ZOOptSearch( # gets stuck often
-                    algo='Asracos',  # only support ASRacos currently
+
+                self.ray_engine = ZOOptSearch(  # gets stuck often
+                    algo="Asracos",  # only support ASRacos currently
                     budget=n_trials,
                 )
-            except:
-                self.raise_except('zoopt')
-        elif engine_name[4:] == 'ax':
+            except ModuleNotFoundError:
+                self.raise_except("zoopt")
+        elif engine_name[4:] == "ax":
             try:
                 from ray.tune.suggest.ax import AxSearch
+
                 self.ray_engine = AxSearch()
-            except:
-                self.raise_except('ax-platform sqlalchemy')
-        elif engine_name[4:] == 'blend_search':
+            except ModuleNotFoundError:
+                self.raise_except("ax-platform sqlalchemy")
+        elif engine_name[4:] == "blend_search":
             try:
                 from ray.tune.suggest.flaml import BlendSearch
+
                 self.ray_engine = BlendSearch()
-            except:
-                self.raise_except('flaml')
-        elif engine_name[4:] == 'cfo':
+            except ModuleNotFoundError:
+                self.raise_except("flaml")
+        elif engine_name[4:] == "cfo":
             try:
                 from ray.tune.suggest.flaml import CFO
+
                 self.ray_engine = CFO()
-            except:
-                self.raise_except('flaml')
-        elif engine_name[4:] == 'skopt':
+            except ModuleNotFoundError:
+                self.raise_except("flaml")
+        elif engine_name[4:] == "skopt":
             try:
                 from ray.tune.suggest.skopt import SkOptSearch
+
                 self.ray_engine = SkOptSearch()
-            except:
-                self.raise_except('scikit-optimize')
-        elif engine_name[4:] == 'hyperopt':
+            except ModuleNotFoundError:
+                self.raise_except("scikit-optimize")
+        elif engine_name[4:] == "hyperopt":
             try:
                 from ray.tune.suggest.hyperopt import HyperOptSearch
+
                 self.ray_engine = HyperOptSearch()
-            except:
-                self.raise_except('hyperopt')
-        elif engine_name[4:] == 'bayesopt':
+            except ModuleNotFoundError:
+                self.raise_except("hyperopt")
+        elif engine_name[4:] == "bayesopt":
             try:
                 from ray.tune.suggest.bayesopt import BayesOptSearch
+
                 self.ray_engine = BayesOptSearch()
-            except:
-                self.raise_except('bayesian-optimization')
-        elif engine_name[4:] == 'bohb':
+            except ModuleNotFoundError:
+                self.raise_except("bayesian-optimization")
+        elif engine_name[4:] == "bohb":
             try:
                 from ray.tune.suggest.bohb import TuneBOHB
+
                 self.ray_engine = TuneBOHB()
-            except:
-                self.raise_except('hpbandster')
-        elif engine_name[4:] == 'nevergrad':
+            except ModuleNotFoundError:
+                self.raise_except("hpbandster")
+        elif engine_name[4:] == "nevergrad":
             try:
                 from ray.tune.suggest.nevergrad import NevergradSearch
                 import nevergrad as ng
+
                 self.ray_engine = NevergradSearch(
                     optimizer=ng.optimizers.OnePlusOne
                 )
-            except:
-                self.raise_except('nevergrad')
-        elif engine_name[4:] == 'hebo':
+            except ModuleNotFoundError:
+                self.raise_except("nevergrad")
+        elif engine_name[4:] == "hebo":
             try:
                 from ray.tune.suggest.hebo import HEBOSearch
+
                 self.ray_engine = HEBOSearch()
-            except:
-                self.raise_except('hebo')
-        elif engine_name[4:] == 'optuna':
+            except ModuleNotFoundError:
+                self.raise_except("hebo")
+        elif engine_name[4:] == "optuna":
             try:
                 from ray.tune.suggest.optuna import OptunaSearch
+
                 self.ray_engine = OptunaSearch()
-            except:
-                self.raise_except('optuna')
+            except ModuleNotFoundError:
+                self.raise_except("optuna")
         else:
-            raise ValueError(
-                f'Engine {engine_name[4:]} not found in Ray Tune')
+            raise ValueError(f"Engine {engine_name[4:]} not found in Ray Tune")
 
     def raise_except(library):
         raise EnvironmentError(
-            'Missing module: install it using pip install ' + library)
+            "Missing module: install it using pip install " + library
+        )
 
 
-def init_hyperopt(ramp_kit_dir, ramp_submission_dir, submission,
-                  engine_name, data_label, label, resume, n_trials=None):
+def init_hyperopt(
+    ramp_kit_dir,
+    ramp_submission_dir,
+    submission,
+    engine_name,
+    data_label,
+    label,
+    resume,
+    n_trials=None,
+):
     # n_trials is only needed by ray_zoopt at init time
     problem = assert_read_problem(ramp_kit_dir)
     if data_label is None:
-        hyperopt_submission = submission + '_hyperopt'
+        hyperopt_submission = submission + "_hyperopt"
     else:
-        hyperopt_submission = submission + '_' + data_label + '_hyperopt'\
-            if not label else submission + '_' + data_label + '_'\
-                + engine_name + '_hyperopt'
+        hyperopt_submission = (
+            submission + "_" + data_label + "_hyperopt"
+            if not label
+            else submission + "_" + data_label + "_" + engine_name + "_hyperopt"
+        )
     hyperopt_submission_dir = os.path.join(
-        ramp_submission_dir, hyperopt_submission)
-    submission_dir = os.path.join(
-        ramp_submission_dir, submission)
+        ramp_submission_dir,
+        hyperopt_submission,
+    )
+    submission_dir = os.path.join(ramp_submission_dir, submission)
     if not resume:
         if os.path.exists(hyperopt_submission_dir):
             shutil.rmtree(hyperopt_submission_dir)
         shutil.copytree(submission_dir, hyperopt_submission_dir)
     hyperparameters = parse_all_hyperparameters(
-        hyperopt_submission_dir, problem.workflow)
-    if engine_name == 'random':
+        hyperopt_submission_dir, problem.workflow
+    )
+    if engine_name == "random":
         engine = RandomEngine(hyperparameters)
-    elif engine_name.startswith('ray_'):
+    elif engine_name.startswith("ray_"):
         engine = RayEngine(engine_name, n_trials)
     else:
-        raise ValueError(f'{engine_name} is not a valid engine name')
+        raise ValueError(f"{engine_name} is not a valid engine name")
     hyperparameter_experiment = HyperparameterOptimization(
-        hyperparameters, engine, ramp_kit_dir,
-        hyperopt_submission_dir, data_label)
+        hyperparameters,
+        engine,
+        ramp_kit_dir,
+        hyperopt_submission_dir,
+        data_label,
+    )
 
     return hyperparameter_experiment
 
 
-def run_hyperopt(ramp_kit_dir, ramp_data_dir, ramp_submission_dir, data_label,
-                 submission, engine_name, n_trials, save_best, test, label,
-                 resume):
+def run_hyperopt(
+    ramp_kit_dir,
+    ramp_data_dir,
+    ramp_submission_dir,
+    data_label,
+    submission,
+    engine_name,
+    n_trials,
+    save_best,
+    test,
+    label,
+    resume,
+):
     hyperparameter_experiment = init_hyperopt(
-        ramp_kit_dir, ramp_submission_dir, submission, engine_name,
-        data_label, label, resume)
-    if engine_name.startswith('ray_'):
+        ramp_kit_dir,
+        ramp_submission_dir,
+        submission,
+        engine_name,
+        data_label,
+        label,
+        resume,
+    )
+    if engine_name.startswith("ray_"):
         run_tune(hyperparameter_experiment, n_trials, test)
     else:
         run(hyperparameter_experiment, n_trials, test, resume)
     if not save_best:
         shutil.rmtree(hyperparameter_experiment.submission_dir)
-

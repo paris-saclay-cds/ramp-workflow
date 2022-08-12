@@ -9,12 +9,12 @@ from ._version import __version__
 
 
 __all__ = [
-    'cvs',
-    'externals',
-    'hyperopt',
-    'prediction_types',
-    'score_types',
-    'utils',
-    'workflows',
-    '__version__',
+    "cvs",
+    "externals",
+    "hyperopt",
+    "prediction_types",
+    "score_types",
+    "utils",
+    "workflows",
+    "__version__",
 ]
