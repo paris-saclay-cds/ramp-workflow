@@ -651,7 +651,7 @@ class RayEngine:
                 import nevergrad as ng
 
                 self.ray_engine = NevergradSearch(
-                    ray_engine=ng.optimizers.OnePlusOne,
+                    optimizer=ng.optimizers.OnePlusOne
                 )
             except ModuleNotFoundError:
                 self.raise_except("nevergrad")
