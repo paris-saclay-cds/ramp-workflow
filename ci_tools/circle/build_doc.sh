@@ -13,7 +13,7 @@ conda update --yes --quiet conda
 conda create --name testenv python=3.8
 source activate testenv
 pip install -r requirements.txt --progress-bar off
-pip install "sphinx<5.0" sphinx_rtd_theme --progress-bar off
+pip install "sphinx<4.0" sphinx_rtd_theme --progress-bar off
 pip install sphinx-gallery sphinx-click
 pip install numpydoc
 pip install .
