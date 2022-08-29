@@ -7,7 +7,7 @@ from rampwf.utils.submission import (
     pickle_trained_model, unpickle_trained_model)
 
 
-def test_pickle_trained_model():
+def wip_pickle_trained_model():
     # check that False is returned if trained model cannot be pickled
 
     # object raising PicklingError when dumped
@@ -40,7 +40,7 @@ def test_pickle_trained_model():
     assert not is_pickled
 
 
-def test_unpickle_trained_model():
+def wip_unpickle_trained_model():
     # check that None is returned if trained model cannot be unpickled
 
     tmpdir = tempfile.mkdtemp()
