@@ -2,6 +2,7 @@ from sklearn.base import BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
 from rampwf.hyperopt import Hyperparameter
 
+# flake8: noqa
 # RAMP START HYPERPARAMETERS
 max_leaf_nodes = Hyperparameter(
             dtype='int', default=5, values=[2, 5, 10, 20, 50, 100, 200])

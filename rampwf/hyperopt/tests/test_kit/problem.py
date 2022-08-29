@@ -5,7 +5,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import StandardScaler, FunctionTransformer
 from sklearn.compose import ColumnTransformer
 
-
+# flake8: noqa
 #import utils.classifier_with_metadata as wf
 
 import rampwf as rw
