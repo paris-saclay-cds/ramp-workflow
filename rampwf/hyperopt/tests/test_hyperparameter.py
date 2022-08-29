@@ -8,29 +8,21 @@ PATH = os.path.dirname(__file__)
 
 
 def test_hyperopt():
-    # we can remove the creation of the folder
-    # when only python >= 3.8 is supported by using
-    # dirs_exist_ok
     submission = "rf"
-    data = "cover_type_500"
+    data_label = "cover_type_500"
     engine = "ray_hebo"
 
-    ramp_kit_dir = os.path.join(PATH, "generative_classifier")
-    destination_folder = os.path.join(
-        ramp_kit_dir, "submissions", f"{submission}_{data}_{engine}_hyperopt"
-    )
-    if not os.path.exists(destination_folder):
-        os.mkdir(destination_folder)
+    ramp_kit_dir = os.path.join(PATH, "test_kit")
     run_hyperopt(
         ramp_kit_dir,
         ramp_kit_dir,
         os.path.join(ramp_kit_dir, "submissions"),
-        data,
+        data_label,
         submission,
         engine,
         1,
         True,
-        False,
-        False,
-        False
+        True,
+        True,
+        True
     )

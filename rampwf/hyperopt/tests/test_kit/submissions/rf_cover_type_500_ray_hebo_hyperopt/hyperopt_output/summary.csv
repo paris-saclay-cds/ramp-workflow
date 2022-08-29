@@ -1,0 +1,2 @@
+,fold_i,N_estimators,max_features,max_leaf_nodes,N_estimators_i,max_features_i,max_leaf_nodes_i,train_mean_score,train_auc,train_nll,valid_mean_score,valid_auc,valid_nll,train_time,valid_time,n_train,n_valid,n_test,test_auc,test_mean_score,test_nll
+0,0,10.0,0.1,2.0,0,0,0,0.7711111111111111,0.8028870385677709,0.54843856850062,0.78,0.7651888341543515,0.5494222958588325,0.01369476318359375,0.2531876564025879,450.0,50.0,494641.0,0.7696031720752281,0.7418673340867417,0.570929046185638
