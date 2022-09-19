@@ -39,7 +39,7 @@ INSTALL_REQUIRES = ['numpy', 'scipy', 'pandas', 'scikit-learn>=0.22', 'joblib',
                     'cloudpickle', 'click']
 EXTRAS_REQUIRE = {
     'tests': ['pytest', 'pytest-cov'],
-    'docs': ['sphinx', 'sphinx_rtd_theme', 'numpydoc', 'sphinx-click']
+    'docs': ['sphinx>4.1.0', 'sphinx_rtd_theme', 'numpydoc', 'sphinx-click']
 }
 
 setup(
