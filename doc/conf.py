@@ -74,7 +74,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'RAMP'
-copyright = '2015 - 2019, Paris-Saclay Center for Data Science'
+copyright = '2015 - 2022, Paris-Saclay Center for Data Science'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
