@@ -60,7 +60,7 @@ class ClusteringEfficiency(BaseScoreType):
                 # true_cluster[i]
                 n_sub_cluster = len(np.unique(assigned_points))
                 # We find the largest predicted cluster in the true cluster.
-                if(n_sub_cluster > 0):
+                if (n_sub_cluster > 0):
                     # sizes of predicted assigned cluster in true cluster[i]
                     predicted_cluster_sizes = np.bincount(
                         assigned_points.astype(dtype='int64'))

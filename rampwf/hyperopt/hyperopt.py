@@ -468,7 +468,7 @@ class HyperparameterOptimization(object):
         try:
             for bd, h in zip(best_defaults, self.hyperparameters):
                 h.set_default(bd)
-        except(TypeError):
+        except TypeError:
             # single hyperparameter
             self.hyperparameters[0].set_default(best_defaults)
         # Overwrite the submission with the best hyperparameter values
