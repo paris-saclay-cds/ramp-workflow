@@ -1,10 +1,10 @@
 """Balanced accuracy.
 
-From https://github.com/ch-imad/AutoMl_Challenge/blob/2353ec0/Starting_kit/scoring_program/libscores.py#L187  # noqa
+From https://github.com/scikit-learn/scikit-learn/blob/98cf537f5/sklearn/metrics/_classification.py#L2111
 
-See the thread at 
-https://github.com/rhiever/tpot/issues/108#issuecomment-317067760
-about the different definitions.
+    The balanced accuracy in binary and multiclass classification problems to
+    deal with imbalanced datasets. It is defined as the average of recall
+    obtained on each class.
 """
 from .classifier_base import ClassifierBaseScoreType
 from .macro_averaged_recall import MacroAveragedRecall
@@ -21,7 +21,6 @@ class BalancedAccuracy(ClassifierBaseScoreType):
 
     def __call__(self, y_true_label_index, y_pred_label_index):
         mac = MacroAveragedRecall()
-        tpr = mac(y_true_label_index, y_pred_label_index)
-        base_tpr = 1. / len(self.label_names)
-        score = (tpr - base_tpr) / (1 - base_tpr)
-        return score
+        bac = mac(y_true_label_index, y_pred_label_index)
+
+        return bac
