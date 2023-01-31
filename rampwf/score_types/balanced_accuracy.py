@@ -26,11 +26,11 @@ class BalancedAccuracy(ClassifierBaseScoreType):
         """
         When adjusted = True, it will use an adjusted balanced_accuracy_score
         from sklearn which is calculated by subtracting the base true positive
-        rate (i.e. the chance recall) from the macro averaged recall, and dividing
-        the result by (1 - base true positive rate). Score will then be between
-        1 / (1 - nclasses) and 1.
-        When adjusted = False, it will use the non-adjusted balanced_accuracy_score
-        from sklearn.
+        rate (i.e. the chance recall) from the macro averaged recall, and 
+        dividing the result by (1 - base true positive rate). Score will then
+        be between 1 / (1 - nclasses) and 1.
+        When adjusted = False, it will use the non-adjusted
+        balanced_accuracy_score from sklearn.
         """
         score = balanced_accuracy_score(
             y_true_label_index, y_pred_label_index, adjusted=self.adjusted)
