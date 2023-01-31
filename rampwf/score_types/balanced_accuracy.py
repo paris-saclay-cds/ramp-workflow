@@ -5,7 +5,7 @@ From https://github.com/scikit-learn/scikit-learn/blob/98cf537f5/sklearn/\
 
     The balanced accuracy in binary and multiclass classification problems to
     deal with imbalanced datasets. It is defined as the average of recall
-    obtained on each class. With the use of the parameter 'adjusted', 
+    obtained on each class. With the use of the parameter 'adjusted',
     balanced accuracy can be adjusted between 1/(1-nclasses) and 1.
 """
 from .classifier_base import ClassifierBaseScoreType
@@ -26,7 +26,7 @@ class BalancedAccuracy(ClassifierBaseScoreType):
         """
         When adjusted = True, it will use an adjusted balanced_accuracy_score
         from sklearn which is calculated by subtracting the base true positive
-        rate (i.e. the chance recall) from the macro averaged recall, and 
+        rate (i.e. the chance recall) from the macro averaged recall, and
         dividing the result by (1 - base true positive rate). Score will then
         be between 1 / (1 - nclasses) and 1.
         When adjusted = False, it will use the non-adjusted
