@@ -15,20 +15,21 @@ from rampwf.utils.testing import (
 PATH = os.path.dirname(__file__)
 
 
-def skip_no_tensorflow():
+def no_tensorflow():
     try:
         import tensorflow  # noqa
     except ImportError:
-        return pytest.mark.skip(reason='tensorflow not available')
-    return pytest.mark.basic
+        return True
+    return False
 
 
 def _generate_grid_path_kits():
     grid = []
     for path_kit in sorted(glob.glob(os.path.join(PATH, 'kits', '*'))):
         if 'digits' in path_kit:
-            grid.append(pytest.param(os.path.abspath(path_kit),
-                                     marks=skip_no_tensorflow()))
+            marks = pytest.mark.skipif(no_tensorflow(),
+                                       reason='tensorflow not available')
+            grid.append(pytest.param(os.path.abspath(path_kit), marks=marks))
         elif 'data_label' in path_kit:
             pass
         else:
