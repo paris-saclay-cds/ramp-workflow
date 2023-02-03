@@ -37,7 +37,7 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Programming Language :: Python :: 3.8',
                'Programming Language :: Python :: 3.9',
                'Programming Language :: Python :: 3.10']
-INSTALL_REQUIRES = ['numpy', 'scipy', 'pandas', 'scikit-learn>=0.22', 'joblib',
+INSTALL_REQUIRES = ['numpy<1.24.0', 'scipy', 'pandas', 'scikit-learn>=0.22', 'joblib',
                     'cloudpickle', 'click']
 EXTRAS_REQUIRE = {
     'tests': ['pytest', 'pytest-cov'],
