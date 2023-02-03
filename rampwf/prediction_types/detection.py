@@ -74,7 +74,7 @@ class Predictions(BasePrediction):
     @property
     def valid_indexes(self):
         """Return valid indices (e.g., a cross-validation slice)."""
-        return self.y_pred != np.empty(len(self.y_pred), dtype=np.object)
+        return self.y_pred != np.empty(len(self.y_pred), dtype=object)
 
 
 def make_detection():
