@@ -15,7 +15,7 @@ class BatchClassifier(object):
         gen_train, gen_valid, nb_train, nb_valid =\
             gen_builder.get_train_valid_generators(
                 batch_size=batch_size, valid_ratio=0.1)
-        self.model.fit_generator(
+        self.model.Model.fit(
             gen_train,
             # Total number of steps (batches of samples) to yield from
             # generator before declaring one epoch finished and starting the

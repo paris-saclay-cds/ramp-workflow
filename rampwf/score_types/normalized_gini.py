@@ -4,7 +4,7 @@ from .classifier_base import ClassifierBaseScoreType
 
 def gini(y_true, y_pred, cmpcol=0, sortcol=1):
     all = np.asarray(
-        np.c_[y_true, y_pred, np.arange(len(y_true))], dtype=np.float)
+        np.c_[y_true, y_pred, np.arange(len(y_true))], dtype=float)
     all = all[np.lexsort((all[:, 2], -all[:, 1]))]
     total_losses = all[:, 0].sum()
     giniSum = all[:, 0].cumsum().sum() / total_losses
