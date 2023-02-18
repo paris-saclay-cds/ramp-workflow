@@ -2,7 +2,7 @@
 
 From https://github.com/ch-imad/AutoMl_Challenge/blob/2353ec0/Starting_kit/scoring_program/libscores.py#L187  # noqa
 
-See the thread at 
+See the thread at
 https://github.com/rhiever/tpot/issues/108#issuecomment-317067760
 about the different definitions.
 """
