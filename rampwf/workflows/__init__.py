@@ -15,6 +15,8 @@ from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
 from .sklearn_pipeline import SKLearnPipeline, Estimator, EstimatorExternalData
 from .ts_fe_gen_reg import TSFEGenReg
+from .fe_gen_reg_numpy import FEGenRegNumpy
+from .feature_extractor_numpy import FeatureExtractorNumpy
 
 __all__ = [
     'AirPassengers',
@@ -36,4 +38,6 @@ __all__ = [
     'Estimator',
     'EstimatorExternalData',
     'TSFEGenReg',
+    'FEGenRegNumpy',
+    'FeatureExtractorNumpy'
 ]

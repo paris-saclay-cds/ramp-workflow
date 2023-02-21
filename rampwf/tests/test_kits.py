@@ -7,9 +7,14 @@ import cloudpickle
 
 import pytest
 
+import numpy as np
+
 from rampwf.utils import import_module_from_source
-from rampwf.utils.testing import (
-    assert_submission, assert_notebook, blend_submissions)
+from rampwf.utils.testing import assert_read_problem
+from rampwf.utils.testing import assert_submission
+from rampwf.utils.testing import assert_notebook
+from rampwf.utils.testing import blend_submissions
+from rampwf.utils.testing import assert_data
 
 
 PATH = os.path.dirname(__file__)
@@ -115,6 +120,36 @@ def test_submission(path_kit):
                 submission=os.path.basename(sub), is_pickle=True,
                 is_partial_train=True,
                 save_output=False, retrain=True)
+
+
+def test_fe_gen_reg_numpy():
+    # the numpy workflow should give the same output as the time series one using
+    # pandas when n_burn_in = 0 and n_lookahead = 1
+    acrobot_numpy_path = os.path.join(PATH, 'kits', 'acrobot_numpy')
+    acrobot_ts_generative_regression_path = os.path.join(
+        PATH, 'kits', 'acrobot_ts_generative_regression')
+
+    kit_paths = [acrobot_numpy_path, acrobot_ts_generative_regression_path]
+    submissions = [
+        os.path.join(acrobot_numpy_path, 'submissions', 'starting_kit'),
+        os.path.join(
+            acrobot_ts_generative_regression_path,
+            'submissions', 'starting_kit')
+    ]
+
+    y_preds = []
+    for kit_path, submission in zip(kit_paths, submissions):
+        problem = assert_read_problem(kit_path)
+        X_train, y_train, X_test, _ = assert_data(
+            kit_path, kit_path
+        )
+        trained_workflow = problem.workflow.train_submission(
+            submission, X_train, y_train)
+        y_pred = problem.workflow.test_submission(
+            trained_workflow, X_test)
+        y_preds.append(y_pred)
+
+    np.testing.assert_array_almost_equal(y_preds[0], y_preds[1], decimal=8)
 
 
 def test_blending():

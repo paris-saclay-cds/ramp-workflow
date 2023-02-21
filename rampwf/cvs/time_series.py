@@ -1,6 +1,7 @@
 # Author: Balazs Kegl <balazs.kegl@gmail.com>
 # License: BSD 3 clause
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import KFold, ShuffleSplit
 from abc import ABCMeta
 
@@ -91,7 +92,7 @@ def fold_to_str(idxs):
     return s
 
 
-def _get_episode_starts(X_df, restart_name, n_burn_in):
+def _get_episode_starts(X, restart_ind, n_burn_in):
     """Get episode start indices without burn-in samples.
 
     List of episode start indices if burn-in samples were first removed.
@@ -99,11 +100,12 @@ def _get_episode_starts(X_df, restart_name, n_burn_in):
 
     Parameters
     ----------
-    X_df : pandas dataframe
+    X : pandas dataframe or numpy array
         Contains a restart_name column with values equal to 1 for the
         start of an episode, 0 otherwise.
-    restart_name : string
-        Name of the restart column.
+    restart_ind : string or integer
+        Name of the restart column if X is a pandas Dataframe or integer if
+        X is a numpy array.
     n_burn_in : int
         Number of steps used as burn in.
 
@@ -112,7 +114,13 @@ def _get_episode_starts(X_df, restart_name, n_burn_in):
     episode_starts : numpy array
         Episode bound indices
     """
-    episode_starts = np.where(X_df[restart_name])[0]
+    if isinstance(X, pd.DataFrame):
+        episode_starts = np.where(X[restart_ind])[0]
+    else:
+        if isinstance(restart_ind, str):
+            raise ValueError('restart_ind should be an integer if the passed '
+                             'array is a numpy array')
+        episode_starts = np.where(X[:, restart_ind])[0]
     episode_starts = list(episode_starts)
     if len(episode_starts) == 0 or episode_starts[0] != 0:
         episode_starts.insert(0, 0)
