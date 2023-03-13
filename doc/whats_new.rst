@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 The format is based on `Keep a Changelog <http://keepachangelog.com/en/1.0.0/>`_
 and this project adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`_.
 
+0.6.0 - 2023-03-13
+==================
+
+Changed
+-------
+- Fixes  Balanced accuracy as defined in sklearn 
+  (`#327 <https://github.com/paris-saclay-cds/ramp-workflow/pull/327>`_)
+
+
 0.5.0 - 2022-04-04
 ==================
 
