@@ -22,11 +22,11 @@ class Predictions(BasePrediction):
         if y_pred is not None:
             if fold_is is not None:
                 y_pred = y_pred[fold_is]
-            self.y_pred = np.array(y_pred)
+            self.y_pred = np.array(y_pred, dtype=object)
         elif y_true is not None:
             if fold_is is not None:
                 y_true = y_true[fold_is]
-            self.y_pred = np.array(y_true)
+            self.y_pred = np.array(y_true, dtype=object)
         elif n_samples is not None:
             self.y_pred = np.empty(n_samples, dtype=object)
         else:
@@ -74,7 +74,7 @@ class Predictions(BasePrediction):
     @property
     def valid_indexes(self):
         """Return valid indices (e.g., a cross-validation slice)."""
-        return self.y_pred != np.empty(len(self.y_pred), dtype=np.object)
+        return self.y_pred != np.empty(len(self.y_pred), dtype=object)
 
 
 def make_detection():
