@@ -96,6 +96,6 @@ The following explain the main steps to release `ramp-board`:
    0.1.X.
 7. Push on PyPI by executing the following:
    `pip install build 
-    python -m build .
-    twine upload dist/*`.
+   python -m build .
+   twine upload dist/*`.
 8. In `master`, run `bumpversion minor`, commit and push on upstream.
