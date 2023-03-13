@@ -95,7 +95,5 @@ The following explain the main steps to release `ramp-board`:
 6. Change the symlink in the `ramp-docs` repository such that stable point on
    0.1.X.
 7. Push on PyPI by executing the following:
-   `pip install build`
-   `python -m build .`
-   `twine upload dist/*`.
+   `pip install build && python -m build . && twine upload dist/*`.
 8. In `master`, run `bumpversion minor`, commit and push on upstream.
