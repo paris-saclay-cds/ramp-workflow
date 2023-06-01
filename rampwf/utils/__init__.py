@@ -20,6 +20,7 @@ __all__ = ['assert_cv',
            'get_score_cv_bags',
            'import_module_from_source',
            'pickle_trained_model',
+           'unpickle_trained_model',
            'run_submission_on_cv_fold',
            'distributions_dispatcher',
            'MAX_MIXTURE_PARAMS',
@@ -29,5 +30,4 @@ __all__ = ['assert_cv',
            'get_n_params',
            'MixtureYPred',
            'BaseGenerativeRegressor'
-           'unpickle_trained_model',
            ]

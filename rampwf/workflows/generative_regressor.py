@@ -1,5 +1,4 @@
 import os
-import json
 
 import numpy as np
 from scipy.stats import norm
@@ -7,6 +6,7 @@ from sklearn.utils.validation import check_random_state
 
 from ..utils.importing import import_module_from_source
 from ..utils import MixtureYPred, distributions_dict
+from ..utils.generative_regression import _reorder_targets
 
 
 class GenerativeRegressor(object):
@@ -111,30 +111,8 @@ class GenerativeRegressor(object):
 
         return X_df, restart
 
-    def _reorder_targets(self, module_path, y_array):
-        """Find submitted order and reorder the targets."""
-        order_path = os.path.join(module_path, 'order.json')
-        try:
-            with open(order_path, "r") as json_file:
-                order = json.load(json_file)
-                # Check if the names in the order and observables are all here
-                if set(order.keys()) == set(self.target_column_names):
-                    # We sort the variable names by user-defined order
-                    order = [k for k, _ in sorted(
-                        order.items(), key=lambda item: item[1])]
-                    # Map it to original order
-                    order = [self.target_column_names.index(i) for i in order]
-                    print(order)
-                    y_array = y_array[:, order]
-                else:
-                    raise RuntimeError("Order variables are not correct")
-        except FileNotFoundError:
-            print("Using default order")
-            order = range(len(self.target_column_names))
-
-        return y_array, order
-
-    def train_submission(self, module_path, X_df, y_array, train_is=None):
+    def train_submission(self, module_path, X_df, y_array, train_is=None,
+                         prev_trained_model=None):
         """Train submission.
 
         Parameters
@@ -169,6 +147,10 @@ class GenerativeRegressor(object):
             raise ValueError('y_array should be a 2D array')
         if train_is is None:
             train_is = slice(None, None, None)
+        if prev_trained_model is not None:
+            prev_trained_regressors = prev_trained_model[0]
+        else:
+            prev_trained_regressors = None
 
         generative_regressor = import_module_from_source(
             os.path.join(module_path, self.element_names[0] + '.py'),
@@ -201,6 +183,9 @@ class GenerativeRegressor(object):
                 'decomposition attribute should be None, autoregressive '
                 'or independent. It is {}'.format(decomposition))
 
+        kwargs = dict(
+            prev_trained_regressors=prev_trained_regressors, restart=restart)
+
         if decomposition is None:
             # set the _n_targets attribute needed in the _sample method of
             # BaseGenerativeRegressor. we use a property to prevent the
@@ -225,11 +210,11 @@ class GenerativeRegressor(object):
                 getter, setter)
 
             # return order for compatibility with autoregressive
-            order = range(len(self.target_column_names))
-            if restart is not None:
-                reg.fit(X_df, y_array, restart)
-            else:
-                reg.fit(X_df, y_array)
+            y_array, order = _reorder_targets(
+                module_path, y_array, self.target_column_names)
+            reg.fit(
+                X_df, y_array,
+                **{k: v for k, v in kwargs.items() if v is not None})
 
             # use a list for compatibility with other decomposition values
             regressors = [reg]
@@ -237,7 +222,8 @@ class GenerativeRegressor(object):
             # autoregressive or independent decomposition
             # fit one regressor for each target dimension
             # reorder targets if order is given in submission
-            y_array, order = self._reorder_targets(module_path, y_array)
+            y_array, order = _reorder_targets(
+                module_path, y_array, self.target_column_names)
 
             regressors = []
             for j in range(len(self.target_column_names)):
@@ -246,11 +232,12 @@ class GenerativeRegressor(object):
                         self.max_n_components, j, **self.kwargs)
 
                 y = y_array[:, j].reshape(-1, 1)
-
-                if restart is not None:
-                    reg.fit(X_df, y, restart)
-                else:
+                if prev_trained_regressors is None:
                     reg.fit(X_df, y)
+                else:
+                    reg.fit(
+                        X_df, y,
+                        prev_trained_regressor=prev_trained_regressors[j])
 
                 if decomposition == 'autoregressive':
                     # add the current target dimension to the inputs used to
@@ -321,6 +308,7 @@ class GenerativeRegressor(object):
             # single multi-d Gaussian mixture
             regressor = regressors[0]
             n_targets = len(self.target_column_names)
+
             X = X_df
             if restart is not None:
                 dists = regressor.predict(X, restart)
@@ -330,6 +318,7 @@ class GenerativeRegressor(object):
             weights, types, params = dists
 
             n_components_curr = len(types)
+            components_per_target = n_components_curr // n_targets
 
             try:
                 types = [distributions_dict[type_name] for type_name in types]
@@ -341,6 +330,19 @@ class GenerativeRegressor(object):
 
             assert n_components_curr <= self.max_n_components * y.shape[1]
             n_components_per_dim = n_components_curr // n_targets
+
+            original_order = np.argsort(order)
+            ordered_indices = [item*components_per_target + k for item in
+                               original_order for k in range(components_per_target)]
+
+            weights = weights[:, ordered_indices]
+            types = types[:, ordered_indices]
+
+            # we assume that every distribution is of the same type
+            nb_params = params.shape[1] // ( n_targets * components_per_target)
+            params_idx = [idx*nb_params + i for idx in ordered_indices
+                          for i in range(nb_params) ]
+            params = params[:, params_idx]
 
             # We convert the multi-d Gaussian mixture into its chain rule
             # decomposition so that we can use the same evaluation
@@ -423,7 +425,6 @@ class GenerativeRegressor(object):
 
                 if decomposition == 'autoregressive':
                     X = X_df[:, :n_columns - n_regressors + i]
-
                 if restart is not None:
                     dists = reg.predict(X, restart)
                 else:
@@ -538,5 +539,5 @@ class GenerativeRegressor(object):
                     samples = reg.sample(X_used, rng=rng)
                 y_sampled[:, j] = samples
 
-            y_sampled = y_sampled[:, np.argsort(order)]
+        y_sampled = y_sampled[:, np.argsort(order)]
         return y_sampled

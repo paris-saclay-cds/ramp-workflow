@@ -49,7 +49,6 @@ def test_unpickle_trained_model():
     trained_model = unpickle_trained_model(
         tmpdir, trained_model_name=tmpfile)
     assert trained_model is None
-
     with open(os.path.join(tmpdir, tmpfile), 'w') as file:
         file.write('dummy')
 

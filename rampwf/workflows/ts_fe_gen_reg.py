@@ -99,7 +99,8 @@ class TSFEGenReg:
             restart_name=restart_name,
             check_sizes=check_sizes, check_indexs=check_indexs)
 
-    def train_submission(self, module_path, X_df, y_array, train_is=None):
+    def train_submission(self, module_path, X_df, y_array, train_is=None,
+                         prev_trained_model=None):
         """Train model.
 
         The state feature of time t returned by the feature extractor can be
@@ -150,9 +151,13 @@ class TSFEGenReg:
             X_df_used_train = X_df_used.iloc[extended_train_is]
         X_df_tf = self.feature_extractor_workflow.test_submission(
             fe, X_df_used_train)
-
+        if prev_trained_model is None:
+            prev_trained_regressor = None
+        else:
+            prev_trained_regressor = prev_trained_model[1]
         reg = self.regressor_workflow.train_submission(
-            module_path, X_df_tf, y_array[train_is])
+            module_path, X_df_tf, y_array[train_is],
+            prev_trained_model=prev_trained_regressor)
 
         return fe, reg
 

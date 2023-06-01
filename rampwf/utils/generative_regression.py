@@ -1,4 +1,6 @@
 import inspect
+import os
+import json
 
 import numpy as np
 from scipy import stats
@@ -467,3 +469,26 @@ class BaseGenerativeRegressor(BaseEstimator):
         samples = np.stack(samples, axis=2)
 
         return self.samples_to_distributions(samples)
+
+
+def _reorder_targets(module_path, y_array, target_column_names):
+    """Find submitted order and reorder the targets."""
+    order_path = os.path.join(module_path, 'order.json')
+    try:
+        with open(order_path, "r") as json_file:
+            order = json.load(json_file)
+            # Check if the names in the order and observables are all here
+            if set(order.keys()) == set(target_column_names):
+                # We sort the variable names by user-defined order
+                order = [k for k, _ in sorted(
+                    order.items(), key=lambda item: item[1])]
+                # Map it to original order
+                order = [target_column_names.index(i) for i in order]
+                print(order)
+                y_array = y_array[:, order]
+            else:
+                raise RuntimeError("Order variables are not correct")
+    except FileNotFoundError:
+        print("Using default order")
+        order = range(len(target_column_names))
+    return y_array, order

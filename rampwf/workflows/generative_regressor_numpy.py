@@ -220,7 +220,6 @@ class GenerativeRegressorNumpy:
                         self.max_n_components, j, **self.kwargs)
 
                 y = y_array[:, j].reshape(-1, 1)
-
                 reg.fit(X_array, y)
 
                 if decomposition == 'autoregressive':
