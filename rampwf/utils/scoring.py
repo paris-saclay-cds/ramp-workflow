@@ -129,23 +129,3 @@ def score_matrix(score_types, ground_truth, predictions):
         score_type.score_function(ground_truth[step], predictions[step])
         for score_type in score_types] for step in ground_truth]
     return score_matrix_from_scores(score_types, steps, scoress)
-
-
-def round_df_scores(df_scores, score_types):
-    """Round scores to the precision set in the score type.
-
-    Parameters
-    ----------
-    df_scores : pd.DataFrame
-        the score dataframe
-    score_types : list of score types
-
-    Returns
-    -------
-    df_scores : the dataframe with rounded scores
-    """
-    df_scores_copy = df_scores.copy()
-    for column, score_type in zip(df_scores_copy, score_types):
-        df_scores_copy[column] = [round(score, score_type.precision)
-                                  for score in df_scores_copy[column]]
-    return df_scores_copy
