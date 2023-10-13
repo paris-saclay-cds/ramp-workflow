@@ -1,41 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-colored.py is a part of colored.
-
-Copyright 2014-2017 Dimitris Zlatanidis <d.zlatanidis@gmail.com>
-All rights reserved.
-
-Colored is very simple Python library for color and formatting in terminal.
-
-https://github.com/dslackw/colored
-
-colored is free software: you can redistribute it and/or
-modify it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-               _                    _
-      ___ ___ | | ___  _ __ ___  __| |
-     / __/ _ \| |/ _ \| "__/ _ \/ _` |
-    | (_| (_) | | (_) | | |  __/ (_| |
-     \___\___/|_|\___/|_|  \___|\__,_|
-
-    Very simple Python library for color and formatting in terminal.
-    Collection of color codes and names for 256 color terminal setups.
-    The following is a list of 256 colors for Xterm, containing an example
-    of the displayed color, Xterm Name, Xterm Number.
-"""
-
+import os
+import platform
 
 from .hex import HEX
+import sys
 
+
+TTY_AWARE = True
+IS_TTY = sys.stdout.isatty() and sys.stderr.isatty()
+
+_win_vterm_mode = None
 
 class colored(object):
 
@@ -44,6 +20,7 @@ class colored(object):
         self.ESC = "\x1b["
         self.END = "m"
         self.color = color
+        self.enable_windows_terminal_mode()
 
         if str(color).startswith("#"):
             self.HEX = HEX(color.lower())
@@ -311,6 +288,8 @@ class colored(object):
 
     def attribute(self):
         """Set or reset attributes"""
+        if not self.enabled():
+            return ""
 
         paint = {
             "bold": self.ESC + "1" + self.END,
@@ -344,6 +323,8 @@ class colored(object):
 
     def foreground(self):
         """Print 256 foreground colors"""
+        if not self.enabled():
+            return ""
         code = self.ESC + "38;5;"
         if str(self.color).isdigit():
             self.reverse_dict()
@@ -356,6 +337,8 @@ class colored(object):
 
     def background(self):
         """Print 256 background colors"""
+        if not self.enabled():
+            return ""
         code = self.ESC + "48;5;"
         if str(self.color).isdigit():
             self.reverse_dict()
@@ -369,6 +352,73 @@ class colored(object):
     def reverse_dict(self):
         """reverse dictionary"""
         self.reserve_paint = dict(zip(self.paint.values(), self.paint.keys()))
+
+    def enable_windows_terminal_mode(self):
+        '''Enable virtual terminal processing in windows terminal. Does
+        nothing if not on Windows. This is based on the rejected
+        enhancement <https://bugs.python.org/issue29059>.'''
+        global _win_vterm_mode
+        if _win_vterm_mode != None:
+            return _win_vterm_mode
+
+        # Note: Cygwin should return something like "CYGWIN_NT..."
+        _win_vterm_mode = platform.system().lower() == 'windows'
+        if _win_vterm_mode == False:
+            return
+
+        from ctypes import windll, c_int, byref, c_void_p
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+        INVALID_HANDLE_VALUE = c_void_p(-1).value
+        STD_OUTPUT_HANDLE = c_int(-11)
+
+        hStdout = windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+        if hStdout == INVALID_HANDLE_VALUE:
+            _win_vterm_mode = False
+            return
+
+        mode = c_int(0)
+        ok = windll.kernel32.GetConsoleMode(c_int(hStdout), byref(mode))
+        if not ok:
+            _win_vterm_mode = False
+            return
+
+        mode = c_int(mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+        ok = windll.kernel32.SetConsoleMode(c_int(hStdout), mode)
+        if not ok:
+            # Something went wrong, proably an too old version
+            # that doesn't support the VT100 mode.
+            # To be more certain we could check kernel32.GetLastError
+            # for STATUS_INVALID_PARAMETER, but since we only enable
+            # one flag we can be certain enough.
+            _win_vterm_mode = False
+            return
+
+    def enabled(self):
+
+        # https://github.com/chalk/supports-color#info
+        # Use the environment variable FORCE_COLOR=1 (level 1), FORCE_COLOR=2
+        # (level 2), or FORCE_COLOR=3 (level 3) to forcefully enable color, or
+        # FORCE_COLOR=0 to forcefully disable. The use of FORCE_COLOR overrides
+        # all other color support checks.
+        if "FORCE_COLOR" in os.environ:
+            if int(os.environ["FORCE_COLOR"]) == 0:
+                return False
+            else:
+                return True
+
+        # https://no-color.org/
+        # Check for the presence of a NO_COLOR environment variable that, when
+        # present (regardless of its value), prevents the addition of ANSI
+        # color.
+        if "NO_COLOR" in os.environ:
+            return False
+
+        # Also disable coloring when not printing to a TTY.
+        if TTY_AWARE and not IS_TTY:
+            return False
+
+        # In all other cases, enable coloring.
+        return True
 
 
 def attr(color):
@@ -404,6 +454,13 @@ def stylize_interactive(text, styles, reset=True):
     safety."""
     # problem: readline includes bare ANSI codes in width calculations.
     # solution: wrap nonprinting codes in SOH/STX when necessary.
-    # see: https://github.com/dslackw/colored/issues/5
+    # see: https://gitlab.com/dslackw/colored/issues/5
     terminator = _c0wrap(attr("reset")) if reset else ""
     return "{}{}{}".format(_c0wrap(styles), text, terminator)
+
+def set_tty_aware(awareness=True):
+    """Makes all interactions here tty aware.  This means that if either
+    stdout or stderr are directed to something other than a tty,
+    colorization will not be added."""
+    global TTY_AWARE
+    TTY_AWARE = awareness
