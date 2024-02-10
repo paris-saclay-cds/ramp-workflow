@@ -182,7 +182,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='.', data_label=None,
                       save_output=False, min_improvement=0.0,
-                      score_type_index=0):
+                      score_type_index=0, output_path=None):
     """Blending submissions in a ramp-kit and compute contributivities.
 
     If save_output is True, we create three files:
@@ -207,6 +207,9 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         Whether to store the blending results.
     min_improvement : float, default is 0.0
         The minimum improvement under which greedy blender is stopped.
+    output_path : str, default is None
+        The folder where the blended scores and controbutivities are saved.
+        If None, it is <ramp_submission_dir>/[<data_label>]/training_output
     """
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
@@ -286,41 +289,37 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         'contributivity', ascending=False)
     print(contributivitys_df.to_string(index=False))
 
-    if save_output:
-        training_output_path = os.path.join(
-            ramp_submission_dir, 'training_output')
-        if not os.path.exists(training_output_path):
-            os.mkdir(training_output_path)
+    if output_path is None:
+        output_path = os.path.join(ramp_submission_dir, 'training_output')
         if data_label is not None:
-            training_output_path = os.path.join(
-                training_output_path, data_label)
-            if not os.path.exists(training_output_path):
-                os.makedirs(training_output_path)
+            output_path = os.path.join(output_path, data_label)
+    if save_output:
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
         contributivitys_df.to_csv(os.path.join(
-            training_output_path, 'contributivities.csv'), index=False)
+            output_path, 'contributivities.csv'), index=False)
 
     # bagging the foldwise ensembles
     bag_submissions(
         problem, cv, y_train, y_test, combined_predictions_valid_list,
-        combined_predictions_test_list, training_output_path,
+        combined_predictions_test_list, output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output, score_table_title='Combined bagged scores',
         score_f_name_prefix='combined')
     if save_output:
         shutil.move(
-            os.path.join(training_output_path, 'bagged_scores.csv'),
-            os.path.join(training_output_path, 'bagged_scores_combined.csv'))
+            os.path.join(output_path, 'bagged_scores.csv'),
+            os.path.join(output_path, 'bagged_scores_combined.csv'))
 
     # bagging the foldwise best submissions
     bag_submissions(
         problem, cv, y_train, y_test, foldwise_best_predictions_valid_list,
-        foldwise_best_predictions_test_list, training_output_path,
+        foldwise_best_predictions_test_list, output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output,
         score_table_title='Foldwise best bagged scores',
         score_f_name_prefix='foldwise_best')
     if save_output:
         shutil.move(
-            os.path.join(training_output_path, 'bagged_scores.csv'),
-            os.path.join(
-                training_output_path, 'bagged_scores_foldwise_best.csv'))
+            os.path.join(output_path, 'bagged_scores.csv'),
+            os.path.join(output_path, 'bagged_scores_foldwise_best.csv'))
