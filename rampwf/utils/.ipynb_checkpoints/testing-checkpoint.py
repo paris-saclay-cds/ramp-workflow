@@ -139,6 +139,11 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     df_scores_list = []
 
     for fold_i, fold in enumerate(cv):
+#        predictions_valid, predictions_test, df_scores = \
+#            run_and_save_submission_on_cv_fold(
+#                fold_i, problem, submission_path, fold, X_train, y_train,
+#                X_test, y_test, is_pickle, is_partial_train, save_output,
+#                ramp_data_dir)
         fold_output_path = ''
         if is_pickle or save_output:
             # creating <submission_path>/<submission>/training_output/fold_<i>
