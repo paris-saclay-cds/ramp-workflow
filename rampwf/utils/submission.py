@@ -263,9 +263,6 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
                                      ('test', predictions_test)]),
         )
         df_scores['time'] = [train_time, valid_time, test_time]
-        set_state('scored', save_output, fold_output_path)
-        return predictions_train_valid, predictions_test, df_scores
-
     else:
         if save_output:
             save_y_pred(
@@ -283,8 +280,16 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
                                      ('valid', predictions_train_valid)]),
         )
         df_scores['time'] = [train_time, valid_time]
-        set_state('scored', save_output, fold_output_path)
-        return predictions_train_valid, None, df_scores
+        predictions_test = None
+    
+    set_state('scored', save_output, fold_output_path)
+    if save_output:
+        filename = os.path.join(fold_output_path, 'scores.csv')
+        df_scores.to_csv(filename)
+    df_scores_rounded = round_df_scores(df_scores, score_types)
+    print_df_scores(df_scores_rounded, indent='\t')
+    
+    return predictions_train_valid, predictions_test, df_scores
 
 
 def run_submission_on_full_train(problem, module_path, X_train, y_train,
@@ -367,7 +372,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
                     predictions_test_list, training_output_path,
                     ramp_data_dir='.', score_type_index=0,
                     save_output=False, score_table_title='Bagged scores',
-                    score_f_name_prefix=''):
+                    score_f_name_prefix='', fold_idxs=None):
     """CV-bag trained submission.
 
     Parameters
@@ -394,6 +399,9 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         True if predictions should be written in files
     score_table_title : str
     score_f_name_prefix : str
+    fold_idxs : list of int, default=None
+        The list of CV folds we want to run the submission on.
+        If None, we will run on all folds.
     """
     print_title('----------------------------')
     print_title(score_table_title)
@@ -404,6 +412,8 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     score_types = (
         [score_types] if not isinstance(score_types, Iterable)
         else score_types)
+    if fold_idxs is None:
+        fold_idxs = range(len(cv))
 
     # placeholder to store the scores and predictions
     bagged_scores = {}
@@ -415,7 +425,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         y_step = y_train if step == 'valid' else y_test
         gt_list = problem.Predictions(y_true=y_step)
         # indices of the validation set or all sample for the testing set
-        test_idx = ([valid_is for (train_is, valid_is) in cv]
+        test_idx = ([cv[i][1] for i in fold_idxs]
                     if step == 'valid' else None)
         score_dict = {}
         for st in score_types:
@@ -430,7 +440,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
             save_submissions(
                 problem, pred.y_pred, data_path=ramp_data_dir,
                 output_path=training_output_path,
-                suffix='{}_bagged_{}'.format(score_f_name_prefix, step)
+                suffix='{}bagged_{}'.format(score_f_name_prefix, step)
             )
 
     df_scores = pd.concat({step: pd.DataFrame(scores)

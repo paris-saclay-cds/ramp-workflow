@@ -73,7 +73,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='submissions', data_label=None,
                       submission='starting_kit', is_pickle=False,
                       is_partial_train=False, save_output=False,
-                      retrain=False):
+                      retrain=False, fold_idxs=None):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -99,12 +99,17 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     retrain : bool, default is False
         Whether to train the workflow on the full training set and
         test on the test set.
+    fold_idxs : list of int, default=None
+        The list of CV folds we want to run the submission on.
+        If None, we will run on all folds.
     """
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(
         ramp_kit_dir, ramp_data_dir, data_label)
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
+    if fold_idxs is None:
+        fold_idxs = range(len(cv))
     score_types = assert_score_types(ramp_kit_dir)
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
@@ -131,7 +136,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     predictions_test_list = []
     df_scores_list = []
 
-    for fold_i, fold in enumerate(cv):
+    for fold_i in fold_idxs:
+        fold = cv[fold_i]
         fold_output_path = ''
         if is_pickle or save_output:
             # creating <submission_path>/<submission>/training_output/fold_<i>
@@ -140,17 +146,12 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             if not os.path.exists(fold_output_path):
                 os.makedirs(fold_output_path)
         print_title('CV fold {}'.format(fold_i))
-
+    
         predictions_valid, predictions_test, df_scores = \
             run_submission_on_cv_fold(
                 problem, submission_path, fold, X_train, y_train,
                 X_test, y_test, is_pickle, is_partial_train, save_output,
                 fold_output_path, ramp_data_dir)
-        if save_output:
-            filename = os.path.join(fold_output_path, 'scores.csv')
-            df_scores.to_csv(filename)
-        df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, indent='\t')
 
         # saving predictions for CV bagging after the CV loop
         df_scores_list.append(df_scores)
@@ -176,7 +177,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         problem, cv, y_train, y_test, predictions_valid_list,
         predictions_test_list, training_output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=None,
-        save_output=save_output)
+        save_output=save_output, fold_idxs=fold_idxs)
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
@@ -219,6 +220,8 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     valid_is_list = [valid_is for (train_is, valid_is) in cv]
     score_types = assert_score_types(ramp_kit_dir)
     n_folds = len(valid_is_list)
+    n_real_folds = 0
+    fold_idxs = []
     contributivitys = np.zeros((len(submissions), n_folds))
 
     combined_predictions_valid_list = []
@@ -240,40 +243,45 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                     training_output_path, data_label)
             fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
-            y_pred_train = load_y_pred(
-                problem, data_path=ramp_data_dir,
-                input_path=fold_output_path, suffix='train')
-            y_pred_test = load_y_pred(
-                problem, data_path=ramp_data_dir,
-                input_path=fold_output_path, suffix='test')
-            predictions_valid = problem.Predictions(
-                y_pred=y_pred_train, fold_is=valid_is)
-            predictions_valid_list.append(predictions_valid)
-            predictions_test = problem.Predictions(y_pred=y_pred_test)
-            predictions_test_list.append(predictions_test)
+            try:
+                y_pred_train = load_y_pred(
+                    problem, data_path=ramp_data_dir,
+                    input_path=fold_output_path, suffix='train')
+                y_pred_test = load_y_pred(
+                    problem, data_path=ramp_data_dir,
+                    input_path=fold_output_path, suffix='test')
+                predictions_valid = problem.Predictions(
+                    y_pred=y_pred_train, fold_is=valid_is)
+                predictions_valid_list.append(predictions_valid)
+                predictions_test = problem.Predictions(y_pred=y_pred_test)
+                predictions_test_list.append(predictions_test)
+            except FileNotFoundError:
+                pass
+        if len(predictions_valid_list) > 0:
+            n_real_folds += 1
+            fold_idxs.append(fold_i)
+            best_index_list = blend_on_fold(
+                predictions_valid_list, ground_truths_valid,
+                score_types[score_type_index],
+                min_improvement=min_improvement)
+    
+            # we share a unit of 1. among the contributive submissions
+            unit_contributivity = 1. / len(best_index_list)
+            for i in best_index_list:
+                contributivitys[i, fold_i] += unit_contributivity
+    
+            combined_predictions_valid_list.append(
+                problem.Predictions.combine(
+                    predictions_valid_list, best_index_list))
+            foldwise_best_predictions_valid_list.append(
+                predictions_valid_list[best_index_list[0]])
+            combined_predictions_test_list.append(
+                problem.Predictions.combine(
+                    predictions_test_list, best_index_list))
+            foldwise_best_predictions_test_list.append(
+                predictions_test_list[best_index_list[0]])
 
-        best_index_list = blend_on_fold(
-            predictions_valid_list, ground_truths_valid,
-            score_types[score_type_index],
-            min_improvement=min_improvement)
-
-        # we share a unit of 1. among the contributive submissions
-        unit_contributivity = 1. / len(best_index_list)
-        for i in best_index_list:
-            contributivitys[i, fold_i] += unit_contributivity
-
-        combined_predictions_valid_list.append(
-            problem.Predictions.combine(
-                predictions_valid_list, best_index_list))
-        foldwise_best_predictions_valid_list.append(
-            predictions_valid_list[best_index_list[0]])
-        combined_predictions_test_list.append(
-            problem.Predictions.combine(
-                predictions_test_list, best_index_list))
-        foldwise_best_predictions_test_list.append(
-            predictions_test_list[best_index_list[0]])
-
-    contributivitys /= n_folds
+    contributivitys /= n_real_folds
     contributivitys_df = pd.DataFrame()
     contributivitys_df['submission'] = np.array(submissions)
     contributivitys_df['contributivity'] = np.zeros(len(submissions))
@@ -305,7 +313,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         combined_predictions_test_list, output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output, score_table_title='Combined bagged scores',
-        score_f_name_prefix='combined')
+        score_f_name_prefix='combined_', fold_idxs=fold_idxs)
     if save_output:
         shutil.move(
             os.path.join(output_path, 'bagged_scores.csv'),
@@ -318,7 +326,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output,
         score_table_title='Foldwise best bagged scores',
-        score_f_name_prefix='foldwise_best')
+        score_f_name_prefix='foldwise_best_', fold_idxs=fold_idxs)
     if save_output:
         shutil.move(
             os.path.join(output_path, 'bagged_scores.csv'),

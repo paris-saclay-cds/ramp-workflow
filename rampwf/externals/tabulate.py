@@ -8,7 +8,7 @@ import re
 import math
 
 
-if python_version_tuple() >= ("3", "3", "0"):
+if tuple(int(v) for v in python_version_tuple()) >= (3, 3, 0):
     from collections.abc import Iterable
 else:
     from collections import Iterable

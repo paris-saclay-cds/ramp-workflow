@@ -5,6 +5,7 @@ from .drug_spectra import DrugSpectra
 from .el_nino import ElNino
 from .feature_extractor import FeatureExtractor
 from .feature_extractor_classifier import FeatureExtractorClassifier
+from .feature_extractor_classifier_with_eda import FeatureExtractorClassifierWithEDA
 from .feature_extractor_regressor import FeatureExtractorRegressor
 from .image_classifier import ImageClassifier
 from .generative_regressor import GenerativeRegressor
@@ -26,6 +27,7 @@ __all__ = [
     'ElNino',
     'FeatureExtractor',
     'FeatureExtractorClassifier',
+    'FeatureExtractorClassifierWithEDA',
     'FeatureExtractorRegressor',
     'GenerativeRegressor',
     'ImageClassifier',
