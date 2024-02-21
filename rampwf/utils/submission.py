@@ -372,7 +372,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
                     predictions_test_list, training_output_path,
                     ramp_data_dir='.', score_type_index=0,
                     save_output=False, score_table_title='Bagged scores',
-                    score_f_name_prefix=''):
+                    score_f_name_prefix='', fold_idxs=None):
     """CV-bag trained submission.
 
     Parameters
@@ -399,6 +399,9 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         True if predictions should be written in files
     score_table_title : str
     score_f_name_prefix : str
+    fold_idxs : list of int, default=None
+        The list of CV folds we want to run the submission on.
+        If None, we will run on all folds.
     """
     print_title('----------------------------')
     print_title(score_table_title)
@@ -409,6 +412,8 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     score_types = (
         [score_types] if not isinstance(score_types, Iterable)
         else score_types)
+    if fold_idxs is None:
+        fold_idxs = range(len(cv))
 
     # placeholder to store the scores and predictions
     bagged_scores = {}
@@ -420,7 +425,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         y_step = y_train if step == 'valid' else y_test
         gt_list = problem.Predictions(y_true=y_step)
         # indices of the validation set or all sample for the testing set
-        test_idx = ([valid_is for (train_is, valid_is) in cv]
+        test_idx = ([cv[i][1] for i in fold_idxs]
                     if step == 'valid' else None)
         score_dict = {}
         for st in score_types:
@@ -435,7 +440,7 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
             save_submissions(
                 problem, pred.y_pred, data_path=ramp_data_dir,
                 output_path=training_output_path,
-                suffix='{}_bagged_{}'.format(score_f_name_prefix, step)
+                suffix='{}bagged_{}'.format(score_f_name_prefix, step)
             )
 
     df_scores = pd.concat({step: pd.DataFrame(scores)
