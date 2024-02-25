@@ -55,7 +55,6 @@ def get_score_cv_bags(score_types, predictions_list, ground_truths,
          for _ in predictions_list])
     score_dicts = []
     for i, test_is in enumerate(test_is_list):
-        print(i)
         # setting valid fold indexes of points to be combined
         y_comb[i].set_valid_in_train(predictions_list[i], test_is)
         # combine first i folds
