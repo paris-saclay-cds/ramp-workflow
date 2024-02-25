@@ -22,19 +22,19 @@ def combine_predictions(Predictions, predictions_list, index_list):
     return combined_predictions
 
 
-def get_score_cv_bags(score_type, predictions_list, ground_truths,
+def get_score_cv_bags(score_types, predictions_list, ground_truths,
                       test_is_list=None):
     """
     Compute the bagged scores of the predictions in predictions_list.
 
     test_is_list (list of list of integer indexes) controls which points
     in which fold participate in the combination. We return the
-    combined predictions and a list of scores, where each element i is the
+    combined predictions and a dict of a list of scores, where each element i is the
     score of the combination of the first i+1 folds.
 
     Parameters
     ----------
-    score_type : instance implementing BaseScoreType signature
+    score_types : list of instances implementing BaseScoreType signature
     predictions_list : list of instances of Predictions
     ground_truths : instance of Predictions
     test_is_list : list of list of integers
@@ -43,7 +43,7 @@ def get_score_cv_bags(score_type, predictions_list, ground_truths,
     Returns
     -------
     combined_predictions : instance of Predictions
-    score_cv_bags : list of scores (typically floats)
+    score_dicts : list of score dictionaries
     """
     Predictions = type(ground_truths)
     if test_is_list is None:  # we combine the full list
@@ -53,8 +53,9 @@ def get_score_cv_bags(score_type, predictions_list, ground_truths,
     y_comb = np.array(
         [Predictions(n_samples=len(ground_truths.y_pred))
          for _ in predictions_list])
-    score_cv_bags = []
+    score_dicts = []
     for i, test_is in enumerate(test_is_list):
+        print(i)
         # setting valid fold indexes of points to be combined
         y_comb[i].set_valid_in_train(predictions_list[i], test_is)
         # combine first i folds
@@ -68,15 +69,18 @@ def get_score_cv_bags(score_type, predictions_list, ground_truths,
         ground_truths_local.set_slice(valid_indexes)
         combined_predictions.set_slice(valid_indexes)
         # score the combined predictions
-        score_of_prefix = score_type.score_function(
-            ground_truths_local, combined_predictions)
-        score_cv_bags.append(score_of_prefix)
+        score_dict = {}
+        for score_type in score_types:
+            score = score_type.score_function(
+                ground_truths_local, combined_predictions)
+            score_dict[score_type.name] = score
+        score_dicts.append(score_dict)
         # Alex' old suggestion: maybe use masked arrays rather than passing
         # valid_indexes
     # TODO: will crash if len(test_is_list) == 0
-    return combined_predictions, score_cv_bags
+    return combined_predictions, score_dicts
 
-
+    
 def _get_next_best_submission(predictions_list, ground_truths,
                               score_type, best_index_list,
                               min_improvement=0.0):

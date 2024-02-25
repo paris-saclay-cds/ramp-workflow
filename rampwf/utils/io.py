@@ -83,6 +83,33 @@ def load_y_pred(problem, data_path='.', input_path='.', suffix='test'):
         return np.load(y_pred_f_name)['y_pred']
 
 
+def load_predictions(problem, valid_is, data_path='.', input_path='.'):
+    """Load valid and test predictions and convert them to Predictions.
+
+    Parameters
+    ----------
+    problem : a problem object
+        loaded from problem.py, may implement save_y_pred
+    valid_is : a validation object
+        typically a list of validation indices
+    data_path : str, (default='.')
+        the directory of the ramp-kit to be tested for submission, maybe
+        needed by problem.save_y_pred for, e.g., merging with an index vector
+    input_path : str, (default='.')
+        the directory where (typically) y_pred_<suffix>.npz will be saved
+    """
+    y_pred_train = load_y_pred(
+        problem, data_path=data_path,
+        input_path=input_path, suffix='train')
+    y_pred_test = load_y_pred(
+        problem, data_path=data_path,
+        input_path=input_path, suffix='test')
+    predictions_valid = problem.Predictions(
+        y_pred=y_pred_train, fold_is=valid_is)
+    predictions_test = problem.Predictions(y_pred=y_pred_test)
+    return predictions_valid, predictions_test
+
+
 def set_state(state, save_output, output_path):
     """Save the submission state (per fold) in <output_path>/state.txt.
 
