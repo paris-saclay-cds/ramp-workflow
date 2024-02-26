@@ -427,12 +427,8 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
         # indices of the validation set or all sample for the testing set
         test_idx = ([cv[i][1] for i in fold_idxs]
                     if step == 'valid' else None)
-        score_dict = {}
-        for st in score_types:
-            pred, scores = get_score_cv_bags(
-                st, pred_list, gt_list, test_is_list=test_idx)
-            score_dict[st.name] = {
-                key: val for key, val in enumerate(scores)}
+        pred, score_dict = get_score_cv_bags(
+            score_types, pred_list, gt_list, test_is_list=test_idx)
         bagged_scores[step] = score_dict
         # the predictions will always be the same for all score and we store
         # only a single instance

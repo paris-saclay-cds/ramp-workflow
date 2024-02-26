@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from .combine import blend_on_fold
-from .io import load_y_pred
+from .io import load_y_pred, load_predictions
 from .importing import import_module_from_source
 from .pretty_print import print_title, print_df_scores
 from .notebook import execute_notebook, convert_notebook
@@ -244,16 +244,10 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             fold_output_path = os.path.join(
                 training_output_path, 'fold_{}'.format(fold_i))
             try:
-                y_pred_train = load_y_pred(
-                    problem, data_path=ramp_data_dir,
-                    input_path=fold_output_path, suffix='train')
-                y_pred_test = load_y_pred(
-                    problem, data_path=ramp_data_dir,
-                    input_path=fold_output_path, suffix='test')
-                predictions_valid = problem.Predictions(
-                    y_pred=y_pred_train, fold_is=valid_is)
+                predictions_valid, predictions_test = load_predictions(
+                    problem, valid_is, data_path=ramp_data_dir,
+                    input_path=fold_output_path)
                 predictions_valid_list.append(predictions_valid)
-                predictions_test = problem.Predictions(y_pred=y_pred_test)
                 predictions_test_list.append(predictions_test)
             except FileNotFoundError:
                 pass
