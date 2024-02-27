@@ -5,6 +5,7 @@ Utilities to manage the submissions
 import os
 import time
 import pickle
+import itertools
 from inspect import signature
 from collections.abc import Iterable
 from collections import OrderedDict
@@ -368,7 +369,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
                 output_path=output_path, suffix='retrain_train')
 
 
-def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
+def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
                     predictions_test_list, training_output_path,
                     ramp_data_dir='.', score_type_index=0,
                     save_output=False, score_table_title='Bagged scores',
@@ -379,8 +380,6 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     ----------
     problem : problem object
         imp.loaded from problem.py
-    cv : cross validation object
-        coming from get_cv of problem.py
     y_train : a list of training ground truth
         returned by problem.get_train_data
     y_test : a list of testing ground truth or None
@@ -400,8 +399,8 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     score_table_title : str
     score_f_name_prefix : str
     fold_idxs : list of int, default=None
-        The list of CV folds we want to run the submission on.
-        If None, we will run on all folds.
+        Fold indices to bag.
+        If None, we will bag all folds.
     """
     print_title('----------------------------')
     print_title(score_table_title)
@@ -412,21 +411,32 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     score_types = (
         [score_types] if not isinstance(score_types, Iterable)
         else score_types)
-    if fold_idxs is None:
-        fold_idxs = range(len(cv))
+    cv = problem.get_cv(X_train, y_train)
 
     # placeholder to store the scores and predictions
     bagged_scores = {}
     scoring_step = ['valid', 'test'] if y_test is not None else ['valid']
     for step in scoring_step:
-        # Get either the training or testing information depending of the step
-        pred_list = (predictions_valid_list if step == 'valid'
-                     else predictions_test_list)
-        y_step = y_train if step == 'valid' else y_test
+        if step == 'valid':
+            test_idx = []
+            if fold_idxs is None:
+                fold_start = 0
+                fold_stop = None
+            else:
+                fold_start = min(fold_idxs)
+                fold_stop = max(fold_idxs) + 1
+            fold_i = fold_start - 1
+            for fold in itertools.islice(cv, fold_start, fold_stop):
+                fold_i += 1
+                if fold_idxs is None or fold_i in fold_idxs:
+                    test_idx.append(fold[1])
+            pred_list = predictions_valid_list
+            y_step = y_train
+        else:
+            test_idx = None
+            pred_list = predictions_test_list
+            y_step = y_test
         gt_list = problem.Predictions(y_true=y_step)
-        # indices of the validation set or all sample for the testing set
-        test_idx = ([cv[i][1] for i in fold_idxs]
-                    if step == 'valid' else None)
         pred, score_dict = get_score_cv_bags(
             score_types, pred_list, gt_list, test_is_list=test_idx)
         bagged_scores[step] = score_dict

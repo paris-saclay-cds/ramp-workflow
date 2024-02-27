@@ -2,9 +2,10 @@
 
 """Provide utils to test ramp-kits."""
 import os
-import shutil
 import sys
-
+import time
+import shutil
+import itertools
 import numpy as np
 import pandas as pd
 
@@ -59,8 +60,8 @@ def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label=None):
         kwargs['data_label'] = data_label
     X_train, y_train = problem.get_train_data(path=ramp_data_dir, **kwargs)
     print_title('Reading cv ...')
-    cv = list(problem.get_cv(X_train, y_train))
-    return cv
+#    cv = list(problem.get_cv(X_train, y_train))
+    return problem.get_cv(X_train, y_train)
 
 
 def assert_score_types(ramp_kit_dir='.'):
@@ -100,16 +101,14 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         Whether to train the workflow on the full training set and
         test on the test set.
     fold_idxs : list of int, default=None
-        The list of CV folds we want to run the submission on.
-        If None, we will run on all folds.
+        Fold indices to train on.
+        If None, we will train on all folds.
     """
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(
         ramp_kit_dir, ramp_data_dir, data_label)
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
-    if fold_idxs is None:
-        fold_idxs = range(len(cv))
     score_types = assert_score_types(ramp_kit_dir)
 
     # module_path = os.path.join(ramp_kit_dir, 'submissions', submission)
@@ -136,13 +135,22 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     predictions_test_list = []
     df_scores_list = []
 
-    for fold_i in fold_idxs:
-        fold = cv[fold_i]
+    if fold_idxs is None:
+        fold_start = 0
+        fold_stop = None
+    else:
+        fold_start = min(fold_idxs)
+        fold_stop = max(fold_idxs) + 1
+    fold_i = fold_start - 1
+    for fold in itertools.islice(cv, fold_start, fold_stop):
+        fold_i += 1
+        if not fold_idxs is None and not fold_i in fold_idxs:
+            continue
         fold_output_path = ''
         if is_pickle or save_output:
             # creating <submission_path>/<submission>/training_output/fold_<i>
             fold_output_path = os.path.join(
-                training_output_path, 'fold_{}'.format(fold_i))
+                training_output_path, f'fold_{fold_i}')
             if not os.path.exists(fold_output_path):
                 os.makedirs(fold_output_path)
         print_title('CV fold {}'.format(fold_i))
@@ -174,7 +182,7 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             score_types, is_pickle, save_output, training_output_path,
             ramp_data_dir)
     bag_submissions(
-        problem, cv, y_train, y_test, predictions_valid_list,
+        problem, X_train, y_train, y_test, predictions_valid_list,
         predictions_test_list, training_output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=None,
         save_output=save_output, fold_idxs=fold_idxs)
@@ -183,7 +191,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='.', data_label=None,
                       save_output=False, min_improvement=0.0,
-                      score_type_index=0, output_path=None):
+                      score_type_index=0, output_path=None,
+                      fold_idxs=None):
     """Blending submissions in a ramp-kit and compute contributivities.
 
     If save_output is True, we create three files:
@@ -211,30 +220,46 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     output_path : str, default is None
         The folder where the blended scores and controbutivities are saved.
         If None, it is <ramp_submission_dir>/[<data_label>]/training_output
+    fold_idxs : list of int, default=None
+        Fold indices to blend.
+        If None, we will blend all folds.
     """
     problem = assert_read_problem(ramp_kit_dir)
     print_title('Blending {}'.format(problem.problem_title))
     X_train, y_train, X_test, y_test = assert_data(
         ramp_kit_dir, ramp_data_dir, data_label)
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
-    valid_is_list = [valid_is for (train_is, valid_is) in cv]
+    valid_is_list = []
+    if fold_idxs is None:
+        fold_start = 0
+        fold_stop = None
+    else:
+        fold_start = min(fold_idxs)
+        fold_stop = max(fold_idxs) + 1
+    fold_i = fold_start - 1
+    for fold in itertools.islice(cv, fold_start, fold_stop):
+        fold_i += 1
+        if fold_idxs is None or fold_i in fold_idxs:
+            valid_is_list.append(fold[1])
+
     score_types = assert_score_types(ramp_kit_dir)
     n_folds = len(valid_is_list)
     n_real_folds = 0
-    fold_idxs = []
-    contributivitys = np.zeros((len(submissions), n_folds))
+    real_fold_idxs = []
+    contributivitys = np.zeros((len(submissions), fold_i + 1))
 
     combined_predictions_valid_list = []
     foldwise_best_predictions_valid_list = []
     combined_predictions_test_list = []
     foldwise_best_predictions_test_list = []
-    for fold_i, valid_is in enumerate(valid_is_list):
+    for fold_i, valid_is in zip(fold_idxs, valid_is_list):
         print_title('CV fold {}'.format(fold_i))
         ground_truths_valid = problem.Predictions(
             y_true=y_train, fold_is=valid_is)
         predictions_valid_list = []
         predictions_test_list = []
-        for submission in submissions:
+        submission_is = []
+        for submission_i, submission in enumerate(submissions):
             module_path = os.path.join(ramp_submission_dir, submission)
             training_output_path = os.path.join(
                 module_path, 'training_output')
@@ -249,11 +274,13 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                     input_path=fold_output_path)
                 predictions_valid_list.append(predictions_valid)
                 predictions_test_list.append(predictions_test)
+                submission_is.append(submission_i)
             except FileNotFoundError:
                 pass
+        # Only bag fold if there is at least one submission trained on it
         if len(predictions_valid_list) > 0:
             n_real_folds += 1
-            fold_idxs.append(fold_i)
+            real_fold_idxs.append(fold_i)
             best_index_list = blend_on_fold(
                 predictions_valid_list, ground_truths_valid,
                 score_types[score_type_index],
@@ -262,7 +289,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
             # we share a unit of 1. among the contributive submissions
             unit_contributivity = 1. / len(best_index_list)
             for i in best_index_list:
-                contributivitys[i, fold_i] += unit_contributivity
+                contributivitys[submission_is[i], fold_i] += unit_contributivity
     
             combined_predictions_valid_list.append(
                 problem.Predictions.combine(
@@ -274,12 +301,15 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
                     predictions_test_list, best_index_list))
             foldwise_best_predictions_test_list.append(
                 predictions_test_list[best_index_list[0]])
-
+    if n_real_folds == 0:
+        print("No folds to blend")
+        return
+        
     contributivitys /= n_real_folds
     contributivitys_df = pd.DataFrame()
     contributivitys_df['submission'] = np.array(submissions)
     contributivitys_df['contributivity'] = np.zeros(len(submissions))
-    for fold_i in range(n_folds):
+    for fold_i in real_fold_idxs:
         c_i = contributivitys[:, fold_i]
         contributivitys_df['fold_{}'.format(fold_i)] = c_i
         contributivitys_df['contributivity'] += c_i
@@ -303,11 +333,11 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
 
     # bagging the foldwise ensembles
     bag_submissions(
-        problem, cv, y_train, y_test, combined_predictions_valid_list,
+        problem, X_train, y_train, y_test, combined_predictions_valid_list,
         combined_predictions_test_list, output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output, score_table_title='Combined bagged scores',
-        score_f_name_prefix='combined_', fold_idxs=fold_idxs)
+        score_f_name_prefix='combined_', fold_idxs=real_fold_idxs)
     if save_output:
         shutil.move(
             os.path.join(output_path, 'bagged_scores.csv'),
@@ -315,12 +345,12 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
 
     # bagging the foldwise best submissions
     bag_submissions(
-        problem, cv, y_train, y_test, foldwise_best_predictions_valid_list,
+        problem, X_train, y_train, y_test, foldwise_best_predictions_valid_list,
         foldwise_best_predictions_test_list, output_path,
         ramp_data_dir=ramp_data_dir, score_type_index=score_type_index,
         save_output=save_output,
         score_table_title='Foldwise best bagged scores',
-        score_f_name_prefix='foldwise_best_', fold_idxs=fold_idxs)
+        score_f_name_prefix='foldwise_best_', fold_idxs=real_fold_idxs)
     if save_output:
         shutil.move(
             os.path.join(output_path, 'bagged_scores.csv'),
