@@ -18,9 +18,8 @@ from .pretty_print import print_title, print_df_scores, print_warning
 from .scoring import score_matrix, round_df_scores, reorder_df_scores
 
 
-def save_submissions(
-    problem, y_pred, data_path=".", output_path=".", suffix="test"
-):
+def save_submissions(problem, y_pred, data_path='.', output_path='.',
+                     suffix='test'):
     """Custom save a prediction vector in file to, e.g., submit to Kaggle.
 
     If problem.save_submission is implemented, y_pred is passed to it.
@@ -51,19 +50,9 @@ def save_submissions(
         pass
 
 
-def train_test_submission(
-    problem,
-    module_path,
-    X_train,
-    y_train,
-    X_test,
-    is_pickle,
-    is_partial_train,
-    save_output,
-    output_path,
-    trained_model_name,
-    fold,
-):
+def train_test_submission(problem, module_path, X_train, y_train, X_test,
+                          is_pickle, is_partial_train, save_output,
+                          output_path, trained_model_name, fold):
     """Train and test submission, on cv fold if fold is not none.
 
     Parameters
@@ -114,70 +103,57 @@ def train_test_submission(
     try:
         if is_partial_train:
             prev_trained_model = unpickle_trained_model(
-                output_path, trained_model_name
-            )
+                output_path, trained_model_name)
             if prev_trained_model is None:
-                print_warning(
-                    "Can't unpickle trained model "
-                    f"{output_path}/{trained_model_name}, "
-                    " thus we are retraining from scratch."
-                )
+                print_warning("Can't unpickle trained model "
+                              f'{output_path}/{trained_model_name}, '
+                              ' thus we are retraining from scratch.')
             try:
                 trained_model = problem.workflow.train_submission(
-                    module_path, X_train, y_train, train_is, prev_trained_model
-                )
+                    module_path, X_train, y_train, train_is,
+                    prev_trained_model)
             except TypeError as e:
                 raise TypeError(
-                    "Probably because problem.workflow.train_submission "
-                    "does not accept prev_trained_submission as its last "
-                    "argument."
-                ) from e
+                    'Probably because problem.workflow.train_submission '
+                    'does not accept prev_trained_submission as its last '
+                    'argument.') from e
         else:
             trained_model = problem.workflow.train_submission(
-                module_path, X_train, y_train, train_is
-            )
+                module_path, X_train, y_train, train_is)
     except Exception:
         print_submission_exception(save_output, output_path)
-        set_state("training_error", save_output, output_path)
+        set_state('training_error', save_output, output_path)
         exit(1)
     train_time = time.time() - t0
-    set_state("trained", save_output, output_path)
+    set_state('trained', save_output, output_path)
     if is_pickle:
         is_pickled = pickle_trained_model(
-            output_path,
-            trained_model,
-            trained_model_name,
-            is_silent=True,
-            check_if_can_be_unpickled=True,
-        )
+            output_path, trained_model, trained_model_name,
+            is_silent=True, check_if_can_be_unpickled=True)
         if not is_pickled:
-            print_warning(
-                "Can't pickle workflow into "
-                f"{output_path}/{trained_model_name}."
-            )
+            print_warning("Can't pickle workflow into "
+                          f'{output_path}/{trained_model_name}.')
 
     # Validate
     params = signature(problem.workflow.test_submission).parameters
-    is_fold_passed_to_test = len(params) == 3 and list(params)[2] == "fold"
+    is_fold_passed_to_test = (len(params) == 3 and list(params)[2] == 'fold')
 
     t0 = time.time()
 
     try:
         if is_fold_passed_to_test:
             y_pred_train = problem.workflow.test_submission(
-                trained_model, X_train, fold
-            )
+                trained_model, X_train, fold)
         else:
             # to stay compatible with fold-independent test_submission
             y_pred_train = problem.workflow.test_submission(
-                trained_model, X_train
-            )
+                trained_model, X_train)
     except Exception:
         print_submission_exception(save_output, output_path)
-        set_state("validating_error", save_output, output_path)
+        set_state('validating_error', save_output, output_path)
         exit(1)
     valid_time = time.time() - t0
-    set_state("validated", save_output, output_path)
+    set_state('validated', save_output, output_path)
 
     # Test
     t0 = time.time()
@@ -187,36 +163,25 @@ def train_test_submission(
         else:
             if is_fold_passed_to_test:
                 y_pred_test = problem.workflow.test_submission(
-                    trained_model, X_test, None
-                )
+                    trained_model, X_test, None)
             else:
                 y_pred_test = problem.workflow.test_submission(
-                    trained_model, X_test
-                )
+                    trained_model, X_test)
     except Exception:
         print_submission_exception(save_output, output_path)
-        set_state("testing_error", save_output, output_path)
+        set_state('testing_error', save_output, output_path)
         exit(1)
     test_time = time.time() - t0
-    set_state("tested", save_output, output_path)
+    set_state('tested', save_output, output_path)
 
     return (y_pred_train, y_pred_test), (train_time, valid_time, test_time)
 
 
-def run_submission_on_cv_fold(
-    problem,
-    module_path,
-    fold,
-    X_train,
-    y_train,
-    X_test=None,
-    y_test=None,
-    is_pickle=False,
-    is_partial_train=False,
-    save_output=False,
-    fold_output_path=".",
-    ramp_data_dir=".",
-):
+def run_submission_on_cv_fold(problem, module_path, fold, X_train,
+                              y_train, X_test=None, y_test=None,
+                              is_pickle=False, is_partial_train=False,
+                              save_output=False, fold_output_path='.',
+                              ramp_data_dir='.'):
     """Run submission, compute and return predictions and scores on cv.
 
     Parameters
@@ -258,57 +223,36 @@ def run_submission_on_cv_fold(
     score_types = problem.score_types
     train_is, valid_is = fold
     pred, timing = train_test_submission(
-        problem,
-        module_path,
-        X_train,
-        y_train,
-        X_test,
-        is_pickle,
-        is_partial_train,
-        save_output,
-        fold_output_path,
-        "trained_model.pkl",
-        fold,
-    )
+        problem, module_path, X_train, y_train, X_test, is_pickle,
+        is_partial_train, save_output, fold_output_path,
+        'trained_model.pkl', fold)
     y_pred_train, y_pred_test = pred
     train_time, valid_time, test_time = timing
 
     predictions_train_train = problem.Predictions(
-        y_pred=y_pred_train, fold_is=train_is
-    )
+        y_pred=y_pred_train, fold_is=train_is)
     ground_truth_train_train = problem.Predictions(
-        y_true=y_train, fold_is=train_is
-    )
+        y_true=y_train, fold_is=train_is)
     predictions_train_valid = problem.Predictions(
-        y_pred=y_pred_train, fold_is=valid_is
-    )
+        y_pred=y_pred_train, fold_is=valid_is)
     ground_truth_train_valid = problem.Predictions(
-        y_true=y_train, fold_is=valid_is
-    )
+        y_true=y_train, fold_is=valid_is)
     if y_test is not None:
         predictions_test = problem.Predictions(y_pred=y_pred_test)
         ground_truth_test = problem.Predictions(y_true=y_test)
         if save_output:
             save_y_pred(
-                problem,
-                y_pred_train,
-                data_path=ramp_data_dir,
-                output_path=fold_output_path,
-                suffix="train",
-            )
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=fold_output_path, suffix='train')
             if y_test is not None:
                 save_y_pred(
-                    problem,
-                    y_pred_test,
-                    data_path=ramp_data_dir,
-                    output_path=fold_output_path,
-                    suffix="test",
-                )
-            with open(os.path.join(fold_output_path, "train_time"), "w") as fd:
+                    problem, y_pred_test, data_path=ramp_data_dir,
+                    output_path=fold_output_path, suffix='test')
+            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
                 fd.write(str(train_time))
-            with open(os.path.join(fold_output_path, "valid_time"), "w") as fd:
+            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
                 fd.write(str(valid_time))
-            with open(os.path.join(fold_output_path, "test_time"), "w") as fd:
+            with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
                 fd.write(str(test_time))
         try:
             df_scores = score_matrix(
@@ -335,55 +279,34 @@ def run_submission_on_cv_fold(
             print_submission_exception(save_output, fold_output_path)
             set_state("testing_error", save_output, fold_output_path)
             exit(1)
-
+            
         return predictions_train_valid, predictions_test, df_scores
 
     else:
         if save_output:
             save_y_pred(
-                problem,
-                y_pred_train,
-                data_path=ramp_data_dir,
-                output_path=fold_output_path,
-                suffix="train",
-            )
-            with open(os.path.join(fold_output_path, "train_time"), "w") as fd:
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=fold_output_path, suffix='train')
+            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
                 fd.write(str(train_time))
-            with open(os.path.join(fold_output_path, "valid_time"), "w") as fd:
+            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
                 fd.write(str(valid_time))
         df_scores = score_matrix(
             score_types,
-            ground_truth=OrderedDict(
-                [
-                    ("train", ground_truth_train_train),
-                    ("valid", ground_truth_train_valid),
-                ]
-            ),
-            predictions=OrderedDict(
-                [
-                    ("train", predictions_train_train),
-                    ("valid", predictions_train_valid),
-                ]
-            ),
+            ground_truth=OrderedDict([('train', ground_truth_train_train),
+                                      ('valid', ground_truth_train_valid)]),
+            predictions=OrderedDict([('train', predictions_train_train),
+                                     ('valid', predictions_train_valid)]),
         )
-        df_scores["time"] = [train_time, valid_time]
-        set_state("scored", save_output, fold_output_path)
+        df_scores['time'] = [train_time, valid_time]
+        set_state('scored', save_output, fold_output_path)
         return predictions_train_valid, None, df_scores
 
 
-def run_submission_on_full_train(
-    problem,
-    module_path,
-    X_train,
-    y_train,
-    X_test,
-    y_test,
-    score_types,
-    is_pickle,
-    save_output,
-    output_path,
-    ramp_data_dir,
-):
+def run_submission_on_full_train(problem, module_path, X_train, y_train,
+                                 X_test, y_test, score_types,
+                                 is_pickle, save_output, output_path,
+                                 ramp_data_dir):
     """Run submission, compute predictions, and print scores on full train.
 
     Parameters
@@ -412,18 +335,8 @@ def run_submission_on_full_train(
         the directory of the data
     """
     (y_pred_train, y_pred_test), _ = train_test_submission(
-        problem,
-        module_path,
-        X_train,
-        y_train,
-        X_test,
-        is_pickle,
-        None,
-        save_output,
-        output_path,
-        "retrained_model.pkl",
-        None,
-    )
+        problem, module_path, X_train, y_train, X_test, is_pickle,
+        None, save_output, output_path, 'retrained_model.pkl', None)
     predictions_train = problem.Predictions(y_pred=y_pred_train)
     ground_truth_train = problem.Predictions(y_true=y_train)
     if y_test is not None:
@@ -432,64 +345,41 @@ def run_submission_on_full_train(
 
         df_scores = score_matrix(
             score_types,
-            ground_truth=OrderedDict(
-                [("train", ground_truth_train), ("test", ground_truth_test)]
-            ),
-            predictions=OrderedDict(
-                [("train", predictions_train), ("test", predictions_test)]
-            ),
+            ground_truth=OrderedDict([('train', ground_truth_train),
+                                      ('test', ground_truth_test)]),
+            predictions=OrderedDict([('train', predictions_train),
+                                     ('test', predictions_test)]),
         )
         df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, indent="\t")
+        print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
             save_submissions(
-                problem,
-                y_pred_train,
-                data_path=ramp_data_dir,
-                output_path=output_path,
-                suffix="retrain_train",
-            )
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=output_path, suffix='retrain_train')
             save_submissions(
-                problem,
-                y_pred_test,
-                data_path=ramp_data_dir,
-                output_path=output_path,
-                suffix="retrain_test",
-            )
+                problem, y_pred_test, data_path=ramp_data_dir,
+                output_path=output_path, suffix='retrain_test')
     else:
         df_scores = score_matrix(
             score_types,
-            ground_truth=OrderedDict([("train", ground_truth_train)]),
-            predictions=OrderedDict([("train", predictions_train)]),
+            ground_truth=OrderedDict([('train', ground_truth_train)]),
+            predictions=OrderedDict([('train', predictions_train)]),
         )
         df_scores_rounded = round_df_scores(df_scores, score_types)
-        print_df_scores(df_scores_rounded, indent="\t")
+        print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
             save_submissions(
-                problem,
-                y_pred_train,
-                data_path=ramp_data_dir,
-                output_path=output_path,
-                suffix="retrain_train",
-            )
+                problem, y_pred_train, data_path=ramp_data_dir,
+                output_path=output_path, suffix='retrain_train')
 
 
-def bag_submissions(
-    problem,
-    cv,
-    y_train,
-    y_test,
-    predictions_valid_list,
-    predictions_test_list,
-    training_output_path,
-    ramp_data_dir=".",
-    score_type_index=0,
-    save_output=False,
-    score_table_title="Bagged scores",
-    score_f_name_prefix="",
-):
+def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
+                    predictions_test_list, training_output_path,
+                    ramp_data_dir='.', score_type_index=0,
+                    save_output=False, score_table_title='Bagged scores',
+                    score_f_name_prefix=''):
     """CV-bag trained submission.
 
     Parameters
@@ -517,81 +407,66 @@ def bag_submissions(
     score_table_title : str
     score_f_name_prefix : str
     """
-    print_title("----------------------------")
+    print_title('----------------------------')
     print_title(score_table_title)
-    print_title("----------------------------")
-    score_type_index = (
-        slice(None) if score_type_index is None else score_type_index
-    )
+    print_title('----------------------------')
+    score_type_index = (slice(None) if score_type_index is None
+                        else score_type_index)
     score_types = problem.score_types[score_type_index]
     score_types = (
-        [score_types] if not isinstance(score_types, Iterable) else score_types
-    )
+        [score_types] if not isinstance(score_types, Iterable)
+        else score_types)
 
     # placeholder to store the scores and predictions
     bagged_scores = {}
-    scoring_step = ["valid", "test"] if y_test is not None else ["valid"]
+    scoring_step = ['valid', 'test'] if y_test is not None else ['valid']
     for step in scoring_step:
         # Get either the training or testing information depending of the step
-        pred_list = (
-            predictions_valid_list
-            if step == "valid"
-            else predictions_test_list
-        )
-        y_step = y_train if step == "valid" else y_test
+        pred_list = (predictions_valid_list if step == 'valid'
+                     else predictions_test_list)
+        y_step = y_train if step == 'valid' else y_test
         gt_list = problem.Predictions(y_true=y_step)
         # indices of the validation set or all sample for the testing set
-        test_idx = (
-            [valid_is for (train_is, valid_is) in cv]
-            if step == "valid"
-            else None
-        )
+        test_idx = ([valid_is for (train_is, valid_is) in cv]
+                    if step == 'valid' else None)
         score_dict = {}
         for st in score_types:
             pred, scores = get_score_cv_bags(
-                st, pred_list, gt_list, test_is_list=test_idx
-            )
-            score_dict[st.name] = {key: val for key, val in enumerate(scores)}
+                st, pred_list, gt_list, test_is_list=test_idx)
+            score_dict[st.name] = {
+                key: val for key, val in enumerate(scores)}
         bagged_scores[step] = score_dict
         # the predictions will always be the same for all score and we store
         # only a single instance
         if save_output:
             save_submissions(
-                problem,
-                pred.y_pred,
-                data_path=ramp_data_dir,
+                problem, pred.y_pred, data_path=ramp_data_dir,
                 output_path=training_output_path,
-                suffix="{}_bagged_{}".format(score_f_name_prefix, step),
+                suffix='{}_bagged_{}'.format(score_f_name_prefix, step)
             )
 
-    df_scores = pd.concat(
-        {step: pd.DataFrame(scores) for step, scores in bagged_scores.items()}
-    )
-    df_scores.columns = df_scores.columns.rename("score")
-    df_scores.index = df_scores.index.rename(["step", "n_bag"])
+    df_scores = pd.concat({step: pd.DataFrame(scores)
+                           for step, scores in bagged_scores.items()})
+    df_scores.columns = df_scores.columns.rename('score')
+    df_scores.index = df_scores.index.rename(['step', 'n_bag'])
     # bagging learning curves can be plotted on this df_scores
     if save_output:
         bagged_scores_filename = os.path.join(
-            training_output_path, "bagged_scores.csv"
-        )
+            training_output_path, 'bagged_scores.csv')
         df_scores.to_csv(bagged_scores_filename)
 
     # prepare the bagged scores which will be printed.
-    highest_level = df_scores.index.get_level_values("n_bag").max()
+    highest_level = df_scores.index.get_level_values('n_bag').max()
     df_scores = df_scores.loc[(slice(None), highest_level), :]
-    df_scores.index = df_scores.index.droplevel("n_bag")
+    df_scores.index = df_scores.index.droplevel('n_bag')
     df_scores = reorder_df_scores(df_scores, score_types)
     df_scores = round_df_scores(df_scores, score_types)
-    print_df_scores(df_scores, indent="\t")
+    print_df_scores(df_scores, indent='\t')
 
 
-def pickle_trained_model(
-    fold_output_path,
-    trained_model,
-    trained_model_name="trained_model.pkl",
-    is_silent=True,
-    check_if_can_be_unpickled=True,
-):
+def pickle_trained_model(fold_output_path, trained_model,
+                         trained_model_name='trained_model.pkl',
+                         is_silent=True, check_if_can_be_unpickled=True):
     """Pickle trained model.
 
     If silent, if model can't be pickled return False.
@@ -616,7 +491,7 @@ def pickle_trained_model(
     """
     workflow_file = os.path.join(fold_output_path, trained_model_name)
     try:
-        with open(workflow_file, "wb") as pickle_file:
+        with open(workflow_file, 'wb') as pickle_file:
             cloudpickle.dump(trained_model, pickle_file)
     except pickle.PicklingError as e:
         if is_silent:
@@ -626,26 +501,22 @@ def pickle_trained_model(
     # Checking if pickle can be unpickled
     if check_if_can_be_unpickled and is_silent:
         trained_model_unpickled = unpickle_trained_model(
-            fold_output_path, trained_model_name
-        )
+            fold_output_path, trained_model_name)
         if trained_model_unpickled is None:
-            print_warning(
-                "Can't unpickle workflow "
-                f"{fold_output_path}/{trained_model_name}."
-            )
+            print_warning("Can't unpickle workflow "
+                          f'{fold_output_path}/{trained_model_name}.')
             return False
 
     if check_if_can_be_unpickled and not is_silent:
         trained_model_unpickled = unpickle_trained_model(
-            fold_output_path, trained_model_name, is_silent=False
-        )
+            fold_output_path, trained_model_name, is_silent=False)
 
     return True
 
 
-def unpickle_trained_model(
-    fold_output_path, trained_model_name="trained_model.pkl", is_silent=True
-):
+def unpickle_trained_model(fold_output_path,
+                           trained_model_name='trained_model.pkl',
+                           is_silent=True):
     """Unpickle trained model.
 
     If model can't be unpickled, return None, otherwise return
@@ -666,7 +537,7 @@ def unpickle_trained_model(
     """
     workflow_file = os.path.join(fold_output_path, trained_model_name)
     try:
-        with open(workflow_file, "rb") as pickle_file:
+        with open(workflow_file, 'rb') as pickle_file:
             trained_model = cloudpickle.load(pickle_file)
     except Exception as e:
         if is_silent:
