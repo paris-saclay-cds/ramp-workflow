@@ -279,7 +279,7 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
             print_submission_exception(save_output, fold_output_path)
             set_state("testing_error", save_output, fold_output_path)
             exit(1)
-            
+            import ipdb; ipdb.set_trace()
         return predictions_train_valid, predictions_test, df_scores
 
     else:
