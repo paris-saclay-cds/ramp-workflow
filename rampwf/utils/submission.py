@@ -254,17 +254,31 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
                 fd.write(str(valid_time))
             with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
                 fd.write(str(test_time))
-        df_scores = score_matrix(
-            score_types,
-            ground_truth=OrderedDict([('train', ground_truth_train_train),
-                                      ('valid', ground_truth_train_valid),
-                                      ('test', ground_truth_test)]),
-            predictions=OrderedDict([('train', predictions_train_train),
-                                     ('valid', predictions_train_valid),
-                                     ('test', predictions_test)]),
-        )
-        df_scores['time'] = [train_time, valid_time, test_time]
-        set_state('scored', save_output, fold_output_path)
+        try:
+            df_scores = score_matrix(
+                score_types,
+                ground_truth=OrderedDict(
+                    [
+                        ("train", ground_truth_train_train),
+                        ("valid", ground_truth_train_valid),
+                        ("test", ground_truth_test),
+                    ]
+                ),
+                predictions=OrderedDict(
+                    [
+                        ("train", predictions_train_train),
+                        ("valid", predictions_train_valid),
+                        ("test", predictions_test),
+                    ]
+                ),
+            )
+            df_scores["time"] = [train_time, valid_time, test_time]
+            set_state("scored", save_output, fold_output_path)
+        except Exception as e:
+            print(f"Error during scoring: {e}")
+            print_submission_exception(save_output, fold_output_path)
+            set_state("testing_error", save_output, fold_output_path)
+            exit(1)
         return predictions_train_valid, predictions_test, df_scores
 
     else:
