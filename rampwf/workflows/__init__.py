@@ -7,6 +7,7 @@ from .feature_extractor import FeatureExtractor
 from .feature_extractor_classifier import FeatureExtractorClassifier
 from .feature_extractor_classifier_with_eda import FeatureExtractorClassifierWithEDA
 from .feature_extractor_regressor import FeatureExtractorRegressor
+from .feature_extractor_regressor_with_eda import FeatureExtractorRegressorWithEDA
 from .image_classifier import ImageClassifier
 from .generative_regressor import GenerativeRegressor
 from .simplified_image_classifier import SimplifiedImageClassifier
