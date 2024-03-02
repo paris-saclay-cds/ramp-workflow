@@ -36,7 +36,7 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Programming Language :: Python :: 3.6',
                'Programming Language :: Python :: 3.7']
 INSTALL_REQUIRES = ['numpy', 'scipy', 'pandas', 'scikit-learn>=0.22', 'joblib',
-                    'cloudpickle', 'click']
+                    'cloudpickle', 'click<=8.0.0']
 EXTRAS_REQUIRE = {
     'tests': ['pytest', 'pytest-cov'],
     'docs': ['sphinx', 'sphinx_rtd_theme', 'numpydoc', 'sphinx-click']
