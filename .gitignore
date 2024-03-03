@@ -12,3 +12,4 @@ ramp_workflow.egg-info
 training_output/
 *starting_kit.html
 doc/_build/
+/.idea
