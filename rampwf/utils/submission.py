@@ -453,6 +453,10 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
                            for step, scores in bagged_scores.items()})
     df_scores.columns = df_scores.columns.rename('score')
     df_scores.index = df_scores.index.rename(['step', 'n_bag'])
+    if y_test is None:
+        df_scores['fold_idx'] = list(fold_idxs) # valid
+    else:
+        df_scores['fold_idx'] = list(fold_idxs) + list(fold_idxs)
     # bagging learning curves can be plotted on this df_scores
     if save_output:
         bagged_scores_filename = os.path.join(

@@ -135,42 +135,50 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     predictions_test_list = []
     df_scores_list = []
 
-    if fold_idxs is None:
-        fold_start = 0
-        fold_stop = None
-    else:
-        fold_start = min(fold_idxs)
-        fold_stop = max(fold_idxs) + 1
-    fold_i = fold_start - 1
-    for fold in itertools.islice(cv, fold_start, fold_stop):
-        fold_i += 1
-        if not fold_idxs is None and not fold_i in fold_idxs:
-            continue
-        fold_output_path = ''
-        if is_pickle or save_output:
-            # creating <submission_path>/<submission>/training_output/fold_<i>
-            fold_output_path = os.path.join(
-                training_output_path, f'fold_{fold_i}')
-            if not os.path.exists(fold_output_path):
-                os.makedirs(fold_output_path)
-        print_title('CV fold {}'.format(fold_i))
+    # if no folds given, we may just want to retrain on full training fold
+    if fold_idxs is None or len(fold_idxs) > 0:
+        if fold_idxs is None:
+            fold_start = 0
+            fold_stop = None
+        else:
+            fold_start = min(fold_idxs)
+            fold_stop = max(fold_idxs) + 1
+        fold_i = fold_start - 1
+        for fold in itertools.islice(cv, fold_start, fold_stop):
+            fold_i += 1
+            if not fold_idxs is None and not fold_i in fold_idxs:
+                continue
+            fold_output_path = ''
+            if is_pickle or save_output:
+                # creating <submission_path>/<submission>/training_output/fold_<i>
+                fold_output_path = os.path.join(
+                    training_output_path, f'fold_{fold_i}')
+                if not os.path.exists(fold_output_path):
+                    os.makedirs(fold_output_path)
+            print_title('CV fold {}'.format(fold_i))
+        
+            predictions_valid, predictions_test, df_scores = \
+                run_submission_on_cv_fold(
+                    problem, submission_path, fold, X_train, y_train,
+                    X_test, y_test, is_pickle, is_partial_train, save_output,
+                    fold_output_path, ramp_data_dir)
     
-        predictions_valid, predictions_test, df_scores = \
-            run_submission_on_cv_fold(
-                problem, submission_path, fold, X_train, y_train,
-                X_test, y_test, is_pickle, is_partial_train, save_output,
-                fold_output_path, ramp_data_dir)
-
-        # saving predictions for CV bagging after the CV loop
-        df_scores_list.append(df_scores)
-        predictions_valid_list.append(predictions_valid)
-        predictions_test_list.append(predictions_test)
-
-    print_title('----------------------------')
-    print_title('Mean CV scores')
-    print_title('----------------------------')
-    df_mean_scores = mean_score_matrix(df_scores_list, score_types)
-    print_df_scores(df_mean_scores, indent='\t')
+            # saving predictions for CV bagging after the CV loop
+            df_scores_list.append(df_scores)
+            predictions_valid_list.append(predictions_valid)
+            predictions_test_list.append(predictions_test)
+    
+        print_title('----------------------------')
+        print_title('Mean CV scores')
+        print_title('----------------------------')
+        df_mean_scores = mean_score_matrix(df_scores_list, score_types)
+        print_df_scores(df_mean_scores, indent='\t')
+    
+        bag_submissions(
+            problem, X_train, y_train, y_test, predictions_valid_list,
+            predictions_test_list, training_output_path,
+            ramp_data_dir=ramp_data_dir, score_type_index=None,
+            save_output=save_output, fold_idxs=fold_idxs)
 
     if retrain:
         # We retrain on the full training set
@@ -181,11 +189,6 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
             problem, submission_path, X_train, y_train, X_test, y_test,
             score_types, is_pickle, save_output, training_output_path,
             ramp_data_dir)
-    bag_submissions(
-        problem, X_train, y_train, y_test, predictions_valid_list,
-        predictions_test_list, training_output_path,
-        ramp_data_dir=ramp_data_dir, score_type_index=None,
-        save_output=save_output, fold_idxs=fold_idxs)
 
 
 def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',

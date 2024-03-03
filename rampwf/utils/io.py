@@ -4,8 +4,9 @@ Utilities for saving and loading predictions
 """
 import os
 import sys
-import traceback as tb
 import numpy as np
+import pandas as pd
+import traceback as tb
 
 from .pretty_print import print_warning
 
@@ -158,3 +159,15 @@ def print_submission_exception(save_output, output_path):
         with open(os.path.join(output_path, 'error.txt'), 'w') as fd:
             for s in trace:
                 fd.write(s)
+
+
+def load_submission_fold_score(submission_path, fold_idx, metric, step,
+                               data_label=None):
+    """Load the score for a single submission on a single fold."""
+    training_output_path = submission_path / 'training_output'
+    if data_label is not None:
+        training_output_path = training_output_path / data_label
+    fold_path = training_output_path / f'fold_{fold_idx}'
+    scores_df = pd.read_csv(fold_path / 'scores.csv', index_col=0)
+    return scores_df.loc[step, metric]
+
