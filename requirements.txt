@@ -4,4 +4,4 @@ pandas>=0.19.2
 xarray
 scikit-learn>=0.22
 cloudpickle
-click
+click==8.0.0
