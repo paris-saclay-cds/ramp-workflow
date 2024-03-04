@@ -416,6 +416,7 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
     # placeholder to store the scores and predictions
     bagged_scores = {}
     scoring_step = ['valid', 'test'] if y_test is not None else ['valid']
+    real_fold_idxs = []  # in case fold_idxs is None, we need to construct this
     for step in scoring_step:
         if step == 'valid':
             test_idx = []
@@ -430,6 +431,7 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
                 fold_i += 1
                 if fold_idxs is None or fold_i in fold_idxs:
                     test_idx.append(fold[1])
+                    real_fold_idxs.append(fold_i)
             pred_list = predictions_valid_list
             y_step = y_train
         else:
@@ -454,9 +456,9 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
     df_scores.columns = df_scores.columns.rename('score')
     df_scores.index = df_scores.index.rename(['step', 'n_bag'])
     if y_test is None:
-        df_scores['fold_idx'] = list(fold_idxs) # valid
+        df_scores['fold_idx'] = list(real_fold_idxs) # valid
     else:
-        df_scores['fold_idx'] = list(fold_idxs) + list(fold_idxs)
+        df_scores['fold_idx'] = list(real_fold_idxs) + list(real_fold_idxs)
     # bagging learning curves can be plotted on this df_scores
     if save_output:
         bagged_scores_filename = os.path.join(
