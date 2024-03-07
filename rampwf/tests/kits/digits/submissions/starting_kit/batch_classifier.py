@@ -15,7 +15,7 @@ class BatchClassifier(object):
         gen_train, gen_valid, nb_train, nb_valid =\
             gen_builder.get_train_valid_generators(
                 batch_size=batch_size, valid_ratio=0.1)
-        self.model.fit_generator(
+        self.model.fit(
             gen_train,
             # Total number of steps (batches of samples) to yield from
             # generator before declaring one epoch finished and starting the
@@ -49,7 +49,7 @@ class BatchClassifier(object):
             # is set to some number > 1, the neural net will be trained with
             # repetitions of the same data, because the workers are independent
             # and they got through the same generator.
-            # Hence it is necessary to introduce a shared lock between the the
+            # Hence it is necessary to introduce a shared lock between the
             # processes so that they load different data, this can become a bit
             # complicated, so I choose to rather load exactly one chunk at a
             # time using 1 worker (so `workers` have to be equal to 1), but

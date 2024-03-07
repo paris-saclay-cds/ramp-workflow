@@ -5,7 +5,7 @@ Build your own RAMP challenge
 
 If you have a new data set and a predictive problem, you may wish to use RAMP
 to organise local experiments within your team, log model prototypes
-and their scores or formalise your problem with resuable workflow building
+and their scores or formalise your problem with reusable workflow building
 blocks. If you are a :ref:`researcher <researcher-domain-science>` you may
 be interested in setting up a RAMP challenge on `RAMP studio`_ to incite data
 scientists and machine learning researchers to provide machine learning

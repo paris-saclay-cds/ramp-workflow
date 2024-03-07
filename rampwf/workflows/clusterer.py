@@ -14,7 +14,7 @@ receives only the coavariates and the event_id (assumed to be the first column
 of `X_array`). It slices up `X_array` into single events, drops the event ids,
 and sends the single event to the `predict_single_event` function implemented
 by the users. This function returns a vector of labels (cluster assignments)
-which is then joined back the the event id column and returned (to be passed
+which is then joined back to the event id column and returned (to be passed
 into `prediction_types.Clustering` and evaluated by
 `score_types.clustering_efficiency`).
 """

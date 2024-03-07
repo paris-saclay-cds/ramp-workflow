@@ -3,16 +3,28 @@ Utility for basic sanitation of user provided Python scripts.
 False negatives are expected.
 """
 import sys
+import re
 
-BLACKLIST = [
+BLACKLIST = {
     # subprocess module
-    'subprocess', 'Popen',
+    'subprocess': 'subprocess',
+    'Popen': 'Popen',
     # shutil module
-    'shutil', 'rmtree', 'copytree',
+    'shutil': 'shutil',
+    'rmtree': 'rmtree',
+    'copytree': 'copytree',
     # os module
-    'fdopen', 'fchmod', 'fchown', 'ftruncate', 'open', 'listdir', 'scandir',
-    'removedirs'
-]
+    'fdopen': 'fdopen',
+    'fchmod': 'fchmod',
+    'fchown': 'fchown',
+    'ftruncate': 'ftruncate',
+    'listdir': 'listdir',
+    'scandir': 'scandir',
+    'removedirs': 'removedirs',
+    # os.open or open keyword. Do not match all open as some challenge requires
+    # opening Images for instance with PIL with Image.open.
+    'open': '(?:os.| )open',
+}
 
 
 def _sanitize_input(code):
@@ -22,9 +34,9 @@ def _sanitize_input(code):
     warning / detections of users trying to tamper with the RAMP board system.
     """
 
-    for key in BLACKLIST:
-        if key in code:
-            msg = "forbidden key word {} detected in submission.".format(key)
+    for kw, pattern in BLACKLIST.items():
+        if len(re.findall(pattern, code)) > 0:
+            msg = f"forbidden key word {kw} detected in submission."
             if 'ramp_database' in sys.modules:
                 msg += (
                     ' Tampering with the RAMP server is strictly forbidden! '
