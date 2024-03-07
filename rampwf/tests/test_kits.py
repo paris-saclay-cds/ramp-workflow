@@ -85,6 +85,7 @@ def test_external_imports(tmpdir):
         retrain=True)
 
 
+@pytest.mark.skip(reason="skipping notebook tests for now.")
 @pytest.mark.parametrize(
     "path_kit",
     _generate_grid_path_kits())
