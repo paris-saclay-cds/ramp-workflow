@@ -123,7 +123,7 @@ def _read_data(path, X_name, data_label=''):
     X_df = pd.concat([X_df, y_df_no_name], axis=1)
 
     new_names = columns_X + extra_truth
-    X_df.set_axis(new_names, axis=1, inplace=True)
+    X_df = X_df.set_axis(new_names, axis=1)
 
     X_df.set_index(date, inplace=True)
     X_df.dropna(how='any', inplace=True)
