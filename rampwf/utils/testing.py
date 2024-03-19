@@ -253,6 +253,7 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         ramp_kit_dir, ramp_data_dir, data_label)
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label)
     valid_is_list = []
+    real_fold_idxs = []
     if fold_idxs is None:
         fold_start = 0
         fold_stop = None
@@ -264,18 +265,18 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         fold_i += 1
         if fold_idxs is None or fold_i in fold_idxs:
             valid_is_list.append(fold[1])
+            real_fold_idxs.append(fold_i)
 
     score_types = assert_score_types(ramp_kit_dir)
     n_folds = len(valid_is_list)
     n_real_folds = 0
-    real_fold_idxs = []
     contributivitys = np.zeros((len(submissions), fold_i + 1))
 
     combined_predictions_valid_list = []
     foldwise_best_predictions_valid_list = []
     combined_predictions_test_list = []
     foldwise_best_predictions_test_list = []
-    for fold_i, valid_is in zip(fold_idxs, valid_is_list):
+    for fold_i, valid_is in zip(real_fold_idxs, valid_is_list):
         print_title('CV fold {}'.format(fold_i))
         ground_truths_valid = problem.Predictions(
             y_true=y_train, fold_is=valid_is)
@@ -303,7 +304,6 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         # Only bag fold if there is at least one submission trained on it
         if len(predictions_valid_list) > 0:
             n_real_folds += 1
-            real_fold_idxs.append(fold_i)
             best_index_list = blend_on_fold(
                 predictions_valid_list, ground_truths_valid,
                 score_types[score_type_index],
@@ -349,10 +349,9 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         if data_label is not None:
             output_path = os.path.join(output_path, data_label)
     if save_output:
-        if not os.path.exists(output_path):
-            os.mkdir(output_path)
-        contributivitys_df.to_csv(os.path.join(
-            output_path, 'contributivities.csv'), index=False)
+        Path(output_path).mkdir(parents=True, exist_ok=True)
+        contributivitys_df.to_csv(
+            Path(output_path) / 'contributivities.csv', index=False)
 
     # bagging the foldwise ensembles
     bag_submissions(
