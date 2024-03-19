@@ -44,7 +44,7 @@ def assert_title(ramp_kit_dir='.'):
 
 def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=None):
     problem = assert_read_problem(ramp_kit_dir)
-    print_title('Reading train and test files from {}/data/{} ...'.format(
+    print_title('Reading train and test files from {}/{} ...'.format(
         ramp_data_dir, f'{data_label}/' if data_label is not None else ""))
     kwargs = {}
     if data_label is not None:
