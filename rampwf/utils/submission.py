@@ -2,10 +2,10 @@
 """
 Utilities to manage the submissions
 """
-import os
 import time
 import pickle
 import itertools
+from pathlib import Path
 from inspect import signature
 from collections.abc import Iterable
 from collections import OrderedDict
@@ -220,6 +220,7 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
     df_scores : pd.DataFrame
         table of scores (rows = train/valid/test steps, columns = scores)
     """
+    fold_output_path = Path(fold_output_path)
     score_types = problem.score_types
     train_is, valid_is = fold
     pred, timing = train_test_submission(
@@ -248,11 +249,11 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
                 save_y_pred(
                     problem, y_pred_test, data_path=ramp_data_dir,
                     output_path=fold_output_path, suffix='test')
-            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
+            with open(fold_output_path / 'train_time', 'w') as fd:
                 fd.write(str(train_time))
-            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
+            with open(fold_output_path / 'valid_time', 'w') as fd:
                 fd.write(str(valid_time))
-            with open(os.path.join(fold_output_path, 'test_time'), 'w') as fd:
+            with open(fold_output_path / 'test_time', 'w') as fd:
                 fd.write(str(test_time))
         df_scores = score_matrix(
             score_types,
@@ -269,9 +270,9 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
             save_y_pred(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=fold_output_path, suffix='train')
-            with open(os.path.join(fold_output_path, 'train_time'), 'w') as fd:
+            with open(fold_output_path / 'train_time', 'w') as fd:
                 fd.write(str(train_time))
-            with open(os.path.join(fold_output_path, 'valid_time'), 'w') as fd:
+            with open(fold_output_path / 'valid_time', 'w') as fd:
                 fd.write(str(valid_time))
         df_scores = score_matrix(
             score_types,
@@ -285,8 +286,7 @@ def run_submission_on_cv_fold(problem, module_path, fold, X_train,
     
     set_state('scored', save_output, fold_output_path)
     if save_output:
-        filename = os.path.join(fold_output_path, 'scores.csv')
-        df_scores.to_csv(filename)
+        df_scores.to_csv(fold_output_path / 'scores.csv')
     df_scores_rounded = round_df_scores(df_scores, score_types)
     print_df_scores(df_scores_rounded, indent='\t')
     
@@ -319,7 +319,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         True if the workflow should be pickled
     save_output : boolean
         True if predictions should be written in files
-    output_path : str
+    output_path : Path
         the path into which the workflow will be pickled
     ramp_data_dir : str
         the directory of the data
@@ -344,8 +344,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
-            filename = os.path.join(output_path, 'retrain_scores.csv')
-            df_scores.to_csv(filename)
+            df_scores.to_csv(output_path / 'retrain_scores.csv')
             save_submissions(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=output_path, suffix='retrain_train')
@@ -362,8 +361,7 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
-            filename = os.path.join(output_path, 'retrain_scores.csv')
-            df_scores.to_csv(filename)
+            df_scores.to_csv(output_path / 'retrain_scores.csv')
             save_submissions(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=output_path, suffix='retrain_train')
@@ -388,7 +386,7 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
         returned by run_submission_on_cv_fold
     predictions_test_list : list of Prediction objects or None
         returned by run_submission_on_cv_fold
-    training_output_path : str
+    training_output_path : Path
         submissions/<submission>/training_output
     ramp_data_dir : str
         the directory of the data
@@ -448,7 +446,7 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
             save_submissions(
                 problem, pred.y_pred, data_path=ramp_data_dir,
                 output_path=training_output_path,
-                suffix='{}bagged_{}'.format(score_f_name_prefix, step)
+                suffix=f'{score_f_name_prefix}bagged_{step}'
             )
 
     df_scores = pd.concat({step: pd.DataFrame(scores)
@@ -461,9 +459,7 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
         df_scores['fold_idx'] = list(real_fold_idxs) + list(real_fold_idxs)
     # bagging learning curves can be plotted on this df_scores
     if save_output:
-        bagged_scores_filename = os.path.join(
-            training_output_path, 'bagged_scores.csv')
-        df_scores.to_csv(bagged_scores_filename)
+        df_scores.to_csv(training_output_path / 'bagged_scores.csv')
 
     # prepare the bagged scores which will be printed.
     highest_level = df_scores.index.get_level_values('n_bag').max()
@@ -484,7 +480,7 @@ def pickle_trained_model(fold_output_path, trained_model,
 
     Parameters
     ----------
-    fold_output_path : str
+    fold_output_path : Path
         the path of the folder containing the pickled workflow
     trained_model : a model
         the model to be pickled
@@ -499,7 +495,7 @@ def pickle_trained_model(fold_output_path, trained_model,
     is_pickled : boolean
         True is pickling was successful, False otherwise
     """
-    workflow_file = os.path.join(fold_output_path, trained_model_name)
+    workflow_file = fold_output_path / trained_model_name
     try:
         with open(workflow_file, 'wb') as pickle_file:
             cloudpickle.dump(trained_model, pickle_file)
@@ -534,7 +530,7 @@ def unpickle_trained_model(fold_output_path,
 
     Parameters
     ----------
-    fold_output_path : str
+    fold_output_path : Path
         the path of the folder containing the pickled workflow
     trained_model_name : str (default='trained_model.pkl')
         the file name of the pickled model
@@ -545,7 +541,7 @@ def unpickle_trained_model(fold_output_path,
     trained_model : a model or None
         either the unpickled model or None if unpickling unsuccessful
     """
-    workflow_file = os.path.join(fold_output_path, trained_model_name)
+    workflow_file = fold_output_path / trained_model_name
     try:
         with open(workflow_file, 'rb') as pickle_file:
             trained_model = cloudpickle.load(pickle_file)

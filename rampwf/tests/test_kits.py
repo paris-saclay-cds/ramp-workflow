@@ -112,7 +112,16 @@ def test_submission(path_kit):
                 ramp_data_dir=path_kit,
                 ramp_submission_dir=os.path.join(path_kit, 'submissions'),
                 submission=os.path.basename(sub), is_pickle=True,
-                save_output=False, retrain=True)
+                save_output=False, retrain=True
+            )
+            assert_submission(
+                ramp_kit_dir=path_kit,
+                ramp_data_dir=path_kit,
+                ramp_submission_dir=os.path.join(path_kit, 'submissions'),
+                submission=os.path.basename(sub), is_pickle=True,
+                save_output=False, retrain=True,
+                fold_idxs = [0, 2]
+            )
         # testing the partial training workflow
         if 'titanic_old' in sub or 'air_passengers_old' in sub:
             assert_submission(
@@ -121,7 +130,8 @@ def test_submission(path_kit):
                 ramp_submission_dir=os.path.join(path_kit, 'submissions'),
                 submission=os.path.basename(sub), is_pickle=True,
                 is_partial_train=True,
-                save_output=False, retrain=True)
+                save_output=False, retrain=True
+            )
 
 
 def test_fe_gen_reg_numpy():
@@ -160,19 +170,53 @@ def test_blending():
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
         ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
         submission='starting_kit', is_pickle=True,
-        save_output=True, retrain=True)
+        save_output=True, retrain=False,
+        fold_idxs=[0, 2],
+    )
     assert_submission(
         ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
         ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
         submission='random_forest_10_10', is_pickle=True,
-        save_output=True, retrain=True)
+        save_output=True, retrain=False,
+        fold_idxs=[0, 1]
+    )
     blend_submissions(
         ['starting_kit', 'random_forest_10_10'],
         ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
         ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
-        save_output=True)
+        save_output=True
+    )
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
+        submission='starting_kit', is_pickle=True,
+        save_output=True, retrain=True
+    )
+    assert_submission(
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
+        submission='random_forest_10_10', is_pickle=True,
+        save_output=True, retrain=True
+    )
+    blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
+        save_output=True
+    )
+    blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
+        save_output=True,
+        fold_idxs=[0, 2]
+    )
     # cleaning up so next test doesn't try to train "training_output"
     shutil.rmtree(os.path.join(
         PATH, "kits", "iris", "submissions", "training_output"))

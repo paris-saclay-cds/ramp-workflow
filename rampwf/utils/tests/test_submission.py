@@ -1,7 +1,7 @@
-import os
 import pytest
 import pickle
 import tempfile
+from pathlib import Path
 
 from rampwf.utils.submission import (
     pickle_trained_model, unpickle_trained_model)
@@ -16,7 +16,7 @@ def test_pickle_trained_model():
         def __reduce__(self):
             raise pickle.PicklingError("not picklable")
 
-    tmpdir = tempfile.mkdtemp()
+    tmpdir = Path(tempfile.mkdtemp())
     tmpfile = 'tmp.pkl'
 
     is_pickled = pickle_trained_model(
@@ -28,7 +28,7 @@ def test_pickle_trained_model():
             tmpdir, Unpicklable(), trained_model_name=tmpfile,
             is_silent=False, check_if_can_be_unpickled=False)
 
-    tmpdir = tempfile.mkdtemp()
+    tmpdir = Path(tempfile.mkdtemp())
     tmpfile = 'tmp.pkl'
     is_pickled = pickle_trained_model(
         tmpdir, 1, trained_model_name=tmpfile,
@@ -43,13 +43,13 @@ def test_pickle_trained_model():
 def test_unpickle_trained_model():
     # check that None is returned if trained model cannot be unpickled
 
-    tmpdir = tempfile.mkdtemp()
+    tmpdir = Path(tempfile.mkdtemp())
     tmpfile = 'tmp.pkl'
 
     trained_model = unpickle_trained_model(
         tmpdir, trained_model_name=tmpfile)
     assert trained_model is None
-    with open(os.path.join(tmpdir, tmpfile), 'w') as file:
+    with open(tmpdir / tmpfile, 'w') as file:
         file.write('dummy')
 
     trained_model = unpickle_trained_model(

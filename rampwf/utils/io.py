@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import pandas as pd
 import traceback as tb
+from pathlib import Path
 
 from .pretty_print import print_warning
 
@@ -43,12 +44,11 @@ def save_y_pred(problem, y_pred, data_path='.', output_path='.',
     except AttributeError:
         # We fall back to numpy savez_compressed
         try:
-            y_pred_f_name = os.path.join(output_path,
-                                         'y_pred_{}'.format(suffix))
+            y_pred_f_name = Path(output_path) / f'y_pred_{suffix}'
             np.savez_compressed(y_pred_f_name, y_pred=y_pred)
         except Exception as e:
             print_warning(
-                "Warning: model can't be saved.\n{}\n".format(e) +
+                f"Warning: model can't be saved.\n{e}\n" +
                 'Consider implementing custom save_y_pred in problem.py\n')
 
 
@@ -79,8 +79,7 @@ def load_y_pred(problem, data_path='.', input_path='.', suffix='test'):
         return problem.load_y_pred(data_path, input_path, suffix)
     except AttributeError:
         # We fall back to numpy load
-        y_pred_f_name = os.path.join(input_path,
-                                     'y_pred_{}.npz'.format(suffix))
+        y_pred_f_name = Path(input_path) / f'y_pred_{suffix}.npz'
         return np.load(y_pred_f_name)['y_pred']
 
 
@@ -124,11 +123,11 @@ def set_state(state, save_output, output_path):
         'validating_error', 'testing_error'.
     save_output : boolean
         True if state should be written in file
-    output_path : str
+    output_path : Path
         the path into which 'state.txt' will be saved
     """
     if save_output:
-        with open(os.path.join(output_path, 'state.txt'), 'w') as fd:
+        with open(output_path / 'state.txt', 'w') as fd:
             fd.write(state)
 
 
@@ -141,7 +140,7 @@ def print_submission_exception(save_output, output_path):
     ----------
     save_output : boolean
         True if error should be written in file
-    output_path : str
+    output_path : Path
         the path into which 'error.txt' will be saved
     """
     exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -156,7 +155,7 @@ def print_submission_exception(save_output, output_path):
     except IndexError:
         trace = trace[4:]
     if save_output:
-        with open(os.path.join(output_path, 'error.txt'), 'w') as fd:
+        with open(output_path / 'error.txt', 'w') as fd:
             for s in trace:
                 fd.write(s)
 
