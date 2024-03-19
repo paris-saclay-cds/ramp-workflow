@@ -6,6 +6,7 @@ import sys
 import time
 import shutil
 import itertools
+from pathlib import Path
 import numpy as np
 import pandas as pd
 
@@ -74,7 +75,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                       ramp_submission_dir='submissions', data_label=None,
                       submission='starting_kit', is_pickle=False,
                       is_partial_train=False, save_output=False,
-                      retrain=False, fold_idxs=None):
+                      retrain=False, bag=True, force_retrain=True,
+                      fold_idxs=None):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -100,6 +102,10 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
     retrain : bool, default is False
         Whether to train the workflow on the full training set and
         test on the test set.
+    bag : bool, default is True
+        Whether to bag the submission.
+    force_retrain : bool, default is True
+        Whether to retrain the folds which have scores.csv.
     fold_idxs : list of int, default=None
         Fold indices to train on.
         If None, we will train on all folds.
@@ -156,12 +162,25 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
                 if not os.path.exists(fold_output_path):
                     os.makedirs(fold_output_path)
             print_title('CV fold {}'.format(fold_i))
-        
-            predictions_valid, predictions_test, df_scores = \
-                run_submission_on_cv_fold(
-                    problem, submission_path, fold, X_train, y_train,
-                    X_test, y_test, is_pickle, is_partial_train, save_output,
-                    fold_output_path, ramp_data_dir)
+
+            do_train = True
+            if not force_retrain:
+                do_train = False
+                try:
+                    df_scores = pd.read_csv(Path(fold_output_path) / 'scores.csv')
+                    df_scores = df_scores.set_index('step')
+                    predictions_valid, predictions_test = load_predictions(
+                        problem, fold[1], data_path=ramp_data_dir,
+                        input_path=fold_output_path)
+                    print('Scores and predictions found and loaded, not retraining')
+                except FileNotFoundError:
+                    do_train = True
+            if do_train:
+                predictions_valid, predictions_test, df_scores = \
+                    run_submission_on_cv_fold(
+                        problem, submission_path, fold, X_train, y_train,
+                        X_test, y_test, is_pickle, is_partial_train, save_output,
+                        fold_output_path, ramp_data_dir)
     
             # saving predictions for CV bagging after the CV loop
             df_scores_list.append(df_scores)
@@ -174,11 +193,12 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         df_mean_scores = mean_score_matrix(df_scores_list, score_types)
         print_df_scores(df_mean_scores, indent='\t')
     
-        bag_submissions(
-            problem, X_train, y_train, y_test, predictions_valid_list,
-            predictions_test_list, training_output_path,
-            ramp_data_dir=ramp_data_dir, score_type_index=None,
-            save_output=save_output, fold_idxs=fold_idxs)
+        if bag:
+            bag_submissions(
+                problem, X_train, y_train, y_test, predictions_valid_list,
+                predictions_test_list, training_output_path,
+                ramp_data_dir=ramp_data_dir, score_type_index=None,
+                save_output=save_output, fold_idxs=fold_idxs)
 
     if retrain:
         # We retrain on the full training set
