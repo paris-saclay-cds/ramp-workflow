@@ -114,6 +114,9 @@ def test_submission(path_kit):
                 submission=os.path.basename(sub), is_pickle=True,
                 save_output=False, retrain=True
             )
+        # testing non-consecutive fold_idxs
+        # cv in kit needs at least 3 fold
+        if  not 'acrobot' in sub:
             assert_submission(
                 ramp_kit_dir=path_kit,
                 ramp_data_dir=path_kit,

@@ -7,16 +7,14 @@ import pickle
 import itertools
 from pathlib import Path
 from inspect import signature
-from collections.abc import Iterable
 from collections import OrderedDict
 
 import pandas as pd
 import cloudpickle
 
 from .io import save_y_pred, set_state, print_submission_exception
-from .combine import get_score_cv_bags
 from .pretty_print import print_title, print_df_scores, print_warning
-from .scoring import score_matrix, round_df_scores, reorder_df_scores
+from .scoring import score_matrix, round_df_scores
 
 
 def save_submissions(problem, y_pred, data_path='.', output_path='.',
@@ -365,109 +363,6 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
             save_submissions(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=output_path, suffix='retrain_train')
-
-
-def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
-                    predictions_test_list, training_output_path,
-                    ramp_data_dir='.', score_type_index=0,
-                    save_output=False, score_table_title='Bagged scores',
-                    score_f_name_prefix='', fold_idxs=None):
-    """CV-bag trained submission.
-
-    Parameters
-    ----------
-    problem : problem object
-        imp.loaded from problem.py
-    y_train : a list of training ground truth
-        returned by problem.get_train_data
-    y_test : a list of testing ground truth or None
-        returned by problem.get_test_data
-    predictions_valid_list : list of Prediction objects
-        returned by run_submission_on_cv_fold
-    predictions_test_list : list of Prediction objects or None
-        returned by run_submission_on_cv_fold
-    training_output_path : Path
-        submissions/<submission>/training_output
-    ramp_data_dir : str
-        the directory of the data
-    score_type_index : int or None.
-        The score type on which we bag. If None, all scores will be computed.
-    save_output : boolean
-        True if predictions should be written in files
-    score_table_title : str
-    score_f_name_prefix : str
-    fold_idxs : list of int, default=None
-        Fold indices to bag.
-        If None, we will bag all folds.
-    """
-    print_title('----------------------------')
-    print_title(score_table_title)
-    print_title('----------------------------')
-    score_type_index = (slice(None) if score_type_index is None
-                        else score_type_index)
-    score_types = problem.score_types[score_type_index]
-    score_types = (
-        [score_types] if not isinstance(score_types, Iterable)
-        else score_types)
-    cv = problem.get_cv(X_train, y_train)
-
-    # placeholder to store the scores and predictions
-    bagged_scores = {}
-    scoring_step = ['valid', 'test'] if y_test is not None else ['valid']
-    real_fold_idxs = []  # in case fold_idxs is None, we need to construct this
-    for step in scoring_step:
-        if step == 'valid':
-            test_idx = []
-            if fold_idxs is None:
-                fold_start = 0
-                fold_stop = None
-            else:
-                fold_start = min(fold_idxs)
-                fold_stop = max(fold_idxs) + 1
-            fold_i = fold_start - 1
-            for fold in itertools.islice(cv, fold_start, fold_stop):
-                fold_i += 1
-                if fold_idxs is None or fold_i in fold_idxs:
-                    test_idx.append(fold[1])
-                    real_fold_idxs.append(fold_i)
-            pred_list = predictions_valid_list
-            y_step = y_train
-        else:
-            test_idx = None
-            pred_list = predictions_test_list
-            y_step = y_test
-        gt_list = problem.Predictions(y_true=y_step)
-        pred, score_dict = get_score_cv_bags(
-            score_types, pred_list, gt_list, test_is_list=test_idx)
-        bagged_scores[step] = score_dict
-        # the predictions will always be the same for all score and we store
-        # only a single instance
-        if save_output:
-            save_submissions(
-                problem, pred.y_pred, data_path=ramp_data_dir,
-                output_path=training_output_path,
-                suffix=f'{score_f_name_prefix}bagged_{step}'
-            )
-
-    df_scores = pd.concat({step: pd.DataFrame(scores)
-                           for step, scores in bagged_scores.items()})
-    df_scores.columns = df_scores.columns.rename('score')
-    df_scores.index = df_scores.index.rename(['step', 'n_bag'])
-    if y_test is None:
-        df_scores['fold_idx'] = list(real_fold_idxs) # valid
-    else:
-        df_scores['fold_idx'] = list(real_fold_idxs) + list(real_fold_idxs)
-    # bagging learning curves can be plotted on this df_scores
-    if save_output:
-        df_scores.to_csv(training_output_path / 'bagged_scores.csv')
-
-    # prepare the bagged scores which will be printed.
-    highest_level = df_scores.index.get_level_values('n_bag').max()
-    df_scores = df_scores.loc[(slice(None), highest_level), :]
-    df_scores.index = df_scores.index.droplevel('n_bag')
-    df_scores = reorder_df_scores(df_scores, score_types)
-    df_scores = round_df_scores(df_scores, score_types)
-    print_df_scores(df_scores, indent='\t')
 
 
 def pickle_trained_model(fold_output_path, trained_model,

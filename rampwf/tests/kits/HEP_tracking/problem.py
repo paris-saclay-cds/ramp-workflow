@@ -11,7 +11,7 @@ score_types = [
     rw.score_types.ClusteringEfficiency(name='efficiency', precision=3),
 ]
 # validation folds don't cut into events
-cv = rw.cvs.Clustering(n_cv=1, cv_test_size=0.5, random_state=57)
+cv = rw.cvs.Clustering(n_cv=3, cv_test_size=0.5, random_state=57)
 get_cv = cv.get_cv
 
 

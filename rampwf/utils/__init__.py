@@ -1,8 +1,8 @@
 from .testing import (
     assert_title, assert_data, assert_cv, assert_read_problem,
-    assert_submission, assert_notebook, blend_submissions)
+    assert_submission, assert_notebook, bag_submissions, blend_submissions)
 from .io import load_predictions, load_submission_fold_score
-from .submission import run_submission_on_cv_fold, bag_submissions
+from .submission import run_submission_on_cv_fold
 from .submission import pickle_trained_model, unpickle_trained_model
 from .combine import get_score_cv_bags
 from .importing import import_module_from_source
