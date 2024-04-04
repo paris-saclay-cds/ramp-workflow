@@ -12,15 +12,15 @@ from typing import Tuple, Any, Optional
 class FeatureExtractorClassifierWithEDA(object):
     def __init__(
         self,
-        preprocessor_name: Optional[str] = "data_preprocessor",
+#        preprocessor_name: Optional[str] = "data_preprocessor",
         feature_extractor_name: str = "feature_extractor",
         classifier_name: str = "classifier",
     ):
-        self.preprocessor_name = preprocessor_name
+#        self.preprocessor_name = preprocessor_name
         self.feature_extractor_name = feature_extractor_name
         self.classifier_name = classifier_name
         self.element_names = [
-            preprocessor_name,
+#            preprocessor_name,
             feature_extractor_name,
             classifier_name,
         ]
@@ -103,7 +103,7 @@ class FeatureExtractorClassifierWithEDA(object):
         X = X.copy()
 
         X = X.iloc[train_is]
-        y = y[train_is].ravel()
+        y = y[train_is]
 
         # Perform feature extraction
         # ---------------------------
