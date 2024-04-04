@@ -65,13 +65,12 @@ def assert_data(ramp_kit_dir='.', ramp_data_dir='.',
 
 
 @cache
-def _get_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs_tuple):
+def _get_cv(ramp_kit_dir, ramp_data_dir, data_label, 
+            fold_idxs_tuple, submission_path=None):
     # lists cannot be cached
     problem = assert_read_problem(ramp_kit_dir)
-    kwargs = {}
-    if data_label is not None:
-        kwargs['data_label'] = data_label
-    X_train, y_train = problem.get_train_data(path=ramp_data_dir, **kwargs)
+    X_train, y_train, _, _ = assert_data(
+        ramp_kit_dir, ramp_data_dir, data_label, submission_path)
     print_title('Reading cv ...')
     if fold_idxs_tuple is None:
         cv = list(problem.get_cv(X_train, y_train))
@@ -86,11 +85,18 @@ def _get_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs_tuple):
     return cv
 
 
-def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label=None, fold_idxs=None):
+def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label=None,
+              fold_idxs=None, submission_path=None):
     if fold_idxs is None:
-        return _get_cv(ramp_kit_dir, ramp_data_dir, data_label, None)
+        return _get_cv(
+            ramp_kit_dir, ramp_data_dir, data_label,
+            fold_idxs_tuple=None,
+            submission_path=submission_path)
     else:
-        return _get_cv(ramp_kit_dir, ramp_data_dir, data_label, tuple(fold_idxs))
+        return _get_cv(
+            ramp_kit_dir, ramp_data_dir, data_label,
+            fold_idxs_tuple=tuple(fold_idxs),
+            submission_path=submission_path)
 
 
 def assert_score_types(ramp_kit_dir='.'):
