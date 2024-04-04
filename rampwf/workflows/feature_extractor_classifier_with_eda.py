@@ -1,4 +1,4 @@
-import sys
+import os
 import time
 import inspect
 import hashlib
@@ -7,6 +7,7 @@ import pandas as pd
 from pathlib import Path
 from rampwf.utils.importing import import_module_from_source
 from typing import Tuple, Any, Optional
+import types
 
 
 class FeatureExtractorClassifierWithEDA(object):
@@ -49,29 +50,38 @@ class FeatureExtractorClassifierWithEDA(object):
     def preprocess_data(
         self,
         module_path: str,
-        X_train: np.ndarray,
+        X_train: Tuple[pd.DataFrame, types.ModuleType],
         y_train: np.ndarray,
-        X_test: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        X_test: Tuple[pd.DataFrame, types.ModuleType],
+    ) -> Tuple[
+        Tuple[pd.DataFrame, types.ModuleType],
+        np.ndarray,
+        Tuple[pd.DataFrame, types.ModuleType],
+    ]:
         """This function preprocesses the data through the data_preprocessor
 
         Args:
             module_path (str): path of the submission
-            X_train (np.ndarray[Any, np.dtype[np.float64]]): Train dataset
+            X_train (Tuple[pd.DataFrame, types.ModuleType]): Train dataset with eda
             y_train (np.ndarray[Any, np.dtype[np.float64]]): train target
-            X_test (np.ndarray[Any, np.dtype[np.float64]]): test dataset
+            X_test (Tuple[pd.DataFrame, types.ModuleType]): test dataset with eda
 
         Returns:
-            Tuple[np.ndarray, np.ndarray, np.ndarray]: The preprocessed data X_train, y_train, X_test
+            Tuple[Tuple[pd.DataFrame, types.ModuleType], np.ndarray, Tuple[pd.DataFrame, types.ModuleType]]: The preprocessed data X_train_eda, y_train, X_test_eda
         """
-        try:
+        data_preprocessor_path = Path(module_path) / "data_preprocessor.py"
+        if os.path.exists(data_preprocessor_path):
             data_preprocessor = import_module_from_source(
-                Path(module_path) / "data_preprocessor.py", "data_preprocessor"
+                data_preprocessor_path, "data_preprocessor"
             )
             dp = data_preprocessor.DataPreprocessor()
-            X_train, y_train, X_test = dp.preprocess(X_train, y_train, X_test)
-        except FileNotFoundError:
-            print("No preprocessor found in submission")
+            X_train, eda = X_train  # type: ignore
+            X_test = X_test
+            X_train, y_train, X_test = dp.preprocess(X_train, y_train, X_test, eda)
+        else:
+            print(
+                f"No preprocessor found in submission: {data_preprocessor_path.parent}"
+            )
         return X_train, y_train, X_test
 
     def train_submission(
