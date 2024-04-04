@@ -12,7 +12,7 @@ from typing import Tuple, Any, Optional
 class FeatureExtractorClassifierWithEDA(object):
     def __init__(
         self,
-        preprocessor_name: Optional[str] = "data_preprocessor",
+        preprocessor_name: Optional[str] = None,
         feature_extractor_name: str = "feature_extractor",
         classifier_name: str = "classifier",
     ):
@@ -20,10 +20,11 @@ class FeatureExtractorClassifierWithEDA(object):
         self.feature_extractor_name = feature_extractor_name
         self.classifier_name = classifier_name
         self.element_names = [
-            preprocessor_name,
             feature_extractor_name,
             classifier_name,
         ]
+        if self.preprocessor_name is not None:
+            self.element_names.append(self.preprocessor_name)
         self.cache_path = Path(".") / "cache"
         self.cache_path.mkdir(parents=True, exist_ok=True)
 
