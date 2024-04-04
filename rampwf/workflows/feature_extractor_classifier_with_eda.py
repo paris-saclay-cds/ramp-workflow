@@ -12,19 +12,19 @@ from typing import Tuple, Any, Optional
 class FeatureExtractorClassifierWithEDA(object):
     def __init__(
         self,
-        preprocessor_name: Optional[str] = None,
+        data_preprocessor_name: Optional[str] = None,
         feature_extractor_name: str = "feature_extractor",
         classifier_name: str = "classifier",
     ):
-        self.preprocessor_name = preprocessor_name
+        self.data_preprocessor_name = data_preprocessor_name
         self.feature_extractor_name = feature_extractor_name
         self.classifier_name = classifier_name
         self.element_names = [
             feature_extractor_name,
             classifier_name,
         ]
-        if self.preprocessor_name is not None:
-            self.element_names.append(self.preprocessor_name)
+        if self.data_preprocessor_name is not None:
+            self.element_names.append(self.data_preprocessor_name)
         self.cache_path = Path(".") / "cache"
         self.cache_path.mkdir(parents=True, exist_ok=True)
 
