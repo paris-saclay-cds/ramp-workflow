@@ -1,6 +1,7 @@
 # coding: utf-8
 
 """Provide utils to test ramp-kits."""
+
 import sys
 import time
 import shutil
@@ -10,6 +11,7 @@ from functools import cache
 from collections.abc import Iterable
 import numpy as np
 import pandas as pd
+import rampwf as rw
 
 from .combine import blend_on_fold, get_score_cv_bags
 from .io import load_y_pred, load_predictions
@@ -21,46 +23,47 @@ from .submission import run_submission_on_cv_fold, save_submissions
 from .submission import run_submission_on_full_train
 
 
-def assert_notebook(ramp_kit_dir='.'):
-    print('----------------------------')
+def assert_notebook(ramp_kit_dir="."):
+    print("----------------------------")
     convert_notebook(ramp_kit_dir)
     execute_notebook(ramp_kit_dir)
 
 
-def assert_read_problem(ramp_kit_dir='.'):
+def assert_read_problem(ramp_kit_dir="."):
     ramp_kit_dir = Path(ramp_kit_dir)
     # allowing external imports from the external_imports folder if it exists
-    ext_imp_dir = ramp_kit_dir / 'external_imports'
+    ext_imp_dir = ramp_kit_dir / "external_imports"
     if ext_imp_dir.exists() and str(ext_imp_dir) not in sys.path:
         sys.path.append(str(ext_imp_dir))
     # giving a random name to the module so it passes looped tests
-    return import_module_from_source(ramp_kit_dir / 'problem.py', 'problem')
+    return import_module_from_source(ramp_kit_dir / "problem.py", "problem")
 
 
-def assert_title(ramp_kit_dir='.'):
+def assert_title(ramp_kit_dir="."):
     problem = assert_read_problem(ramp_kit_dir)
-    print_title(f'Testing {problem.problem_title}')
+    print_title(f"Testing {problem.problem_title}")
 
 
 @cache
-def assert_data(ramp_kit_dir='.', ramp_data_dir='.',
-                data_label=None, submission_path=None):
+def assert_data(
+    ramp_kit_dir=".", ramp_data_dir=".", data_label=None, submission_path=None
+):
     problem = assert_read_problem(ramp_kit_dir)
-    data_label_dir = f'{data_label}/' if data_label is not None else ''
+    data_label_dir = f"{data_label}/" if data_label is not None else ""
     print_title(
-        f'Reading train and test files from {ramp_data_dir}/data/{data_label_dir}')
+        f"Reading train and test files from {ramp_data_dir}/data/{data_label_dir}"
+    )
     kwargs = {}
     if data_label is not None:
-        kwargs['data_label'] = data_label
+        kwargs["data_label"] = data_label
     X_train, y_train = problem.get_train_data(path=ramp_data_dir, **kwargs)
     X_test, y_test = problem.get_test_data(path=ramp_data_dir, **kwargs)
     if submission_path is not None:
         workflow = problem.workflow
-        try:
+        if hasattr(workflow, "preprocess_data"):
             X_train, y_train, X_test = workflow.preprocess_data(
-                submission_path, X_train, y_train, X_test)
-        except AttributeError:
-            print('No preprocessor found in workflow')
+                submission_path, X_train, y_train, X_test
+            )
     return X_train, y_train, X_test, y_test
 
 
@@ -80,8 +83,7 @@ def _get_cv(ramp_kit_dir, ramp_data_dir, data_label,
         except TypeError:
             # get_cv does not accept fold_idxs
             cv = list(problem.get_cv(X_train, y_train))
-            cv = [fold for fold_i, fold in enumerate(cv)
-                  if fold_i in fold_idxs_tuple]
+            cv = [fold for fold_i, fold in enumerate(cv) if fold_i in fold_idxs_tuple]
     return cv
 
 
@@ -99,18 +101,26 @@ def assert_cv(ramp_kit_dir='.', ramp_data_dir='.', data_label=None,
             submission_path=submission_path)
 
 
-def assert_score_types(ramp_kit_dir='.'):
+def assert_score_types(ramp_kit_dir="."):
     problem = assert_read_problem(ramp_kit_dir)
     score_types = problem.score_types
     return score_types
 
 
-def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
-                      ramp_submission_dir='submissions', data_label=None,
-                      submission='starting_kit', is_pickle=False,
-                      is_partial_train=False, save_output=False,
-                      retrain=False, bag=True, force_retrain=True,
-                      fold_idxs=None):
+def assert_submission(
+    ramp_kit_dir=".",
+    ramp_data_dir=".",
+    ramp_submission_dir="submissions",
+    data_label=None,
+    submission="starting_kit",
+    is_pickle=False,
+    is_partial_train=False,
+    save_output=False,
+    retrain=False,
+    bag=True,
+    force_retrain=True,
+    fold_idxs=None,
+):
     """Helper to test a submission from a ramp-kit.
 
     Parameters
@@ -145,25 +155,26 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         If None, we will train on all folds.
     """
     submission_path = Path(ramp_submission_dir) / submission
-    print_title(f'Training {submission_path} ...')
+    print_title(f"Training {submission_path} ...")
 
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(
-        ramp_kit_dir, ramp_data_dir, data_label, submission_path)
+        ramp_kit_dir, ramp_data_dir, data_label, submission_path
+    )
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
     score_types = assert_score_types(ramp_kit_dir)
 
-    training_output_path = ''
+    training_output_path = ""
     if is_pickle or save_output:
         # creating <submission_path>/<submission>/training_output dir
         # optionally
         # <submission_path>/<submission>/training_output/<data_label>
-        training_output_path = submission_path / 'training_output'
+        training_output_path = submission_path / "training_output"
         if data_label is not None:
             training_output_path = training_output_path / data_label
         training_output_path.mkdir(parents=True, exist_ok=True)
-        print(f'Training output path: {training_output_path}')
+        print(f"Training output path: {training_output_path}")
 
     # saving predictions for CV bagging after the CV loop
     predictions_valid_list = []
@@ -177,68 +188,111 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         else:
             fold_gen = zip(fold_idxs, cv)
         for fold_i, fold in fold_gen:
-            fold_output_path = ''
+            fold_output_path = ""
             if is_pickle or save_output:
                 # creating <submission_path>/<submission>/training_output/fold_<i>
-                fold_output_path = training_output_path / f'fold_{fold_i}'
+                fold_output_path = training_output_path / f"fold_{fold_i}"
                 fold_output_path.mkdir(parents=True, exist_ok=True)
-            print_title(f'CV fold {fold_i}')
+            print_title(f"CV fold {fold_i}")
 
             do_train = True
             if not force_retrain:
                 do_train = False
                 try:
-                    df_scores = pd.read_csv(fold_output_path / 'scores.csv')
-                    df_scores = df_scores.set_index('step')
+                    df_scores = pd.read_csv(fold_output_path / "scores.csv")
+                    df_scores = df_scores.set_index("step")
                     predictions_valid, predictions_test = load_predictions(
-                        problem, fold[1], data_path=ramp_data_dir,
-                        input_path=fold_output_path)
-                    print('Scores and predictions found and loaded, not retraining')
+                        problem,
+                        fold[1],
+                        data_path=ramp_data_dir,
+                        input_path=fold_output_path,
+                    )
+                    print("Scores and predictions found and loaded, not retraining")
                 except:
                     do_train = True
             if do_train:
-                predictions_valid, predictions_test, df_scores = \
+                predictions_valid, predictions_test, df_scores = (
                     run_submission_on_cv_fold(
-                        problem, submission_path, fold, X_train, y_train,
-                        X_test, y_test, is_pickle, is_partial_train, save_output,
-                        fold_output_path, ramp_data_dir)
-    
+                        problem,
+                        submission_path,
+                        fold,
+                        X_train,
+                        y_train,
+                        X_test,
+                        y_test,
+                        is_pickle,
+                        is_partial_train,
+                        save_output,
+                        fold_output_path,
+                        ramp_data_dir,
+                    )
+                )
+
             # saving predictions for CV bagging after the CV loop
             df_scores_list.append(df_scores)
             predictions_valid_list.append(predictions_valid)
             predictions_test_list.append(predictions_test)
-    
-        print_title('----------------------------')
-        print_title('Mean CV scores')
-        print_title('----------------------------')
+
+        print_title("----------------------------")
+        print_title("Mean CV scores")
+        print_title("----------------------------")
         df_mean_scores = mean_score_matrix(df_scores_list, score_types)
-        print_df_scores(df_mean_scores, indent='\t')
-    
+        print_df_scores(df_mean_scores, indent="\t")
+
         if bag:
             bag_submissions(
-                problem, X_train, y_train, y_test, predictions_valid_list,
-                predictions_test_list, training_output_path,
-                ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir,
-                data_label=data_label, score_type_index=None,
-                save_output=save_output, fold_idxs=fold_idxs)
+                problem,
+                X_train,
+                y_train,
+                y_test,
+                predictions_valid_list,
+                predictions_test_list,
+                training_output_path,
+                ramp_kit_dir=ramp_kit_dir,
+                ramp_data_dir=ramp_data_dir,
+                data_label=data_label,
+                score_type_index=None,
+                save_output=save_output,
+                fold_idxs=fold_idxs,
+            )
 
     if retrain:
         # We retrain on the full training set
-        print_title('----------------------------')
-        print_title('Retrain scores')
-        print_title('----------------------------')
+        print_title("----------------------------")
+        print_title("Retrain scores")
+        print_title("----------------------------")
         run_submission_on_full_train(
-            problem, submission_path, X_train, y_train, X_test, y_test,
-            score_types, is_pickle, save_output, training_output_path,
-            ramp_data_dir)
+            problem,
+            submission_path,
+            X_train,
+            y_train,
+            X_test,
+            y_test,
+            score_types,
+            is_pickle,
+            save_output,
+            training_output_path,
+            ramp_data_dir,
+        )
 
 
-def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
-                    predictions_test_list, training_output_path,
-                    ramp_kit_dir='.', ramp_data_dir='.', data_label=None,
-                    score_type_index=0,
-                    save_output=False, score_table_title='Bagged scores',
-                    score_f_name_prefix='', fold_idxs=None):
+def bag_submissions(
+    problem,
+    X_train,
+    y_train,
+    y_test,
+    predictions_valid_list,
+    predictions_test_list,
+    training_output_path,
+    ramp_kit_dir=".",
+    ramp_data_dir=".",
+    data_label=None,
+    score_type_index=0,
+    save_output=False,
+    score_table_title="Bagged scores",
+    score_f_name_prefix="",
+    fold_idxs=None,
+):
     """CV-bag trained submission.
 
     Parameters
@@ -272,24 +326,23 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
         Fold indices to bag.
         If None, we will bag all folds.
     """
-    print_title('----------------------------')
+    print_title("----------------------------")
     print_title(score_table_title)
-    print_title('----------------------------')
-    score_type_index = (slice(None) if score_type_index is None
-                        else score_type_index)
+    print_title("----------------------------")
+    score_type_index = slice(None) if score_type_index is None else score_type_index
     score_types = problem.score_types[score_type_index]
     score_types = (
-        [score_types] if not isinstance(score_types, Iterable)
-        else score_types)
+        [score_types] if not isinstance(score_types, Iterable) else score_types
+    )
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
     if fold_idxs is None:
         fold_idxs = list(range(len(cv)))
 
     # placeholder to store the scores and predictions
     bagged_scores = {}
-    scoring_step = ['valid', 'test'] if y_test is not None else ['valid']
+    scoring_step = ["valid", "test"] if y_test is not None else ["valid"]
     for step in scoring_step:
-        if step == 'valid':
+        if step == "valid":
             test_idx = [fold[1] for fold in cv]
             pred_list = predictions_valid_list
             y_step = y_train
@@ -299,43 +352,54 @@ def bag_submissions(problem, X_train, y_train, y_test, predictions_valid_list,
             y_step = y_test
         gt_list = problem.Predictions(y_true=y_step)
         pred, score_dict = get_score_cv_bags(
-            score_types, pred_list, gt_list, test_is_list=test_idx)
+            score_types, pred_list, gt_list, test_is_list=test_idx
+        )
         bagged_scores[step] = score_dict
         # the predictions will always be the same for all score and we store
         # only a single instance
         if save_output:
             save_submissions(
-                problem, pred.y_pred, data_path=ramp_data_dir,
+                problem,
+                pred.y_pred,
+                data_path=ramp_data_dir,
                 output_path=training_output_path,
-                suffix=f'{score_f_name_prefix}bagged_{step}'
+                suffix=f"{score_f_name_prefix}bagged_{step}",
             )
 
-    df_scores = pd.concat({step: pd.DataFrame(scores)
-                           for step, scores in bagged_scores.items()})
-    df_scores.columns = df_scores.columns.rename('score')
-    df_scores.index = df_scores.index.rename(['step', 'n_bag'])
+    df_scores = pd.concat(
+        {step: pd.DataFrame(scores) for step, scores in bagged_scores.items()}
+    )
+    df_scores.columns = df_scores.columns.rename("score")
+    df_scores.index = df_scores.index.rename(["step", "n_bag"])
     if y_test is None:
-        df_scores['fold_idx'] = list(fold_idxs) # valid
+        df_scores["fold_idx"] = list(fold_idxs)  # valid
     else:
-        df_scores['fold_idx'] = list(fold_idxs) + list(fold_idxs)
+        df_scores["fold_idx"] = list(fold_idxs) + list(fold_idxs)
     # bagging learning curves can be plotted on this df_scores
     if save_output:
-        df_scores.to_csv(training_output_path / 'bagged_scores.csv')
+        df_scores.to_csv(training_output_path / "bagged_scores.csv")
 
     # prepare the bagged scores which will be printed.
-    highest_level = df_scores.index.get_level_values('n_bag').max()
+    highest_level = df_scores.index.get_level_values("n_bag").max()
     df_scores = df_scores.loc[(slice(None), highest_level), :]
-    df_scores.index = df_scores.index.droplevel('n_bag')
+    df_scores.index = df_scores.index.droplevel("n_bag")
     df_scores = reorder_df_scores(df_scores, score_types)
     df_scores = round_df_scores(df_scores, score_types)
-    print_df_scores(df_scores, indent='\t')
+    print_df_scores(df_scores, indent="\t")
 
 
-def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
-                      ramp_submission_dir='.', data_label=None,
-                      save_output=False, min_improvement=0.0,
-                      score_type_index=0, output_path=None,
-                      fold_idxs=None):
+def blend_submissions(
+    submissions,
+    ramp_kit_dir=".",
+    ramp_data_dir=".",
+    ramp_submission_dir=".",
+    data_label=None,
+    save_output=False,
+    min_improvement=0.0,
+    score_type_index=0,
+    output_path=None,
+    fold_idxs=None,
+):
     """Blending submissions in a ramp-kit and compute contributivities.
 
     If save_output is True, we create three files:
@@ -368,9 +432,10 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         If None, we will blend all folds.
     """
     problem = assert_read_problem(ramp_kit_dir)
-    print_title(f'Blending {problem.problem_title}')
+    print_title(f"Blending {problem.problem_title}")
     X_train, y_train, X_test, y_test = assert_data(
-        ramp_kit_dir, ramp_data_dir, data_label)
+        ramp_kit_dir, ramp_data_dir, data_label
+    )
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
     if fold_idxs is None:
         fold_idxs = list(range(len(cv)))
@@ -385,22 +450,24 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
     combined_predictions_test_list = []
     foldwise_best_predictions_test_list = []
     for fold_i, fold in zip(fold_idxs, cv):
-        print_title(f'CV fold {fold_i}')
-        ground_truths_valid = problem.Predictions(
-            y_true=y_train, fold_is=fold[1])
+        print_title(f"CV fold {fold_i}")
+        ground_truths_valid = problem.Predictions(y_true=y_train, fold_is=fold[1])
         predictions_valid_list = []
         predictions_test_list = []
         submission_is = []
         for submission_i, submission in enumerate(submissions):
             module_path = Path(ramp_submission_dir) / submission
-            training_output_path = module_path / 'training_output'
+            training_output_path = module_path / "training_output"
             if data_label is not None:
                 training_output_path = training_output_path / data_label
-            fold_output_path = training_output_path / f'fold_{fold_i}'
+            fold_output_path = training_output_path / f"fold_{fold_i}"
             try:
                 predictions_valid, predictions_test = load_predictions(
-                    problem, fold[1], data_path=ramp_data_dir,
-                    input_path=fold_output_path)
+                    problem,
+                    fold[1],
+                    data_path=ramp_data_dir,
+                    input_path=fold_output_path,
+                )
                 predictions_valid_list.append(predictions_valid)
                 predictions_test_list.append(predictions_test)
                 submission_is.append(submission_i)
@@ -409,82 +476,108 @@ def blend_submissions(submissions, ramp_kit_dir='.', ramp_data_dir='.',
         # Only bag fold if there is at least one submission trained on it
         if len(predictions_valid_list) > 0:
             best_index_list = blend_on_fold(
-                predictions_valid_list, ground_truths_valid,
+                predictions_valid_list,
+                ground_truths_valid,
                 score_types[score_type_index],
-                min_improvement=min_improvement)
-    
+                min_improvement=min_improvement,
+            )
+
             # we share a unit of 1. among the contributive submissions
-            unit_contributivity = 1. / len(best_index_list)
+            unit_contributivity = 1.0 / len(best_index_list)
             for best_i in best_index_list:
-                contributivitys[submission_is[best_i], n_real_folds]\
-                    += unit_contributivity
-    
+                contributivitys[submission_is[best_i], n_real_folds] += (
+                    unit_contributivity
+                )
+
             combined_predictions_valid_list.append(
-                problem.Predictions.combine(
-                    predictions_valid_list, best_index_list))
+                problem.Predictions.combine(predictions_valid_list, best_index_list)
+            )
             foldwise_best_predictions_valid_list.append(
-                predictions_valid_list[best_index_list[0]])
+                predictions_valid_list[best_index_list[0]]
+            )
             combined_predictions_test_list.append(
-                problem.Predictions.combine(
-                    predictions_test_list, best_index_list))
+                problem.Predictions.combine(predictions_test_list, best_index_list)
+            )
             foldwise_best_predictions_test_list.append(
-                predictions_test_list[best_index_list[0]])
+                predictions_test_list[best_index_list[0]]
+            )
 
             n_real_folds += 1
             real_fold_idxs.append(fold_i)
 
     if n_real_folds == 0:
-        print('No folds to blend')
+        print("No folds to blend")
         return
-        
+
     contributivitys /= n_real_folds
     contributivitys_df = pd.DataFrame()
-    contributivitys_df['submission'] = np.array(submissions)
-    contributivitys_df['contributivity'] = np.zeros(len(submissions))
+    contributivitys_df["submission"] = np.array(submissions)
+    contributivitys_df["contributivity"] = np.zeros(len(submissions))
     for i, fold_i in enumerate(real_fold_idxs):
         c_i = contributivitys[:, i]
-        contributivitys_df['fold_{}'.format(fold_i)] = c_i
-        contributivitys_df['contributivity'] += c_i
-    percentage_factor = 100 / contributivitys_df['contributivity'].sum()
-    contributivitys_df['contributivity'] *= percentage_factor
-    rounded = contributivitys_df['contributivity'].round().astype(int)
-    contributivitys_df['contributivity'] = rounded
+        contributivitys_df["fold_{}".format(fold_i)] = c_i
+        contributivitys_df["contributivity"] += c_i
+    percentage_factor = 100 / contributivitys_df["contributivity"].sum()
+    contributivitys_df["contributivity"] *= percentage_factor
+    rounded = contributivitys_df["contributivity"].round().astype(int)
+    contributivitys_df["contributivity"] = rounded
     contributivitys_df = contributivitys_df.sort_values(
-        'contributivity', ascending=False)
+        "contributivity", ascending=False
+    )
     print(contributivitys_df.to_string(index=False))
 
     if output_path is None:
-        output_path = Path(ramp_submission_dir) / 'training_output'
+        output_path = Path(ramp_submission_dir) / "training_output"
         if data_label is not None:
             output_path = output_path / data_label
     if save_output:
         output_path.mkdir(parents=True, exist_ok=True)
-        contributivitys_df.to_csv(
-            output_path / 'contributivities.csv', index=False)
+        contributivitys_df.to_csv(output_path / "contributivities.csv", index=False)
 
     # bagging the foldwise ensembles
     bag_submissions(
-        problem, X_train, y_train, y_test, combined_predictions_valid_list,
-        combined_predictions_test_list, output_path,
-        ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir,
-        data_label=data_label, score_type_index=score_type_index,
-        save_output=save_output, score_table_title='Combined bagged scores',
-        score_f_name_prefix='combined_', fold_idxs=real_fold_idxs)
+        problem,
+        X_train,
+        y_train,
+        y_test,
+        combined_predictions_valid_list,
+        combined_predictions_test_list,
+        output_path,
+        ramp_kit_dir=ramp_kit_dir,
+        ramp_data_dir=ramp_data_dir,
+        data_label=data_label,
+        score_type_index=score_type_index,
+        save_output=save_output,
+        score_table_title="Combined bagged scores",
+        score_f_name_prefix="combined_",
+        fold_idxs=real_fold_idxs,
+    )
     if save_output:
         shutil.move(
-            output_path / 'bagged_scores.csv',
-            output_path / 'bagged_scores_combined.csv')
+            output_path / "bagged_scores.csv",
+            output_path / "bagged_scores_combined.csv",
+        )
 
     # bagging the foldwise best submissions
     bag_submissions(
-        problem, X_train, y_train, y_test, foldwise_best_predictions_valid_list,
-        foldwise_best_predictions_test_list, output_path,
-        ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir,
-        data_label=data_label, score_type_index=score_type_index,
+        problem,
+        X_train,
+        y_train,
+        y_test,
+        foldwise_best_predictions_valid_list,
+        foldwise_best_predictions_test_list,
+        output_path,
+        ramp_kit_dir=ramp_kit_dir,
+        ramp_data_dir=ramp_data_dir,
+        data_label=data_label,
+        score_type_index=score_type_index,
         save_output=save_output,
-        score_table_title='Foldwise best bagged scores',
-        score_f_name_prefix='foldwise_best_', fold_idxs=real_fold_idxs)
+        score_table_title="Foldwise best bagged scores",
+        score_f_name_prefix="foldwise_best_",
+        fold_idxs=real_fold_idxs,
+    )
     if save_output:
         shutil.move(
-            output_path / 'bagged_scores.csv',
-            output_path / 'bagged_scores_foldwise_best.csv')
+            output_path / "bagged_scores.csv",
+            output_path / "bagged_scores_foldwise_best.csv",
+        )
