@@ -32,11 +32,23 @@ class FeatureExtractorClassifierWithEDA(object):
 #        print(f'size = {X.shape}, transform time = {transform_time}')
         return X_tr
         
+    def preprocess_data(self, module_path, X_train, y_train, X_test):
+        try: 
+            data_preprocessor = import_module_from_source(
+                Path(module_path) / 'data_preprocessor.py',
+                'data_preprocessor')
+            if len(self.element_names) == 2:
+                self.element_names.append('data_preprocessor')
+            dp = data_preprocessor.DataPreprocessor()
+            X_train, y_train, X_test = dp.preprocess(X_train, y_train, X_test)
+        except FileNotFoundError:
+            print('No preprocessor found in submission')
+        return X_train, y_train, X_test
+
     def train_submission(self, module_path, X_and_eda, y, train_is=None,
                          prev_trained_model=None):
         if train_is is None:
             train_is = slice(None, None, None)
-
         feature_extractor = import_module_from_source(
             Path(module_path) / f'{self.element_names[0]}.py',
             self.element_names[0])
@@ -48,7 +60,7 @@ class FeatureExtractorClassifierWithEDA(object):
             inspect.getsource(feature_extractor).encode('utf-8')).hexdigest()
         
         t0 = time.time()
-        fe.fit(X.iloc[train_is], y[train_is].ravel())        
+        fe.fit(X.iloc[train_is], y[train_is])        
         fit_time = time.time() - t0
 #        print(f'size = {X.iloc[train_is].shape}, fit time = {fit_time}')
 
@@ -60,9 +72,9 @@ class FeatureExtractorClassifierWithEDA(object):
         )
         clf = classifier.Classifier(eda)
         if prev_trained_model is None:
-            clf.fit(X_tr, y[train_is].ravel())
+            clf.fit(X_tr, y[train_is])
         else:
-            clf.fit(X_tr, y[train_is].ravel(), prev_trained_model[1])
+            clf.fit(X_tr, y[train_is], prev_trained_model[1])
 
         return fe, clf
 

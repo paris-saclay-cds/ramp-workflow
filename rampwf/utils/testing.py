@@ -43,7 +43,8 @@ def assert_title(ramp_kit_dir='.'):
 
 
 @cache
-def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=None):
+def assert_data(ramp_kit_dir='.', ramp_data_dir='.',
+                data_label=None, submission_path=None):
     problem = assert_read_problem(ramp_kit_dir)
     data_label_dir = f'{data_label}/' if data_label is not None else ''
     print_title(
@@ -53,6 +54,13 @@ def assert_data(ramp_kit_dir='.', ramp_data_dir='.', data_label=None):
         kwargs['data_label'] = data_label
     X_train, y_train = problem.get_train_data(path=ramp_data_dir, **kwargs)
     X_test, y_test = problem.get_test_data(path=ramp_data_dir, **kwargs)
+    if submission_path is not None:
+        workflow = problem.workflow
+        try:
+            X_train, y_train, X_test = workflow.preprocess_data(
+                submission_path, X_train, y_train, X_test)
+        except AttributeError:
+            print('No preprocessor found in workflow')
     return X_train, y_train, X_test, y_test
 
 
@@ -130,15 +138,15 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         Fold indices to train on.
         If None, we will train on all folds.
     """
+    submission_path = Path(ramp_submission_dir) / submission
+    print_title(f'Training {submission_path} ...')
+
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(
-        ramp_kit_dir, ramp_data_dir, data_label)
+        ramp_kit_dir, ramp_data_dir, data_label, submission_path)
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
     score_types = assert_score_types(ramp_kit_dir)
-
-    submission_path = Path(ramp_submission_dir) / submission
-    print_title(f'Training {submission_path} ...')
 
     training_output_path = ''
     if is_pickle or save_output:
