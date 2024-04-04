@@ -60,7 +60,7 @@ def assert_data(
     X_test, y_test = problem.get_test_data(path=ramp_data_dir, **kwargs)
     if submission_path is not None:
         workflow = problem.workflow
-        if isinstance(workflow, rw.workflows.FeatureExtractorClassifierWithEDA):
+        if hasattr(workflow, "preprocess_data"):
             X_train, y_train, X_test = workflow.preprocess_data(
                 submission_path, X_train, y_train, X_test
             )
