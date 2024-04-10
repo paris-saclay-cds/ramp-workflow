@@ -44,10 +44,25 @@ def assert_title(ramp_kit_dir="."):
     print_title(f"Testing {problem.problem_title}")
 
 
-@cache
-def assert_data(
-    ramp_kit_dir=".", ramp_data_dir=".", data_label=None, submission_path=None
+def preprocess_data(
+    submission_path,
+    X_train,
+    y_train,
+    X_test,
+    ramp_kit_dir="."
 ):
+    problem = assert_read_problem(ramp_kit_dir)
+    workflow = problem.workflow
+    if hasattr(workflow, "preprocess_data"):
+        print_title("Preprocessing data")
+        X_train, y_train, X_test = workflow.preprocess_data(
+            submission_path, X_train, y_train, X_test
+        )
+    return X_train, y_train, X_test
+
+
+@cache
+def assert_data(ramp_kit_dir=".", ramp_data_dir=".", data_label=None):
     problem = assert_read_problem(ramp_kit_dir)
     data_label_dir = f"{data_label}/" if data_label is not None else ""
     print_title(
@@ -58,23 +73,20 @@ def assert_data(
         kwargs["data_label"] = data_label
     X_train, y_train = problem.get_train_data(path=ramp_data_dir, **kwargs)
     X_test, y_test = problem.get_test_data(path=ramp_data_dir, **kwargs)
-    if submission_path is not None:
-        workflow = problem.workflow
-        if hasattr(workflow, "preprocess_data"):
-            X_train, y_train, X_test = workflow.preprocess_data(
-                submission_path, X_train, y_train, X_test
-            )
     return X_train, y_train, X_test, y_test
 
 
 @cache
 def _get_cv(
-    ramp_kit_dir, ramp_data_dir, data_label, fold_idxs_tuple, submission_path=None
+    ramp_kit_dir,
+    ramp_data_dir,
+    data_label,
+    fold_idxs_tuple,
 ):
     # lists cannot be cached
     problem = assert_read_problem(ramp_kit_dir)
     X_train, y_train, _, _ = assert_data(
-        ramp_kit_dir, ramp_data_dir, data_label, submission_path
+        ramp_kit_dir, ramp_data_dir, data_label
     )
     print_title("Reading cv ...")
     if fold_idxs_tuple is None:
@@ -94,7 +106,6 @@ def assert_cv(
     ramp_data_dir=".",
     data_label=None,
     fold_idxs=None,
-    submission_path=None,
 ):
     if fold_idxs is None:
         return _get_cv(
@@ -102,7 +113,6 @@ def assert_cv(
             ramp_data_dir,
             data_label,
             fold_idxs_tuple=None,
-            submission_path=submission_path,
         )
     else:
         return _get_cv(
@@ -110,7 +120,6 @@ def assert_cv(
             ramp_data_dir,
             data_label,
             fold_idxs_tuple=tuple(fold_idxs),
-            submission_path=submission_path,
         )
 
 
@@ -173,9 +182,12 @@ def assert_submission(
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(
-        ramp_kit_dir, ramp_data_dir, data_label, submission_path
+        ramp_kit_dir, ramp_data_dir, data_label
     )
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
+    X_train, y_train, X_test = preprocess_data(
+        submission_path, X_train, y_train, X_test, ramp_kit_dir
+    )
     score_types = assert_score_types(ramp_kit_dir)
 
     training_output_path = ""
