@@ -444,6 +444,7 @@ def blend_submissions(
         Fold indices to blend.
         If None, we will blend all folds.
     """
+    output_path = Path(output_path)  # type: ignore
     problem = assert_read_problem(ramp_kit_dir)
     print_title(f"Blending {problem.problem_title}")
     X_train, y_train, X_test, y_test = assert_data(
