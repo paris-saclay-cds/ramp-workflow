@@ -544,8 +544,9 @@ def blend_submissions(
         output_path = Path(ramp_submission_dir) / "training_output"
         if data_label is not None:
             output_path = output_path / data_label
-    if save_output:
+    else:
         output_path = Path(output_path)
+    if save_output:
         output_path.mkdir(parents=True, exist_ok=True)
         contributivitys_df.to_csv(output_path / "contributivities.csv", index=False)
 
