@@ -5,22 +5,37 @@ import hashlib
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from ..utils.importing import import_module_from_source
+from rampwf.utils.importing import import_module_from_source
+from typing import Tuple, Any, Optional
+import types
+
 
 class FeatureExtractorRegressorWithEDA(object):
-    def __init__(self, workflow_element_names=[
-            'feature_extractor', 'regressor']):
-        self.element_names = workflow_element_names
-        self.cache_path = Path('.') / 'cache'
+    def __init__(
+        self,
+        data_preprocessor_name: str = "data_preprocessor",
+        feature_extractor_name: str = "feature_extractor",
+        regressor_name: str = "regressor",
+    ):
+        self.data_preprocessor_name = data_preprocessor_name
+        self.feature_extractor_name = feature_extractor_name
+        self.regressor_name = regressor_name
+        self.element_names = [
+            data_preprocessor_name,
+            feature_extractor_name,
+            regressor_name,
+        ]
+        self.cache_path = Path(".") / "cache"
         self.cache_path.mkdir(parents=True, exist_ok=True)
-        
-    def _cache_transform(self, fe, X):
-        data_hash = hashlib.sha256(
-            np.ascontiguousarray(X.to_numpy())).hexdigest()
-        cache_f_name = f'X_tr_{self.fe_hash}_{data_hash}.pkl'
+
+    def _cache_transform(
+        self, fe: Any, X: pd.DataFrame
+    ) -> np.ndarray[Any, np.dtype[np.float64]]:
+        data_hash = hashlib.sha256(np.ascontiguousarray(X.to_numpy())).hexdigest()
+        cache_f_name = f"X_tr_{self.fe_hash}_{data_hash}.pkl"
 
         t0 = time.time()
-        if hasattr(fe, 'to_cache') and fe.to_cache:
+        if hasattr(fe, "to_cache") and fe.to_cache:
             try:
                 X_tr = pd.read_pickle(self.cache_path / cache_f_name)
             except FileNotFoundError:
@@ -29,46 +44,130 @@ class FeatureExtractorRegressorWithEDA(object):
         else:
             X_tr = fe.transform(X)
         transform_time = time.time() - t0
-#        print(f'size = {X.shape}, transform time = {transform_time}')
         return X_tr
-        
-    def train_submission(self, module_path, X_and_eda, y, train_is=None,
-                         prev_trained_model=None):
+
+    def preprocess_data(
+        self,
+        module_path: str,
+        X_train: Tuple[pd.DataFrame, types.ModuleType],
+        y_train: np.ndarray,
+        X_test: Tuple[pd.DataFrame, types.ModuleType],
+    ) -> Tuple[
+        Tuple[pd.DataFrame, types.ModuleType],
+        np.ndarray,
+        Tuple[pd.DataFrame, types.ModuleType],
+    ]:
+        """This function preprocesses the data through the data_preprocessor
+
+        Args:
+            module_path (str): path of the submission
+            X_train (Tuple[pd.DataFrame, types.ModuleType]): Train dataset with eda
+            y_train (np.ndarray[Any, np.dtype[np.float64]]): train target
+            X_test (Tuple[pd.DataFrame, types.ModuleType]): test dataset with eda
+
+        Returns:
+            Tuple[Tuple[pd.DataFrame, types.ModuleType], np.ndarray, Tuple[pd.DataFrame, types.ModuleType]]: The preprocessed data X_train_eda, y_train, X_test_eda
+        """
+        data_preprocessor_path = Path(module_path) / "data_preprocessor.py"
+        if data_preprocessor_path.is_file():
+            # Load preprocessor
+            data_preprocessor = import_module_from_source(
+                data_preprocessor_path, "data_preprocessor"
+            )
+            dp = data_preprocessor.DataPreprocessor()
+            eda = X_train[1]
+
+            X_train, y_train, X_test, eda = dp.preprocess(
+                X_train=X_train[0], y_train=y_train, X_test=X_test[0], eda=eda
+            )
+
+            X_train = (X_train, eda)
+            X_test = (X_test, eda)
+        else:
+            print(
+                f"No preprocessor found in submission: {data_preprocessor_path.parent}"
+            )
+        return X_train, y_train, X_test
+
+
+    def train_submission(
+        self,
+        module_path: str,
+        X_and_eda: Tuple[pd.DataFrame, str],
+        y: np.ndarray[Any, np.dtype[np.float64]],
+        train_is: Optional[slice] = None,
+        prev_trained_model: Optional[Tuple[Any, Any, Any]] = None,
+    ) -> Tuple[Any, Any]:
+        """Train the submission in module_path on the given dataset
+
+        Args:
+            module_path (str): path of the submission
+            X_and_eda (Tuple[pd.DataFrame, str]): train dataset and eda info
+            y (np.ndarray[Any, np.dtype[np.float64]]): target data
+            train_is (Optional[slice], optional): List of training indeces. Defaults to None.
+            prev_trained_model (Any, optional): previously trained model. Defaults to None.
+
+        Returns:
+            Tuple[Any, Any]: trained feature_extractor and regressor
+        """
         if train_is is None:
             train_is = slice(None, None, None)
 
-        feature_extractor = import_module_from_source(
-            Path(module_path) / f'{self.element_names[0]}.py',
-            self.element_names[0])
         X = X_and_eda[0]
         eda = X_and_eda[1]
         X = X.copy()
+
+        X = X.iloc[train_is]
+        y = y[train_is]
+
+        # Perform feature extraction
+        # ---------------------------
+        feature_extractor = import_module_from_source(
+            Path(module_path) / f"{self.feature_extractor_name}.py",
+            self.feature_extractor_name,
+        )
         fe = feature_extractor.FeatureExtractor(eda)
         self.fe_hash = hashlib.sha256(
-            inspect.getsource(feature_extractor).encode('utf-8')).hexdigest()
-        
-        t0 = time.time()
-        fe.fit(X.iloc[train_is], y[train_is].ravel())        
-        fit_time = time.time() - t0
-#        print(f'size = {X.iloc[train_is].shape}, fit time = {fit_time}')
+            inspect.getsource(feature_extractor).encode("utf-8")
+        ).hexdigest()
 
-        X_tr = self._cache_transform(fe, X.iloc[train_is])
+        fe.fit(X, y)
+        X_tr = self._cache_transform(fe, X)
+        # ---------------------------
 
+        # Train model
+        # ---------------------------
         regressor = import_module_from_source(
-            Path(module_path) / f'{self.element_names[1]}.py',
-            self.element_names[1],
+            Path(module_path) / f"{self.regressor_name}.py",
+            self.regressor_name,
         )
         reg = regressor.Regressor(eda)
         if prev_trained_model is None:
-            reg.fit(X_tr, y[train_is].ravel())
+            reg.fit(X_tr, y)
         else:
-            reg.fit(X_tr, y[train_is].ravel(), prev_trained_model[1])
+            reg.fit(X_tr, y, prev_trained_model[1])
+        # ---------------------------
 
         return fe, reg
 
-    def test_submission(self, trained_model, X_and_eda):
-        fe, reg = trained_model
+    def test_submission(
+        self,
+        trained_submission: Tuple[Any, Any],
+        X_and_eda: Tuple[pd.DataFrame, str],
+    ) -> np.ndarray[Any, np.dtype[np.float64]]:
+        """Tests the trained submission
+
+        Args:
+            trained_submission (Tuple[Any, Any]): Trained submission consisting of [feature_extractor, model]
+            X_and_eda (Tuple[pd.DataFrame, str]): Dataset and eda info
+
+        Returns:
+            np.ndarray[Any, np.dtype[np.float64]]: Target predictions
+        """
+        fe, reg = trained_submission
         X = X_and_eda[0]
+        eda = X_and_eda[1]
+
         try:
             X_tr = self._cache_transform(fe, X)
             y_pred = reg.predict(X_tr)
@@ -77,5 +176,7 @@ class FeatureExtractorRegressorWithEDA(object):
         # created for missing data
         except:
             X_tr = fe.transform(X)
-            y_pred = reg.predict(X_tr)            
+            y_pred = reg.predict(X_tr)
+        if len(y_pred.shape) == 1:
+            y_pred = y_pred.reshape((len(y_pred), 1))
         return y_pred

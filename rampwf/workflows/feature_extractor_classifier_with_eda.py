@@ -69,7 +69,7 @@ class FeatureExtractorClassifierWithEDA(object):
             Tuple[Tuple[pd.DataFrame, types.ModuleType], np.ndarray, Tuple[pd.DataFrame, types.ModuleType]]: The preprocessed data X_train_eda, y_train, X_test_eda
         """
         data_preprocessor_path = Path(module_path) / "data_preprocessor.py"
-        if os.path.exists(data_preprocessor_path):
+        if data_preprocessor_path.is_file():
             # Load preprocessor
             data_preprocessor = import_module_from_source(
                 data_preprocessor_path, "data_preprocessor"
@@ -77,12 +77,12 @@ class FeatureExtractorClassifierWithEDA(object):
             dp = data_preprocessor.DataPreprocessor()
             eda = X_train[1]
 
-            train, y_train, test, eda = dp.preprocess(
-                X=X_train[0], y=y_train, X_test=X_test[0], eda=eda
+            X_train, y_train, X_test, eda = dp.preprocess(
+                X_train=X_train[0], y_train=y_train, X_test=X_test[0], eda=eda
             )
 
-            X_train = (train, eda)
-            X_test = (test, eda)
+            X_train = (X_train, eda)
+            X_test = (X_test, eda)
         else:
             print(
                 f"No preprocessor found in submission: {data_preprocessor_path.parent}"
