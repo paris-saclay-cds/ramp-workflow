@@ -15,6 +15,7 @@ from .generative_regression import (
     MDNegativeLogLikelihood, MDLikelihoodRatio, MDRMSE,
     MDR2, MDKSCalibration, MDOutlierRate)
 from .macro_averaged_recall import MacroAveragedRecall
+from .mae import MAE
 from .make_combined import MakeCombined
 from .mare import MARE
 from .negative_log_likelihood import NegativeLogLikelihood
@@ -46,6 +47,7 @@ __all__ = [
     'MakeCombined',
     'MADCenter',
     'MADRadius',
+    'MAE',
     'MARE',
     'MDKSCalibration',
     'MDLikelihoodRatio',
