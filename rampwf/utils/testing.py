@@ -169,9 +169,11 @@ def assert_submission(
     )
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
     workflow = problem.workflow
-    workflow.set_metadata(problem.get_metadata(ramp_data_dir, data_label))
-    workflow.set_element_names(submission_path)
-    
+    try:
+        workflow.metadata = problem.get_metadata(ramp_data_dir, data_label)
+    except AttributeError:
+        print("No metadata")    
+    workflow.set_element_names(submission_path)    
     print_title("Preprocessing data")
     X_train, y_train, X_test = workflow.preprocess_data(
         submission_path, X_train, y_train, X_test

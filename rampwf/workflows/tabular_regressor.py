@@ -1,5 +1,6 @@
 import sys
 import time
+import glob
 import inspect
 import hashlib
 import numpy as np
@@ -17,14 +18,21 @@ class TabularRegressor(BaseWorkflow):
         self.cache_path.mkdir(parents=True, exist_ok=True)
 
     def set_element_names(self, submission_path):
-        self.data_preprocessor_name = 'data_preprocessor'
+        self.element_names = []
+        i = 0
+        while True:
+            submissions_f_names = glob.glob(
+                f'{submission_path}/data_preprocessor_{i}_*.py')
+            if len(submissions_f_names) == 0:
+                break
+            data_preprocessor_path = submissions_f_names[0]
+            print(f'Adding {data_preprocessor_path} to workflow elements')
+            self.element_names.append(Path(data_preprocessor_path).stem)
+            i += 1
         self.feature_extractor_name = 'feature_extractor'
+        self.element_names.append(self.feature_extractor_name)
         self.regressor_name = 'regressor'
-        self.element_names = [
-            self.data_preprocessor_name,
-            self.feature_extractor_name,
-            self.regressor_name,
-        ]
+        self.element_names.append(self.regressor_name)
 
     def _cache_transform(
         self, fe: Any, X: pd.DataFrame
@@ -66,21 +74,17 @@ class TabularRegressor(BaseWorkflow):
         Returns:
             Tuple[pd.DataFrame, np.ndarray, pd.DataFrame]: The preprocessed data X_train, y_train, X_test
         """
-        data_preprocessor_path = Path(submission_path) / f'{self.data_preprocessor_name}.py'
-        if data_preprocessor_path.is_file():
-            # Load preprocessor
+        data_preprocessor_names = [n for n in self.element_names if n[:18] == 'data_preprocessor_']
+        for data_preprocessor_name in data_preprocessor_names:
+            data_preprocessor_path = Path(submission_path) / f'{data_preprocessor_name}.py'
             data_preprocessor = import_module_from_source(
-                data_preprocessor_path, self.data_preprocessor_name
+                data_preprocessor_path, data_preprocessor_name
             )
             dp = data_preprocessor.DataPreprocessor()
 
             X_train, y_train, X_test, self.metadata = dp.preprocess(
                 X_train=X_train, y_train=y_train, X_test=X_test,
                 metadata=self.metadata
-            )
-        else:
-            print(
-                f"No preprocessor found in submission: {data_preprocessor_path.parent}"
             )
         return X_train, y_train, X_test
 
