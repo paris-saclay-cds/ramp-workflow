@@ -13,9 +13,12 @@ class BaseWorkflow(ABC):
     def get_element_names(self) -> list[str]:
         return self.element_names
     
+    def set_element_names(self, submission_path) -> None:
+        pass
+
     def preprocess_data(
         self,
-        module_path: str,
+        submission_path: str,
         X_train: Any,
         y_train: Any,
         X_test: Any,
@@ -25,7 +28,7 @@ class BaseWorkflow(ABC):
         Default returns the input, can be overridden by derived workflows.
 
         Args:
-            module_path (str): path of the submission
+            submission_path (str): path of the submission
             X_train (Any): train dataset, typically pd.DataFrame
             y_train (Any): train target, typically np.ndarray
             X_test (Any): test dataset, typically pd.DataFrame
@@ -39,7 +42,7 @@ class BaseWorkflow(ABC):
     @abstractmethod
     def train_submission(
         self,
-        module_path: str,
+        submission_path: str,
         X_train: Any,
         y_train: Any,
         train_is: Optional[Any] = None,
@@ -51,7 +54,7 @@ class BaseWorkflow(ABC):
         Optionally warm-started from prev_trained_submission.
 
         Args:
-            module_path (str): path of the submission
+            submission_path (str): path of the submission
             X_train (Any): train dataset, typically pd.DataFrame
             y_train (Any): train target, typically np.ndarray
             train_is (Any, optional): CV training object
