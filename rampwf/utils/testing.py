@@ -44,23 +44,6 @@ def assert_title(ramp_kit_dir="."):
     print_title(f"Testing {problem.problem_title}")
 
 
-def preprocess_data(
-    submission_path,
-    X_train,
-    y_train,
-    X_test,
-    ramp_kit_dir="."
-):
-    problem = assert_read_problem(ramp_kit_dir)
-    workflow = problem.workflow
-    if hasattr(workflow, "preprocess_data"):
-        print_title("Preprocessing data")
-        X_train, y_train, X_test = workflow.preprocess_data(
-            submission_path, X_train, y_train, X_test
-        )
-    return X_train, y_train, X_test
-
-
 @cache
 def assert_data(ramp_kit_dir=".", ramp_data_dir=".", data_label=None):
     problem = assert_read_problem(ramp_kit_dir)
@@ -185,8 +168,13 @@ def assert_submission(
         ramp_kit_dir, ramp_data_dir, data_label
     )
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
-    X_train, y_train, X_test = preprocess_data(
-        submission_path, X_train, y_train, X_test, ramp_kit_dir
+    workflow = problem.workflow
+    workflow.set_metadata(problem.get_metadata(ramp_data_dir, data_label))
+    workflow.set_element_names(submission_path)
+    
+    print_title("Preprocessing data")
+    X_train, y_train, X_test = workflow.preprocess_data(
+        submission_path, X_train, y_train, X_test
     )
     score_types = assert_score_types(ramp_kit_dir)
 

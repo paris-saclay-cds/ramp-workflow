@@ -1,4 +1,5 @@
 from .air_passengers import AirPassengers
+from .base_workflow import BaseWorkflow
 from .classifier import Classifier
 from .clusterer import Clusterer
 from .drug_spectra import DrugSpectra
@@ -13,6 +14,7 @@ from .generative_regressor import GenerativeRegressor
 from .simplified_image_classifier import SimplifiedImageClassifier
 from .object_detector import ObjectDetector
 from .regressor import Regressor
+from .tabular_regressor import TabularRegressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
 from .sklearn_pipeline import SKLearnPipeline, Estimator, EstimatorExternalData
@@ -22,6 +24,7 @@ from .feature_extractor_numpy import FeatureExtractorNumpy
 
 __all__ = [
     'AirPassengers',
+    'BaseWorkflow',
     'Classifier',
     'Clusterer',
     'DrugSpectra',
@@ -41,6 +44,7 @@ __all__ = [
     'Estimator',
     'EstimatorExternalData',
     'TSFEGenReg',
+    'TabularRegressor',
     'FEGenRegNumpy',
     'FeatureExtractorNumpy'
 ]
