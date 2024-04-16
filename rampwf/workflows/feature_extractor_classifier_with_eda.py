@@ -8,9 +8,10 @@ from pathlib import Path
 from rampwf.utils.importing import import_module_from_source
 from typing import Tuple, Any, Optional
 import types
+from rampwf.workflows import BaseWorkflow
 
 
-class FeatureExtractorClassifierWithEDA(object):
+class FeatureExtractorClassifierWithEDA(BaseWorkflow):
     def __init__(
         self,
         data_preprocessor_name: str = "data_preprocessor",
@@ -78,7 +79,7 @@ class FeatureExtractorClassifierWithEDA(object):
             eda = X_train[1]
 
             X_train, y_train, X_test, eda = dp.preprocess(
-                X_train=X_train[0], y_train=y_train, X_test=X_test[0], eda=eda
+                X=X_train[0], y=y_train, X_test=X_test[0], eda=eda
             )
 
             X_train = (X_train, eda)
