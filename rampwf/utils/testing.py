@@ -174,11 +174,11 @@ def assert_submission(
     except AttributeError:
         print("No metadata")    
     workflow.set_element_names(submission_path)    
+    score_types = assert_score_types(ramp_kit_dir)
     print_title("Preprocessing data")
     X_train, y_train, X_test = workflow.preprocess_data(
         submission_path, X_train, y_train, X_test
     )
-    score_types = assert_score_types(ramp_kit_dir)
 
     training_output_path = ""
     if is_pickle or save_output:
@@ -407,7 +407,7 @@ def blend_submissions(
     submissions,
     ramp_kit_dir=".",
     ramp_data_dir=".",
-    ramp_submission_dir=".",
+    ramp_submission_dir="submissions",
     data_label=None,
     save_output=False,
     min_improvement=0.0,
@@ -472,8 +472,8 @@ def blend_submissions(
         predictions_test_list = []
         submission_is = []
         for submission_i, submission in enumerate(submissions):
-            module_path = Path(ramp_submission_dir) / submission
-            training_output_path = module_path / "training_output"
+            submission_path = Path(ramp_submission_dir) / submission
+            training_output_path = submission_path / "training_output"
             if data_label is not None:
                 training_output_path = training_output_path / data_label
             fold_output_path = training_output_path / f"fold_{fold_i}"

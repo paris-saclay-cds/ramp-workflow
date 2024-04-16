@@ -63,7 +63,7 @@ class TabularRegressor(BaseWorkflow):
         np.ndarray,
         pd.DataFrame,
     ]:
-        """This function preprocesses the data through the data_preprocessor
+        """Preprocess the data through numbered data_preprocessor_<i>_*'s.
 
         Args:
             module_path (str): path of the submission
@@ -72,9 +72,11 @@ class TabularRegressor(BaseWorkflow):
             X_test (pd.DataFrame): test dataset
 
         Returns:
-            Tuple[pd.DataFrame, np.ndarray, pd.DataFrame]: The preprocessed data X_train, y_train, X_test
+            Tuple[pd.DataFrame, np.ndarray, pd.DataFrame]: 
+                The preprocessed data X_train, y_train, X_test
         """
-        data_preprocessor_names = [n for n in self.element_names if n[:18] == 'data_preprocessor_']
+        data_preprocessor_names = [
+            n for n in self.element_names if n[:18] == 'data_preprocessor_']
         for data_preprocessor_name in data_preprocessor_names:
             data_preprocessor_path = Path(submission_path) / f'{data_preprocessor_name}.py'
             data_preprocessor = import_module_from_source(
