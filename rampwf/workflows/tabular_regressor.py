@@ -1,6 +1,7 @@
 import sys
 import time
 import glob
+import copy
 import inspect
 import hashlib
 import numpy as np
@@ -75,6 +76,7 @@ class TabularRegressor(BaseWorkflow):
             Tuple[pd.DataFrame, np.ndarray, pd.DataFrame]: 
                 The preprocessed data X_train, y_train, X_test
         """
+        self.metadata_after_dp = copy.deepcopy(self.metadata)
         data_preprocessor_names = [
             n for n in self.element_names if n[:18] == 'data_preprocessor_']
         for data_preprocessor_name in data_preprocessor_names:
@@ -84,9 +86,9 @@ class TabularRegressor(BaseWorkflow):
             )
             dp = data_preprocessor.DataPreprocessor()
 
-            X_train, y_train, X_test, self.metadata = dp.preprocess(
+            X_train, y_train, X_test, self.metadata_after_dp = dp.preprocess(
                 X_train=X_train, y_train=y_train, X_test=X_test,
-                metadata=self.metadata
+                metadata=self.metadata_after_dp
             )
         return X_train, y_train, X_test
 
@@ -124,7 +126,8 @@ class TabularRegressor(BaseWorkflow):
             Path(submission_path) / f"{self.feature_extractor_name}.py",
             self.feature_extractor_name,
         )
-        fe = feature_extractor.FeatureExtractor(self.metadata)
+        self.metadata_after_fe = copy.deepcopy(self.metadata_after_dp)
+        fe = feature_extractor.FeatureExtractor(self.metadata_after_fe)
         self.fe_hash = hashlib.sha256(
             inspect.getsource(feature_extractor).encode("utf-8")
         ).hexdigest()
@@ -136,7 +139,7 @@ class TabularRegressor(BaseWorkflow):
             Path(submission_path) / f"{self.regressor_name}.py",
             self.regressor_name,
         )
-        reg = regressor.Regressor(self.metadata)
+        reg = regressor.Regressor(self.metadata_after_fe)
         if prev_trained_model is None:
             reg.fit(X_train, y_train)
         else:
