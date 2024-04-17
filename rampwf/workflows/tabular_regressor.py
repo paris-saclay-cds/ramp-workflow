@@ -2,6 +2,7 @@ import sys
 import time
 import glob
 import copy
+import json
 import inspect
 import hashlib
 import numpy as np
@@ -53,6 +54,14 @@ class TabularRegressor(BaseWorkflow):
         transform_time = time.time() - t0
         return X_tr
 
+    def _run_preprocessors(self, data_preprocessors, X_train, y_train, X_test, metadata):
+        for dp in data_preprocessors:
+            X_train, y_train, X_test, metadata = dp.preprocess(
+                X_train=X_train, y_train=y_train, X_test=X_test,
+                metadata=metadata
+            )
+        return X_train, y_train, X_test, metadata
+
     def preprocess_data(
         self,
         submission_path: str,
@@ -79,19 +88,43 @@ class TabularRegressor(BaseWorkflow):
         self.metadata_after_dp = copy.deepcopy(self.metadata)
         data_preprocessor_names = [
             n for n in self.element_names if n[:18] == 'data_preprocessor_']
+        data_preprocessors = []
+        dp_hash = ''
         for data_preprocessor_name in data_preprocessor_names:
             data_preprocessor_path = Path(submission_path) / f'{data_preprocessor_name}.py'
             data_preprocessor = import_module_from_source(
                 data_preprocessor_path, data_preprocessor_name
             )
             dp = data_preprocessor.DataPreprocessor()
-
-            X_train, y_train, X_test, self.metadata_after_dp = dp.preprocess(
-                X_train=X_train, y_train=y_train, X_test=X_test,
-                metadata=self.metadata_after_dp
-            )
-        return X_train, y_train, X_test
-
+            data_preprocessors.append(dp)
+            dp_hash += inspect.getsource(data_preprocessor)
+        to_cache = any([hasattr(dp, 'to_cache') and dp.to_cache for dp in data_preprocessors])
+        if to_cache:
+            dp_hash = hashlib.sha256(dp_hash.encode("utf-8")).hexdigest()
+            X_train_hash = hashlib.sha256(np.ascontiguousarray(X_train.to_numpy())).hexdigest()
+            X_test_hash = hashlib.sha256(np.ascontiguousarray(X_test.to_numpy())).hexdigest()
+            y_train_hash = hashlib.sha256(np.ascontiguousarray(y_train)).hexdigest()
+            metadata_hash = hashlib.sha256(json.dumps(self.metadata_after_dp, sort_keys=True).encode("utf-8"))
+            X_train_cache_f_name = f"X_train_{dp_hash}_{X_train_hash}.pkl"
+            X_test_cache_f_name = f"X_train_{dp_hash}_{X_test_hash}.pkl"
+            y_train_cache_f_name = f"X_train_{dp_hash}_{y_train_hash}.pkl"
+            metadata_cache_f_name = f"metadata_{dp_hash}_{metadata_hash}.pkl"
+            try:
+                X_train = pd.read_pickle(self.cache_path / X_train_cache_f_name)
+                X_test = pd.read_pickle(self.cache_path / X_test_cache_f_name)
+                y_train = np.load(self.cache_path / y_train_cache_f_name)
+                self.metadata_after_dp = json.load(open(self.cache_path / metadata_cache_f_name))
+            except FileNotFoundError:
+                X_train, y_train, X_test, self.metadata_after_dp = self._run_preprocessors(
+                    data_preprocessors, X_train, y_train, X_test, self.metadata_after_dp)
+                X_train.to_pickle(self.cache_path / X_train_cache_f_name)
+                X_test.to_pickle(self.cache_path / X_test_cache_f_name)
+                np.save(self.cache_path / y_train_cache_f_name, y_train)
+                json.dump(self.metadata_after_dp, open(self.cache_path / metadata_cache_f_name, "w"))
+        else:
+            X_train, y_train, X_test, self.metadata_after_dp = self._run_preprocessors(
+                data_preprocessors, X_train, y_train, X_test, self.metadata_after_dp)
+        return X_train, y_train, X_test        
 
     def train_submission(
         self,
@@ -120,8 +153,6 @@ class TabularRegressor(BaseWorkflow):
         X_train = X_train.iloc[train_is]
         y_train = y_train[train_is]
 
-        # Perform feature extraction
-        # ---------------------------
         feature_extractor = import_module_from_source(
             Path(submission_path) / f"{self.feature_extractor_name}.py",
             self.feature_extractor_name,
@@ -131,7 +162,6 @@ class TabularRegressor(BaseWorkflow):
         self.fe_hash = hashlib.sha256(
             inspect.getsource(feature_extractor).encode("utf-8")
         ).hexdigest()
-
         fe.fit(X_train, y_train)
         X_train = self._cache_transform(fe, X_train)
 
@@ -144,7 +174,6 @@ class TabularRegressor(BaseWorkflow):
             reg.fit(X_train, y_train)
         else:
             reg.fit(X_train, y_train, prev_trained_model[1])
-        # ---------------------------
 
         return fe, reg
 
