@@ -108,7 +108,7 @@ class TabularRegressor(BaseWorkflow):
             X_train_cache_f_name = f"X_train_dp_{dp_hash}_{X_train_hash}.pkl"
             X_test_cache_f_name = f"X_test_dp_{dp_hash}_{X_test_hash}.pkl"
             y_train_cache_f_name = f"y_train_dp_{dp_hash}_{y_train_hash}.npy"
-            metadata_cache_f_name = f"metadata_dp_{dp_hash}_{metadata_hash}.pkl"
+            metadata_cache_f_name = f"metadata_dp_{dp_hash}_{metadata_hash}.json"
             try:
                 X_train_loaded = pd.read_pickle(self.cache_path / X_train_cache_f_name)
                 X_test_loaded = pd.read_pickle(self.cache_path / X_test_cache_f_name)
