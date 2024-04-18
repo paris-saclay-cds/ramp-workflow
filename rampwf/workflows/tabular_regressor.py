@@ -101,19 +101,23 @@ class TabularRegressor(BaseWorkflow):
         to_cache = any([hasattr(dp, 'to_cache') and dp.to_cache for dp in data_preprocessors])
         if to_cache:
             dp_hash = hashlib.sha256(dp_hash.encode("utf-8")).hexdigest()
-            X_train_hash = hashlib.sha256(np.ascontiguousarray(X_train.to_numpy())).hexdigest()
-            X_test_hash = hashlib.sha256(np.ascontiguousarray(X_test.to_numpy())).hexdigest()
+            X_train_hash = hashlib.sha256(np.ascontiguousarray(pd.util.hash_pandas_object(X_train))).hexdigest()
+            X_test_hash = hashlib.sha256(np.ascontiguousarray(pd.util.hash_pandas_object(X_test))).hexdigest()
             y_train_hash = hashlib.sha256(np.ascontiguousarray(y_train)).hexdigest()
-            metadata_hash = hashlib.sha256(json.dumps(self.metadata_after_dp, sort_keys=True).encode("utf-8"))
-            X_train_cache_f_name = f"X_train_{dp_hash}_{X_train_hash}.pkl"
-            X_test_cache_f_name = f"X_train_{dp_hash}_{X_test_hash}.pkl"
-            y_train_cache_f_name = f"X_train_{dp_hash}_{y_train_hash}.pkl"
-            metadata_cache_f_name = f"metadata_{dp_hash}_{metadata_hash}.pkl"
+            metadata_hash = hashlib.sha256(json.dumps(self.metadata_after_dp, sort_keys=True).encode("utf-8")).hexdigest()
+            X_train_cache_f_name = f"X_train_dp_{dp_hash}_{X_train_hash}.pkl"
+            X_test_cache_f_name = f"X_test_dp_{dp_hash}_{X_test_hash}.pkl"
+            y_train_cache_f_name = f"y_train_dp_{dp_hash}_{y_train_hash}.npy"
+            metadata_cache_f_name = f"metadata_dp_{dp_hash}_{metadata_hash}.pkl"
             try:
-                X_train = pd.read_pickle(self.cache_path / X_train_cache_f_name)
-                X_test = pd.read_pickle(self.cache_path / X_test_cache_f_name)
-                y_train = np.load(self.cache_path / y_train_cache_f_name)
-                self.metadata_after_dp = json.load(open(self.cache_path / metadata_cache_f_name))
+                X_train_loaded = pd.read_pickle(self.cache_path / X_train_cache_f_name)
+                X_test_loaded = pd.read_pickle(self.cache_path / X_test_cache_f_name)
+                y_train_loaded = np.load(self.cache_path / y_train_cache_f_name)
+                metadata_loaded = json.load(open(self.cache_path / metadata_cache_f_name))
+                X_train = X_train_loaded
+                X_test = X_test_loaded
+                y_train = y_train_loaded
+                self.metadata_after_dp = metadata_loaded
             except FileNotFoundError:
                 X_train, y_train, X_test, self.metadata_after_dp = self._run_preprocessors(
                     data_preprocessors, X_train, y_train, X_test, self.metadata_after_dp)
