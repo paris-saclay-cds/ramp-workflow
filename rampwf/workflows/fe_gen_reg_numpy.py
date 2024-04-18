@@ -6,9 +6,10 @@ import numpy as np
 
 from .feature_extractor_numpy import FeatureExtractorNumpy
 from .generative_regressor_numpy import GenerativeRegressorNumpy
+from .base_workflow import BaseWorkflow
 
 
-class FEGenRegNumpy:
+class FEGenRegNumpy(BaseWorkflow):
     """
     Feature extractor + Generative regressor workflow with numpy backend.
 

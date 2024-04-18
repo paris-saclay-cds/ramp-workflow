@@ -16,9 +16,10 @@ sequence `X_ds`, making the training and testing slightly complicated.
 import numpy as np
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .regressor import Regressor
+from .base_workflow import BaseWorkflow
 
 
-class ElNino(object):
+class ElNino(BaseWorkflow):
     def __init__(self, check_sizes, check_indexs,
                  restart_name=None, n_burn_in=0, n_lookahead=1,
                  workflow_element_names=['ts_feature_extractor', 'regressor']):

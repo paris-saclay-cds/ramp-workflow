@@ -7,9 +7,10 @@ in y_array. The dimensions of X_ds should be (time, y, x).
 """
 from .grid_feature_extractor import GridFeatureExtractor
 from .classifier import Classifier
+from .base_workflow import BaseWorkflow
 
 
-class GridFeatureExtractorClassifier(object):
+class GridFeatureExtractorClassifier(BaseWorkflow):
     def __init__(self, workflow_element_names=[
             'feature_extractor', 'classifier']):
         self.element_names = workflow_element_names

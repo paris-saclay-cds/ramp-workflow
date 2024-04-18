@@ -1,9 +1,10 @@
 import os
 
 from ..utils.importing import import_module_from_source
+from .base_workflow import BaseWorkflow
 
 
-class FeatureExtractor(object):
+class FeatureExtractor(BaseWorkflow):
     def __init__(self, workflow_element_names=['feature_extractor']):
         self.element_names = workflow_element_names
 

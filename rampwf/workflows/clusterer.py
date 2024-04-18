@@ -27,9 +27,10 @@ import os
 import numpy as np
 
 from ..utils.importing import import_module_from_source
+from .base_workflow import BaseWorkflow
 
 
-class Clusterer(object):
+class Clusterer(BaseWorkflow):
     def __init__(self, workflow_element_names=['clusterer']):
         self.element_names = workflow_element_names
 

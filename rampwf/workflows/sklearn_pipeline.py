@@ -4,9 +4,10 @@ from sklearn.base import is_classifier
 from sklearn.utils import _safe_indexing
 
 from ..utils.importing import import_module_from_source
+from .base_workflow import BaseWorkflow
 
 
-class SKLearnPipeline:
+class SKLearnPipeline(BaseWorkflow):
     """Wrapper to convert a scikit-learn estimator into a RAMP workflow.
 
 

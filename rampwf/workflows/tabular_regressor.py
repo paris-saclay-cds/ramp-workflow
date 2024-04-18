@@ -8,7 +8,7 @@ import hashlib
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from rampwf.utils.importing import import_module_from_source
+from ..utils.importing import import_module_from_source
 from . import BaseWorkflow
 from typing import Tuple, Any, Optional
 import types

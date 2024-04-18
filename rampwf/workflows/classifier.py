@@ -1,9 +1,10 @@
 import os
 
 from ..utils.importing import import_module_from_source
+from .base_workflow import BaseWorkflow
 
 
-class Classifier(object):
+class Classifier(BaseWorkflow):
     def __init__(self, workflow_element_names=['classifier']):
         self.element_names = workflow_element_names
         # self.name = 'classifier_workflow'  # temporary

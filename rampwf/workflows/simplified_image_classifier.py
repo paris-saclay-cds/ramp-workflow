@@ -3,9 +3,10 @@ import os
 import numpy as np
 
 from ..utils.importing import import_module_from_source
+from .base_workflow import BaseWorkflow
 
 
-class SimplifiedImageClassifier(object):
+class SimplifiedImageClassifier(BaseWorkflow):
     """
     SimplifiedImageClassifier workflow.
 

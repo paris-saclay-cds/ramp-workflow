@@ -1,9 +1,10 @@
 import numpy as np
 from .feature_extractor_classifier import FeatureExtractorClassifier
 from .feature_extractor_regressor import FeatureExtractorRegressor
+from .base_workflow import BaseWorkflow
 
 
-class DrugSpectra(object):
+class DrugSpectra(BaseWorkflow):
     def __init__(self, workflow_element_names=[
             'feature_extractor_clf', 'classifier',
             'feature_extractor_reg', 'regressor']):

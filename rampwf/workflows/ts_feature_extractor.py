@@ -38,6 +38,7 @@ import pandas as pd
 import xarray as xr
 
 from ..utils.importing import import_module_from_source
+from .base_workflow import BaseWorkflow
 
 
 def extend_train_is(X, train_is, n_burn_in, restart_name):
@@ -87,7 +88,7 @@ def extend_train_is(X, train_is, n_burn_in, restart_name):
         return extended_train_is
 
 
-class TimeSeriesFeatureExtractor(object):
+class TimeSeriesFeatureExtractor(BaseWorkflow):
     """
     restart_name should be None, or a one item list containing 1 on the
     timestep where time continuity is broken (e.g. a system restart)

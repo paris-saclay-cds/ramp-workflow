@@ -3,9 +3,10 @@ import os
 import numpy as np
 
 from ..utils.importing import import_module_from_source
+from .base_workflow import BaseWorkflow
 
 
-class ObjectDetector(object):
+class ObjectDetector(BaseWorkflow):
     """
     Object detection workflow.
 

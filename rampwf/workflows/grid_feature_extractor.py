@@ -14,9 +14,10 @@ import os
 import pandas as pd
 
 from ..utils.importing import import_module_from_source
+from .base_workflow import BaseWorkflow
 
 
-class GridFeatureExtractor(object):
+class GridFeatureExtractor(BaseWorkflow):
     def __init__(self, workflow_element_names=['feature_extractor']):
         self.element_names = workflow_element_names
 

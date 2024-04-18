@@ -7,9 +7,10 @@ import xarray as xr
 from .ts_feature_extractor import extend_train_is
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .generative_regressor import GenerativeRegressor
+from .base_workflow import BaseWorkflow
 
 
-class TSFEGenReg:
+class TSFEGenReg(BaseWorkflow):
     """Time Series Feature extractor + Generative regressor workflow.
 
     Train and test a time series feature extractor followed by a generative

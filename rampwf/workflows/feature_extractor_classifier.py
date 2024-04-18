@@ -1,8 +1,9 @@
 from .feature_extractor import FeatureExtractor
 from .classifier import Classifier
+from .base_workflow import BaseWorkflow
 
 
-class FeatureExtractorClassifier(object):
+class FeatureExtractorClassifier(BaseWorkflow):
     def __init__(self, workflow_element_names=[
             'feature_extractor', 'classifier']):
         self.element_names = workflow_element_names

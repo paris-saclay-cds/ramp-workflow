@@ -1,8 +1,9 @@
 from .feature_extractor import FeatureExtractor
 from .regressor import Regressor
+from .base_workflow import BaseWorkflow
 
 
-class FeatureExtractorRegressor(object):
+class FeatureExtractorRegressor(BaseWorkflow):
     def __init__(self, workflow_element_names=[
             'feature_extractor', 'regressor']):
         self.element_names = workflow_element_names

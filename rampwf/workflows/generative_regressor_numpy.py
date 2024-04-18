@@ -7,9 +7,10 @@ from sklearn.utils.validation import check_random_state
 
 from ..utils.importing import import_module_from_source
 from ..utils import MixtureYPred, distributions_dict
+from .base_workflow import BaseWorkflow
 
 
-class GenerativeRegressorNumpy:
+class GenerativeRegressorNumpy(BaseWorkflow):
     """Generative regressor workflow with numpy inputs and outputs.
 
     Relying only on numpy and not on pandas allows to gain on speed when

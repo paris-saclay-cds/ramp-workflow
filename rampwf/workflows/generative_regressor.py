@@ -7,9 +7,10 @@ from sklearn.utils.validation import check_random_state
 from ..utils.importing import import_module_from_source
 from ..utils import MixtureYPred, distributions_dict
 from ..utils.generative_regression import _reorder_targets
+from .base_workflow import BaseWorkflow
 
 
-class GenerativeRegressor(object):
+class GenerativeRegressor(BaseWorkflow):
     """Generative regressor workflow.
 
     The generative regressor submission expected by this workflow can specify a
