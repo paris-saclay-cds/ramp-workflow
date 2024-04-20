@@ -2,7 +2,6 @@ import os
 
 import pandas as pd
 from sklearn.model_selection import StratifiedShuffleSplit
-
 import rampwf as rw
 
 
@@ -29,11 +28,12 @@ score_types = [
     rw.score_types.MacroAveragedRecall(name='mar', precision=3),
 ]
 
-
-def get_cv(X, y):
-    cv = StratifiedShuffleSplit(n_splits=3, test_size=0.2, random_state=57)
-    return cv.split(X, y)
-
+cv = rw.cvs.GrowingFolds(
+    cv_method=StratifiedShuffleSplit,
+    train_sizes=[0.8, 0.9],
+    n_splits_per_size=3,
+)
+get_cv = cv.get_cv
 
 def _read_data(path, f_name):
     data = pd.read_csv(os.path.join(path, 'data', f_name))
