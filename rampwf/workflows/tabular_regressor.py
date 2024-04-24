@@ -28,7 +28,6 @@ class TabularRegressor(BaseWorkflow):
             if len(submissions_f_names) == 0:
                 break
             data_preprocessor_path = submissions_f_names[0]
-            print(f'Adding {data_preprocessor_path} to workflow elements')
             self.element_names.append(Path(data_preprocessor_path).stem)
             i += 1
         self.feature_extractor_name = 'feature_extractor'
