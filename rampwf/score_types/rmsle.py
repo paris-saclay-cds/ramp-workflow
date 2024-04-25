@@ -1,0 +1,18 @@
+import numpy as np
+from .base import BaseScoreType
+
+from sklearn.metrics import mean_squared_log_error
+
+
+class RMSLE(BaseScoreType):
+    "Median Absolute Error"
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = float("inf")
+
+    def __init__(self, name="medae", precision=2):
+        self.name = name
+        self.precision = precision
+
+    def __call__(self, y_true, y_pred):
+        return np.sqrt(mean_squared_log_error(y_pred, y_true))

@@ -23,6 +23,7 @@ from .normalized_gini import NormalizedGini
 from .normalized_rmse import NormalizedRMSE
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
+from .rmsle import RMSLE
 from .roc_auc import ROCAUC
 from .r2 import R2
 from .soft_accuracy import SoftAccuracy
@@ -61,6 +62,7 @@ __all__ = [
     'OSPA',
     'RelativeRMSE',
     'RMSE',
+    'RMSLE',
     'ROCAUC',
     'R2',
     'SCP',
