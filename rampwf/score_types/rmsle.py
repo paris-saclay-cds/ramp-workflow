@@ -1,7 +1,6 @@
-import numpy as np
 from .base import BaseScoreType
 
-from sklearn.metrics import mean_squared_log_error
+from sklearn.metrics import root_mean_squared_log_error
 
 
 class RMSLE(BaseScoreType):
@@ -14,4 +13,4 @@ class RMSLE(BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true, y_pred):
-        return np.sqrt(mean_squared_log_error(y_pred, y_true))
+        return root_mean_squared_log_error(y_pred, y_true)

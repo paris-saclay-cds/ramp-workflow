@@ -26,6 +26,7 @@ from .rmse import RMSE
 from .rmsle import RMSLE
 from .roc_auc import ROCAUC
 from .r2 import R2
+from .smape import SMAPE
 from .soft_accuracy import SoftAccuracy
 
 __all__ = [
@@ -66,5 +67,6 @@ __all__ = [
     'ROCAUC',
     'R2',
     'SCP',
+    'SMAPE',
     'SoftAccuracy',
  ]
