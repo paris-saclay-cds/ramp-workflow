@@ -13,4 +13,9 @@ class RMSLE(BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true, y_pred):
-        return root_mean_squared_log_error(y_pred, y_true)
+        # sklearn is raising an error if y_pred or y_true are negative.
+        # we force negative predictions to be 0. we do not touch the true targets
+        # so the user knows he should not be using this score for negative targets.
+        neg_ind = y_pred < 0
+        y_pred[neg_ind] = 0
+        return root_mean_squared_log_error(y_true, y_pred)
