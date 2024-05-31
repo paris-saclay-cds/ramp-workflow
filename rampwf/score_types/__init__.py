@@ -18,6 +18,7 @@ from .macro_averaged_recall import MacroAveragedRecall
 from .mae import MAE
 from .make_combined import MakeCombined
 from .mare import MARE
+from .medae import MedAE
 from .negative_log_likelihood import NegativeLogLikelihood
 from .normalized_gini import NormalizedGini
 from .normalized_rmse import NormalizedRMSE
@@ -57,6 +58,7 @@ __all__ = [
     'MDOutlierRate',
     'MDRMSE',
     'MDR2',
+    'MedAE',
     'NegativeLogLikelihood',
     'NormalizedGini',
     'NormalizedRMSE',
