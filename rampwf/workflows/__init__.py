@@ -14,6 +14,7 @@ from .generative_regressor import GenerativeRegressor
 from .simplified_image_classifier import SimplifiedImageClassifier
 from .object_detector import ObjectDetector
 from .regressor import Regressor
+from .tabular_classifier import TabularClassifier
 from .tabular_regressor import TabularRegressor
 from .ts_feature_extractor import TimeSeriesFeatureExtractor
 from .grid_feature_extractor_classifier import GridFeatureExtractorClassifier
@@ -44,6 +45,7 @@ __all__ = [
     'Estimator',
     'EstimatorExternalData',
     'TSFEGenReg',
+    'TabularClassifier',
     'TabularRegressor',
     'FEGenRegNumpy',
     'FeatureExtractorNumpy'

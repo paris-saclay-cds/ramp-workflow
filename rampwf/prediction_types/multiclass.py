@@ -105,6 +105,15 @@ def _combine(cls, predictions_list, index_list=None):
     return combined_predictions
 
 
+def _rankify(self):
+    if len(self.label_names) > 2:
+        raise ValueError("Cannot rankify non-binary classifiers")
+    pred_0 = self.y_pred[:, 0].argsort().argsort() / len(self.y_pred)
+    pred_1 = self.y_pred[:, 1].argsort().argsort() / len(self.y_pred)
+    self.y_pred[:, 0] = (pred_0 + 1 - pred_1) / 2
+    self.y_pred[:, 1] = (pred_1 + 1 - pred_0) / 2 
+
+
 def make_multiclass(label_names=[]):
     Predictions = type(
         'Predictions',
@@ -118,5 +127,6 @@ def make_multiclass(label_names=[]):
          'y_pred_label_index': _y_pred_label_index,
          'y_pred_label': _y_pred_label,
          'combine': _combine,
+         'rankify': _rankify,
          })
     return Predictions

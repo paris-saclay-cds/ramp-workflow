@@ -71,6 +71,11 @@ def _y_pred(self):
         [predictions.y_pred for predictions in self.predictions_list], axis=1)
 
 
+def _rankify(self):
+    for predictions in self.predictions_list:
+        predictions.rankify()
+
+
 def make_combined(Predictions_list):
     Predictions = type(
         'Predictions',
@@ -82,5 +87,6 @@ def make_combined(Predictions_list):
          'set_valid_in_train': _set_valid_in_train,
          'set_slice': _set_slice,
          'y_pred': _y_pred,
+         'rankify': _rankify,
          })
     return Predictions

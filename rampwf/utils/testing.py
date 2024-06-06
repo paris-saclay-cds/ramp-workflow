@@ -307,6 +307,7 @@ def bag_submissions(
     score_table_title="Bagged scores",
     score_f_name_prefix="",
     fold_idxs=None,
+    bag_ranks=False,
 ):
     """CV-bag trained submission.
 
@@ -340,6 +341,11 @@ def bag_submissions(
     fold_idxs : list of int, default=None
         Fold indices to bag.
         If None, we will bag all folds.
+    bag_ranks : boolean
+        With some rank-based scores like auc or ngini, it is better to normalize
+        the predictions to their rank, but only when bagginin the blends, otherwise
+        uncalibrated models and non-homogeneous models per fold create irregular
+        blended rankings.
     """
     print_title("----------------------------")
     print_title(score_table_title)
@@ -352,6 +358,15 @@ def bag_submissions(
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
     if fold_idxs is None:
         fold_idxs = list(range(len(cv)))
+
+    # With some rank-based scores like auc or ngini, it is better to normalize
+    # the predictions to their rank, but only when bagginin the blends, otherwise
+    # uncalibrated models and non-homogeneous models per fold create irregular
+    # blended rankings.
+    if bag_ranks:
+        for prediction_list in [predictions_valid_list, predictions_test_list]:
+            for prediction in prediction_list:
+                prediction.rankify()                    
 
     # placeholder to store the scores and predictions
     bagged_scores = {}
@@ -414,6 +429,7 @@ def blend_submissions(
     score_type_index=0,
     output_path=None,
     fold_idxs=None,
+    bag_ranks=False,
 ):
     """Blending submissions in a ramp-kit and compute contributivities.
 
@@ -445,6 +461,11 @@ def blend_submissions(
     fold_idxs : list of int, default=None
         Fold indices to blend.
         If None, we will blend all folds.
+    bag_ranks : boolean
+        With some rank-based scores like auc or ngini, it is better to normalize
+        the predictions to their rank, but only when bagging the blends, otherwise
+        uncalibrated models and non-homogeneous models per fold create irregular
+        blended rankings.
     """
     problem = assert_read_problem(ramp_kit_dir)
     print_title(f"Blending {problem.problem_title}")
@@ -568,6 +589,7 @@ def blend_submissions(
         score_table_title="Combined bagged scores",
         score_f_name_prefix="combined_",
         fold_idxs=real_fold_idxs,
+        bag_ranks=bag_ranks,
     )
     if save_output:
         shutil.move(
@@ -592,6 +614,7 @@ def blend_submissions(
         score_table_title="Foldwise best bagged scores",
         score_f_name_prefix="foldwise_best_",
         fold_idxs=real_fold_idxs,
+        bag_ranks=bag_ranks,
     )
     if save_output:
         shutil.move(
