@@ -366,7 +366,10 @@ def bag_submissions(
     if bag_ranks:
         for prediction_list in [predictions_valid_list, predictions_test_list]:
             for prediction in prediction_list:
-                prediction.rankify()                    
+                try:
+                    prediction.rankify()
+                except AttributeError:
+                    pass
 
     # placeholder to store the scores and predictions
     bagged_scores = {}
