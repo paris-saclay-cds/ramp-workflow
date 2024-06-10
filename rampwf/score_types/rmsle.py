@@ -18,4 +18,6 @@ class RMSLE(BaseScoreType):
         # so the user knows he should not be using this score for negative targets.
         neg_ind = y_pred < 0
         y_pred[neg_ind] = 0
+        neg_ind = y_true < 0
+        y_true[neg_ind] = 0
         return root_mean_squared_log_error(y_true, y_pred)
