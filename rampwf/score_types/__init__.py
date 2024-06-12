@@ -10,6 +10,7 @@ from .combined import Combined
 from .detection import (
     OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
     AverageDetectionPrecision, DetectionAveragePrecision)
+from .f1 import F1, F1Micro
 from .f1_above import F1Above
 from .generative_regression import (
     MDNegativeLogLikelihood, MDLikelihoodRatio, MDRMSE,
@@ -45,6 +46,8 @@ __all__ = [
     'DetectionPrecision',
     'DetectionRecall',
     'DetectionAveragePrecision',
+    'F1',
+    'F1Micro',
     'F1Above',
     'MacroAveragedRecall',
     'MakeCombined',
