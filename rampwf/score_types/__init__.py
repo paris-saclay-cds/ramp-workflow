@@ -15,6 +15,7 @@ from .f1_above import F1Above
 from .generative_regression import (
     MDNegativeLogLikelihood, MDLikelihoodRatio, MDRMSE,
     MDR2, MDKSCalibration, MDOutlierRate)
+from .kappa import Kappa
 from .macro_averaged_recall import MacroAveragedRecall
 from .mae import MAE
 from .make_combined import MakeCombined
@@ -49,6 +50,7 @@ __all__ = [
     'F1',
     'F1Micro',
     'F1Above',
+    'Kappa',
     'MacroAveragedRecall',
     'MakeCombined',
     'MADCenter',
