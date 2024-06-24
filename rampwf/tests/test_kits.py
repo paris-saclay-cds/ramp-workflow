@@ -14,6 +14,7 @@ from rampwf.utils.testing import assert_read_problem
 from rampwf.utils.testing import assert_submission
 from rampwf.utils.testing import assert_notebook
 from rampwf.utils.testing import blend_submissions
+from rampwf.utils.testing import bag_then_blend_submissions
 from rampwf.utils.testing import assert_data
 
 
@@ -191,6 +192,13 @@ def test_blending():
         ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
         save_output=True
     )
+    bag_then_blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
+        save_output=True
+    )
     assert_submission(
         ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
@@ -212,7 +220,22 @@ def test_blending():
         ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
         save_output=True
     )
+    bag_then_blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
+        save_output=True
+    )
     blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris"),
+        ramp_submission_dir=os.path.join(PATH, "kits", "iris", "submissions"),
+        save_output=True,
+        fold_idxs=[0, 2]
+    )
+    bag_then_blend_submissions(
         ['starting_kit', 'random_forest_10_10'],
         ramp_kit_dir=os.path.join(PATH, "kits", "iris"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris"),
@@ -243,6 +266,14 @@ def test_data_label():
         submission='random_forest_10_10', is_pickle=True,
         save_output=True, retrain=True)
     blend_submissions(
+        ['starting_kit', 'random_forest_10_10'],
+        ramp_kit_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        ramp_data_dir=os.path.join(PATH, "kits", "iris_data_label"),
+        data_label='data_label',
+        ramp_submission_dir=os.path.join(
+            PATH, "kits", "iris_data_label", "submissions"),
+        save_output=True)
+    bag_then_blend_submissions(
         ['starting_kit', 'random_forest_10_10'],
         ramp_kit_dir=os.path.join(PATH, "kits", "iris_data_label"),
         ramp_data_dir=os.path.join(PATH, "kits", "iris_data_label"),
