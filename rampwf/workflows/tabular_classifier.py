@@ -59,6 +59,9 @@ class TabularClassifier(BaseWorkflow):
                 X_train=X_train, y_train=y_train, X_test=X_test,
                 metadata=metadata
             )
+        # to defragment
+        X_train = X_train.copy()
+        X_test = X_test.copy()
         return X_train, y_train, X_test, metadata
 
     def preprocess_data(
