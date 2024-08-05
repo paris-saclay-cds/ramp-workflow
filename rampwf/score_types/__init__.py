@@ -20,6 +20,7 @@ from .macro_averaged_recall import MacroAveragedRecall
 from .mae import MAE
 from .make_combined import MakeCombined
 from .mare import MARE
+from .matthews_corrcoef import MatthewsCorrcoef
 from .medae import MedAE
 from .negative_log_likelihood import NegativeLogLikelihood
 from .normalized_gini import NormalizedGini
@@ -57,6 +58,7 @@ __all__ = [
     'MADRadius',
     'MAE',
     'MARE',
+    'MatthewsCorrcoef',
     'MDKSCalibration',
     'MDLikelihoodRatio',
     'MDNegativeLogLikelihood',
