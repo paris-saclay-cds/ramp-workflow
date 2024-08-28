@@ -2127,7 +2127,7 @@ def _main():
     except getopt.GetoptError as e:
         print(e)
         print(usage)
-        sys.exit(2)
+        raise
     headers = []
     floatfmt = _DEFAULT_FLOATFMT
     colalign = None
@@ -2147,13 +2147,13 @@ def _main():
             if value not in tabulate_formats:
                 print("%s is not a supported table format" % value)
                 print(usage)
-                sys.exit(3)
+                raise
             tablefmt = value
         elif opt in ["-s", "--sep"]:
             sep = value
         elif opt in ["-h", "--help"]:
             print(usage)
-            sys.exit(0)
+            raise RuntimeError("Some problem happened")
     files = [sys.stdin] if not args else args
     with (sys.stdout if outfile == "-" else open(outfile, "w")) as out:
         for f in files:
