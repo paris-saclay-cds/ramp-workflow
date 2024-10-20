@@ -162,7 +162,7 @@ def leaderboard(ramp_kit_dir, data_label, metric, step, sort_by, ascending,
 
     df = df.round(precision)
     print(df)
-    exit(0)
+    RuntimeError("Need to exit...")
     if len(sort_by) > 0:
         df = df.sort_values(sort_by, ascending=ascending, axis=0)
 

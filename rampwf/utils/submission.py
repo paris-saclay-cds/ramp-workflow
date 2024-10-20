@@ -122,7 +122,7 @@ def train_test_submission(problem, submission_path, X_train, y_train, X_test,
     except Exception:
         print_submission_exception(save_output, output_path)
         set_state('training_error', save_output, output_path)
-        exit(1)
+        raise
     train_time = time.time() - t0
     set_state('trained', save_output, output_path)
     if is_pickle:
@@ -149,7 +149,7 @@ def train_test_submission(problem, submission_path, X_train, y_train, X_test,
     except Exception:
         print_submission_exception(save_output, output_path)
         set_state('validating_error', save_output, output_path)
-        exit(1)
+        raise
     valid_time = time.time() - t0
     set_state('validated', save_output, output_path)
 
@@ -168,7 +168,7 @@ def train_test_submission(problem, submission_path, X_train, y_train, X_test,
     except Exception:
         print_submission_exception(save_output, output_path)
         set_state('testing_error', save_output, output_path)
-        exit(1)
+        raise
     test_time = time.time() - t0
     set_state('tested', save_output, output_path)
 

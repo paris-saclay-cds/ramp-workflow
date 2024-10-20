@@ -5,3 +5,4 @@ xarray
 scikit-learn>=0.22
 cloudpickle
 click
+click-config-file==0.6.0
