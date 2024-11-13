@@ -175,13 +175,16 @@ def assert_submission(
     try:
         workflow.metadata = problem.get_metadata(ramp_data_dir, data_label)
     except AttributeError:
-        print("No metadata")    
-    workflow.set_element_names(submission_path)    
+        print("No metadata")
+    workflow.set_element_names(submission_path)
     score_types = assert_score_types(ramp_kit_dir)
     print_title("Preprocessing data")
+    t0 = time.time()
     X_train, y_train, X_test = workflow.preprocess_data(
         submission_path, X_train, y_train, X_test
     )
+    preprocessing_time = time.time() - t0
+    print_title(f"Preprocessing time: {preprocessing_time}")
 
     training_output_path = ""
     if is_pickle or save_output:
@@ -443,7 +446,7 @@ def blend_submissions(
     Generates graded contributivities, more noise than bag_then_blend.
     Does not work well with some scores where models may have different
     calibratedness (like auc or ngini which only depend on order).
-    
+
     If save_output is True, we create three files:
     <ramp_submission_dir>/training_output/contributivities.csv
     <ramp_submission_dir>/training_output/bagged_scores_combined.csv
@@ -635,7 +638,7 @@ def blend_submissions(
             output_path / "bagged_scores.csv",
             output_path / "bagged_scores_foldwise_best.csv",
         )
-                  
+
 
 def bag_then_blend_submissions(
     submissions,
@@ -653,7 +656,7 @@ def bag_then_blend_submissions(
 
     First bag the submissions on all the folds, then blend the bagged submissions.
     Generates smaller ensembles than blend.
-    
+
     If save_output is True, we create three files:
     <ramp_submission_dir>/training_output/contributivities.csv
     <ramp_submission_dir>/training_output/bagged_scores_combined.csv
@@ -718,7 +721,7 @@ def bag_then_blend_submissions(
             predictions_valid_list.append(predictions_valid)
             predictions_test_list.append(predictions_test)
         submission_is.append(submission_i)
-            
+
         scoring_step = ["valid", "test"] if y_test is not None else ["valid"]
         for step in scoring_step:
             if step == "valid":
@@ -741,7 +744,7 @@ def bag_then_blend_submissions(
     for fold in cv:
         valid_overlap_is += list(fold[1])
     valid_overlap_is = np.unique(valid_overlap_is)
-    
+
     if len(bagged_predictions_valid_list) > 0:
         best_index_list = blend_on_fold(
             predictions_list = bagged_predictions_valid_list,
@@ -749,7 +752,7 @@ def bag_then_blend_submissions(
             score_type = score_types[0],
             min_improvement = min_improvement,
         )
-        
+
         contributivitys = np.zeros(len(submissions))
         # we share a unit of 1. among the contributive submissions
         unit_contributivity = 1.0 / len(best_index_list)
@@ -767,7 +770,7 @@ def bag_then_blend_submissions(
             "contributivity", ascending=False
         )
         print(contributivitys_df.to_string(index=False))
-        
+
         combined_predictions_valid = problem.Predictions.combine(
             bagged_predictions_valid_list, best_index_list)
         combined_predictions_test = problem.Predictions.combine(
