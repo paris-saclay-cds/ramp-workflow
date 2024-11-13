@@ -32,11 +32,11 @@ class FeatureExtractorClassifierWithEDA(BaseWorkflow):
     def _cache_transform(
         self, fe: Any, X: pd.DataFrame
     ) -> np.ndarray[Any, np.dtype[np.float64]]:
-        data_hash = hashlib.sha256(np.ascontiguousarray(X.to_numpy())).hexdigest()
-        cache_f_name = f"X_tr_{self.fe_hash}_{data_hash}.pkl"
 
         t0 = time.time()
-        if hasattr(fe, "to_cache") and fe.to_cache:
+        if getattr(fe, "to_cache", False):
+            data_hash = hashlib.sha256(np.ascontiguousarray(X.to_numpy())).hexdigest()
+            cache_f_name = f"X_tr_{self.fe_hash}_{data_hash}.pkl"
             try:
                 X_tr = pd.read_pickle(self.cache_path / cache_f_name)
             except FileNotFoundError:

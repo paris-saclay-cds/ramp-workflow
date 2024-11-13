@@ -38,11 +38,11 @@ class TabularRegressor(BaseWorkflow):
     def _cache_transform(
         self, fe: Any, X: pd.DataFrame
     ) -> np.ndarray[Any, np.dtype[np.float64]]:
-        data_hash = hashlib.sha256(np.ascontiguousarray(X.to_numpy())).hexdigest()
-        cache_f_name = f"X_tr_{self.fe_hash}_{data_hash}.pkl"
 
         t0 = time.time()
-        if hasattr(fe, "to_cache") and fe.to_cache:
+        if getattr(fe, "to_cache", False):
+            data_hash = hashlib.sha256(np.ascontiguousarray(X.to_numpy())).hexdigest()
+            cache_f_name = f"X_tr_{self.fe_hash}_{data_hash}.pkl"
             try:
                 X_tr = pd.read_pickle(self.cache_path / cache_f_name)
             except FileNotFoundError:
@@ -84,7 +84,7 @@ class TabularRegressor(BaseWorkflow):
             X_test (pd.DataFrame): test dataset
 
         Returns:
-            Tuple[pd.DataFrame, np.ndarray, pd.DataFrame]: 
+            Tuple[pd.DataFrame, np.ndarray, pd.DataFrame]:
                 The preprocessed data X_train, y_train, X_test
         """
         self.metadata_after_dp = copy.deepcopy(self.metadata)
@@ -130,7 +130,7 @@ class TabularRegressor(BaseWorkflow):
         else:
             X_train, y_train, X_test, self.metadata_after_dp = self._run_preprocessors(
                 data_preprocessors, X_train, y_train, X_test, self.metadata_after_dp)
-        return X_train, y_train, X_test        
+        return X_train, y_train, X_test
 
     def train_submission(
         self,
