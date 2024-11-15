@@ -69,7 +69,7 @@ def _get_cv(
     # lists cannot be cached
     problem = assert_read_problem(ramp_kit_dir)
     X_train, y_train, _, _ = assert_data(
-        ramp_kit_dir, ramp_data_dir, data_label
+        ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir, data_label=data_label
     )
     print_title("Reading cv ...")
     if fold_idxs_tuple is None:
@@ -487,7 +487,7 @@ def blend_submissions(
     problem = assert_read_problem(ramp_kit_dir)
     print_title(f"Blending {problem.problem_title}")
     X_train, y_train, X_test, y_test = assert_data(
-        ramp_kit_dir, ramp_data_dir, data_label
+        ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir, data_label=data_label
     )
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
     if fold_idxs is None:
