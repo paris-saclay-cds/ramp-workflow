@@ -111,7 +111,7 @@ def _rankify(self):
     pred_0 = self.y_pred[:, 0].argsort().argsort() / len(self.y_pred)
     pred_1 = self.y_pred[:, 1].argsort().argsort() / len(self.y_pred)
     self.y_pred[:, 0] = (pred_0 + 1 - pred_1) / 2
-    self.y_pred[:, 1] = (pred_1 + 1 - pred_0) / 2 
+    self.y_pred[:, 1] = (pred_1 + 1 - pred_0) / 2
 
 
 def make_multiclass(label_names=[]):
