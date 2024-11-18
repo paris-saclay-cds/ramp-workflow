@@ -55,6 +55,7 @@ class TabularClassifier(BaseWorkflow):
 
     def _run_preprocessors(self, data_preprocessors, X_train, y_train, X_test, metadata):
         for dp in data_preprocessors:
+            print(dp)
             X_train, y_train, X_test, metadata = dp.preprocess(
                 X_train=X_train, y_train=y_train, X_test=X_test,
                 metadata=metadata

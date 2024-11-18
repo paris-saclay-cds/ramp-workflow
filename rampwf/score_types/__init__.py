@@ -12,6 +12,7 @@ from .detection import (
     AverageDetectionPrecision, DetectionAveragePrecision)
 from .f1 import F1, F1Micro
 from .f1_above import F1Above
+from .gini import Gini
 from .generative_regression import (
     MDNegativeLogLikelihood, MDLikelihoodRatio, MDRMSE,
     MDR2, MDKSCalibration, MDOutlierRate)
@@ -51,6 +52,7 @@ __all__ = [
     'F1',
     'F1Micro',
     'F1Above',
+    'Gini',
     'Kappa',
     'MacroAveragedRecall',
     'MakeCombined',
