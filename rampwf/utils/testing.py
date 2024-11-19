@@ -168,7 +168,7 @@ def assert_submission(
     problem = assert_read_problem(ramp_kit_dir)
     assert_title(ramp_kit_dir)
     X_train, y_train, X_test, y_test = assert_data(
-        ramp_kit_dir, ramp_data_dir, data_label
+        ramp_kit_dir=ramp_kit_dir, ramp_data_dir=ramp_data_dir, data_label=data_label
     )
     cv = assert_cv(ramp_kit_dir, ramp_data_dir, data_label, fold_idxs)
     workflow = problem.workflow
