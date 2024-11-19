@@ -314,6 +314,7 @@ def bag_submissions(
     score_f_name_prefix="",
     fold_idxs=None,
     bag_ranks=False,
+    test=True,
 ):
     """CV-bag trained submission.
 
@@ -352,6 +353,8 @@ def bag_submissions(
         the predictions to their rank, but only when bagginin the blends, otherwise
         uncalibrated models and non-homogeneous models per fold create irregular
         blended rankings.
+    test : bool, default=True
+        Whether to use test.
     """
     print_title("----------------------------")
     print_title(score_table_title)
@@ -369,8 +372,12 @@ def bag_submissions(
     # the predictions to their rank, but only when bagginin the blends, otherwise
     # uncalibrated models and non-homogeneous models per fold create irregular
     # blended rankings.
+    if test:
+        prediction_lists = [predictions_valid_list, predictions_test_list]
+    else:
+        prediction_lists = [predictions_valid_list]
     if bag_ranks:
-        for prediction_list in [predictions_valid_list, predictions_test_list]:
+        for prediction_list in prediction_lists:
             for prediction in prediction_list:
                 try:
                     prediction.rankify()
@@ -379,7 +386,11 @@ def bag_submissions(
 
     # placeholder to store the scores and predictions
     bagged_scores = {}
-    scoring_step = ["valid", "test"] if y_test is not None else ["valid"]
+    if test:
+        valid_and_test = y_test is not None
+    else:
+        valid_and_test = False
+    scoring_step = ["valid", "test"] if valid_and_test else ["valid"]
     for step in scoring_step:
         if step == "valid":
             test_idx = [fold[1] for fold in cv]
@@ -410,7 +421,7 @@ def bag_submissions(
     )
     df_scores.columns = df_scores.columns.rename("score")
     df_scores.index = df_scores.index.rename(["step", "n_bag"])
-    if y_test is None:
+    if y_test is None or not test:
         df_scores["fold_idx"] = list(fold_idxs)  # valid
     else:
         df_scores["fold_idx"] = list(fold_idxs) + list(fold_idxs)
@@ -439,6 +450,7 @@ def blend_submissions(
     output_path=None,
     fold_idxs=None,
     bag_ranks=False,
+    test=True,
 ):
     """Blending submissions in a ramp-kit and compute contributivities.
 
@@ -480,6 +492,8 @@ def blend_submissions(
         the predictions to their rank, but only when bagging the blends, otherwise
         uncalibrated models and non-homogeneous models per fold create irregular
         blended rankings.
+    test : bool, default=True
+        Whether to use test.
     """
     if ramp_submission_dir is None:
         ramp_submission_dir = Path(ramp_kit_dir) / "submissions"
@@ -520,6 +534,7 @@ def blend_submissions(
                     fold[1],
                     data_path=ramp_data_dir,
                     input_path=fold_output_path,
+                    test=test,
                 )
                 predictions_valid_list.append(predictions_valid)
                 predictions_test_list.append(predictions_test)
@@ -548,12 +563,13 @@ def blend_submissions(
             foldwise_best_predictions_valid_list.append(
                 predictions_valid_list[best_index_list[0]]
             )
-            combined_predictions_test_list.append(
-                problem.Predictions.combine(predictions_test_list, best_index_list)
-            )
-            foldwise_best_predictions_test_list.append(
-                predictions_test_list[best_index_list[0]]
-            )
+            if test:
+                combined_predictions_test_list.append(
+                    problem.Predictions.combine(predictions_test_list, best_index_list)
+                )
+                foldwise_best_predictions_test_list.append(
+                    predictions_test_list[best_index_list[0]]
+                )
 
             n_real_folds += 1
             real_fold_idxs.append(fold_i)
@@ -607,6 +623,7 @@ def blend_submissions(
         score_f_name_prefix="combined_",
         fold_idxs=real_fold_idxs,
         bag_ranks=bag_ranks,
+        test=test
     )
     if save_output:
         shutil.move(
@@ -632,6 +649,7 @@ def blend_submissions(
         score_f_name_prefix="foldwise_best_",
         fold_idxs=real_fold_idxs,
         bag_ranks=bag_ranks,
+        test=test,
     )
     if save_output:
         shutil.move(
@@ -651,6 +669,7 @@ def bag_then_blend_submissions(
     score_type_index=0,
     output_path=None,
     fold_idxs=None,
+    test=True
 ):
     """Blending submissions in a ramp-kit and compute contributivities.
 
@@ -685,6 +704,8 @@ def bag_then_blend_submissions(
     fold_idxs : list of int, default=None
         Fold indices to blend.
         If None, we will blend all folds.
+    test : bool, default=True
+        Whether to use test.
     """
     if ramp_submission_dir is None:
         ramp_submission_dir = Path(ramp_kit_dir) / "submissions"
@@ -717,12 +738,17 @@ def bag_then_blend_submissions(
                 fold[1],
                 data_path=ramp_data_dir,
                 input_path=fold_output_path,
+                test=test
             )
             predictions_valid_list.append(predictions_valid)
             predictions_test_list.append(predictions_test)
         submission_is.append(submission_i)
 
-        scoring_step = ["valid", "test"] if y_test is not None else ["valid"]
+        if test:
+            valid_and_test = y_test is not None
+        else:
+            valid_and_test = False
+        scoring_step = ["valid", "test"] if valid_and_test else ["valid"]
         for step in scoring_step:
             if step == "valid":
                 test_idx = [fold[1] for fold in cv]
@@ -773,8 +799,9 @@ def bag_then_blend_submissions(
 
         combined_predictions_valid = problem.Predictions.combine(
             bagged_predictions_valid_list, best_index_list)
-        combined_predictions_test = problem.Predictions.combine(
-            bagged_predictions_test_list, best_index_list)
+        if test:
+            combined_predictions_test = problem.Predictions.combine(
+                bagged_predictions_test_list, best_index_list)
         if output_path is None:
             output_path = ramp_submission_dir / "training_output"
             if data_label is not None:
