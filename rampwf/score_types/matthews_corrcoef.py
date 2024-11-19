@@ -4,7 +4,7 @@ from .classifier_base import ClassifierBaseScoreType
 
 class MatthewsCorrcoef(ClassifierBaseScoreType):
     is_lower_the_better = False
-    minimum = 0.0
+    minimum = -1.0
     maximum = 1.0
 
     def __init__(self, name='mcc', precision=2):
