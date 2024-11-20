@@ -1,4 +1,6 @@
 class BaseScoreType(object):
+    is_rank_based = False
+    
     def check_y_pred_dimensions(self, y_true, y_pred):
         if len(y_true) != len(y_pred):
             raise ValueError(

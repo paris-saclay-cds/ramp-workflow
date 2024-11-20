@@ -3,6 +3,7 @@ from .base import BaseScoreType
 
 class Combined(BaseScoreType):
     is_lower_the_better = None
+    is_rank_based = None
     minimum = 0.0
     maximum = 0.0
 
@@ -17,6 +18,11 @@ class Combined(BaseScoreType):
             elif self.is_lower_the_better != score_type.is_lower_the_better:
                 raise ValueError(
                     'Cannot combine scores of lower and higher the better')
+            if self.is_rank_based is None:
+                self.is_rank_based = score_type.is_rank_based
+            elif self.is_rank_based != score_type.is_rank_based:
+                raise ValueError(
+                    'Cannot combine rank-based and non-rank-based scores')
             self.minimum += weight * score_type.minimum
             self.maximum += weight * score_type.maximum
 

@@ -6,6 +6,7 @@ class ROCAUC(BaseScoreType):
     is_lower_the_better = False
     minimum = 0.0
     maximum = 1.0
+    is_rank_based = True
 
     def __init__(self, name='roc_auc', precision=2):
         self.name = name

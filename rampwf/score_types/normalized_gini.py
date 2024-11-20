@@ -16,6 +16,7 @@ class NormalizedGini(ClassifierBaseScoreType):
     is_lower_the_better = False
     minimum = -1.0
     maximum = 1.0
+    is_rank_based = True
 
     def __init__(self, name='normalized_gini', precision=2):
         self.name = name
