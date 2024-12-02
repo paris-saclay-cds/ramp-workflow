@@ -1,5 +1,10 @@
 import numpy as np
-from sklearn.utils import indices_to_mask
+
+try:
+    from sklearn.utils._mask import indices_to_mask
+except ImportError:
+    # Legacy for scikit-learn < 1.4
+    from sklearn.utils import indices_to_mask
 
 from .base import DetectionBaseScoreType
 from .util import _select_minipatch_tuples, _match_tuples

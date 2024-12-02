@@ -309,8 +309,8 @@ issues_user_uri = 'https://github.com/{user}'
 # In an ideal world, this would get fixed in this PR:
 # https://github.com/readthedocs/sphinx_rtd_theme/pull/747/files
 def setup(app):
-    app.add_javascript('js/copybutton.js')
-    app.add_stylesheet("basic.css")
+    app.add_js_file('js/copybutton.js')
+    app.add_css_file("basic.css")
     # app.connect('autodoc-process-docstring', generate_example_rst)
 
 

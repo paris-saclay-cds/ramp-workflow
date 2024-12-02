@@ -10,7 +10,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python-version: ['3.7', '3.11']
+        python-version: ['3.10', '3.12']
         os: [ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
@@ -29,7 +29,8 @@ jobs:
           python --version
           which python
           # Otherwise we get errors on Python 3.6 due to https://stackoverflow.com/questions/38257138/jupyter-no-such-kernel-named-python3
-          conda install -y nb_conda_kernels
+          conda install -y nb_conda_kernels jupyter_server ipykernel
+          ipython kernel install --name "python3" --user
 
       - name: Install dependencies
         shell: bash -l {0}

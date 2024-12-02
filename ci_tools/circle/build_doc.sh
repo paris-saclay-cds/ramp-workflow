@@ -2,6 +2,8 @@
 set -x
 set -e
 
+MINICONDA_PATH=$HOME/miniconda
+
 # Install dependencies with miniconda
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
    -O miniconda.sh

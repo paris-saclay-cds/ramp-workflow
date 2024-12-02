@@ -7,6 +7,7 @@ rampwf.egg-info
 coverage.xml
 ramp_workflow.egg-info
 .cache
+**/data/
 
 # included test starting kits
 training_output/

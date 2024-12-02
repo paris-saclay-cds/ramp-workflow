@@ -17,7 +17,7 @@ class ImageClassifier(object):
         self.model = Model(inp, out)
         self.model.compile(
             loss='categorical_crossentropy',
-            optimizer=SGD(lr=1e-4),
+            optimizer=SGD(learning_rate=1e-4),
             metrics=['accuracy'])
 
     def _transform(self, x):

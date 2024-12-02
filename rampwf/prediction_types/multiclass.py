@@ -69,7 +69,7 @@ def _init_from_pred_labels(self, y_pred_labels):
         (len(y_pred_labels), len(self.label_names)), dtype=np.float64)
     for ps_i, label_list in zip(self.y_pred, y_pred_labels):
         # converting single labels to list of labels, assumed below
-        if type(label_list) != np.ndarray and type(label_list) != list:
+        if not isinstance(label_list, (np.ndarray, list)):
             label_list = [label_list]
         label_list = list(map(type_of_label, label_list))
         for label in label_list:
