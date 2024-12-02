@@ -241,7 +241,7 @@ def parse_hyperparameters(module_path, workflow_element_name):
     )
     for object_name in dir(workflow_element):
         o = getattr(workflow_element, object_name)
-        if type(o) == Hyperparameter:
+        if isinstance(o, Hyperparameter):
             o.set_names(object_name, workflow_element_name)
             hyperparameters.append(o)
     return hyperparameters
