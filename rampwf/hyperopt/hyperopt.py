@@ -439,7 +439,9 @@ class HyperparameterOptimization(object):
         row['valid_time'] = float(df_scores.loc['valid']['time'])
         row['n_train'] = len(self.cv[fold_i][0])
         row['n_valid'] = len(self.cv[fold_i][1])
-        self.df_scores_ = self.df_scores_.append(row, ignore_index=True)
+        self.df_scores_ = pd.concat(
+            [self.df_scores_, pd.DataFrame([row])], ignore_index=True
+        )
 
     def _make_and_save_summary(self, hyperopt_output_path):
         summary_groupby = self.df_scores_.groupby(
