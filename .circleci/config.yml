@@ -3,9 +3,6 @@ jobs:
   build:
     docker:
       - image: cimg/python:3.11
-        environment:
-            # miniconda path install
-            MINICONDA_PATH: ~/miniconda
       - image: cimg/postgres:9.6
         environment:
             POSTGRES_USER: mrrampmaster_doc = 'index'
