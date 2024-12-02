@@ -51,6 +51,6 @@ jobs:
           fingerprints:
               - "36:72:da:c4:54:0d:ab:57:84:80:a7:65:59:1f:02:f9"
 
-      - deploy:
+      - run:
           name: Deploy documentation
           command: ./ci_tools/circle/push_doc.sh doc/_build/html/stable
