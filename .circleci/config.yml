@@ -49,7 +49,7 @@ jobs:
 
       - add_ssh_keys:
           fingerprints:
-              - "36:72:da:c4:54:0d:ab:57:84:80:a7:65:59:1f:02:f9"
+              - "SHA256:FHp0BhYTH2t3lf0gbvvu6bjAJ4ceD8X55W0l7ColjO0"
 
       - run:
           name: Deploy documentation
