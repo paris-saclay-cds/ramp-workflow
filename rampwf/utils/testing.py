@@ -13,7 +13,7 @@ from .io import load_y_pred
 from .importing import import_module_from_source
 from .pretty_print import print_title, print_df_scores
 from .notebook import execute_notebook, convert_notebook
-from .scoring import round_df_scores, mean_score_matrix
+from .scoring import mean_score_matrix
 from .submission import (bag_submissions, run_submission_on_cv_fold,
                          run_submission_on_full_train)
 
@@ -149,7 +149,8 @@ def assert_submission(ramp_kit_dir='.', ramp_data_dir='.',
         if save_output:
             filename = os.path.join(fold_output_path, 'scores.csv')
             df_scores.to_csv(filename)
-        df_scores_rounded = round_df_scores(df_scores, score_types)
+        map_score_precision = {st.name: st.precision for st in score_types}
+        df_scores_rounded = df_scores.round(map_score_precision)
         print_df_scores(df_scores_rounded, indent='\t')
 
         # saving predictions for CV bagging after the CV loop

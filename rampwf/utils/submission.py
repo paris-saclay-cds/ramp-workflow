@@ -15,7 +15,7 @@ import cloudpickle
 from .io import save_y_pred, set_state, print_submission_exception
 from .combine import get_score_cv_bags
 from .pretty_print import print_title, print_df_scores, print_warning
-from .scoring import score_matrix, round_df_scores, reorder_df_scores
+from .scoring import score_matrix, reorder_df_scores
 
 
 def save_submissions(problem, y_pred, data_path='.', output_path='.',
@@ -335,7 +335,8 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
             predictions=OrderedDict([('train', predictions_train),
                                      ('test', predictions_test)]),
         )
-        df_scores_rounded = round_df_scores(df_scores, score_types)
+        map_score_precision = {st.name: st.precision for st in score_types}
+        df_scores_rounded = df_scores.round(map_score_precision)
         print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
@@ -351,7 +352,8 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
             ground_truth=OrderedDict([('train', ground_truth_train)]),
             predictions=OrderedDict([('train', predictions_train)]),
         )
-        df_scores_rounded = round_df_scores(df_scores, score_types)
+        map_score_precision = {st.name: st.precision for st in score_types}
+        df_scores_rounded = df_scores.round(map_score_precision)
         print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
@@ -445,7 +447,10 @@ def bag_submissions(problem, cv, y_train, y_test, predictions_valid_list,
     df_scores = df_scores.loc[(slice(None), highest_level), :]
     df_scores.index = df_scores.index.droplevel('n_bag')
     df_scores = reorder_df_scores(df_scores, score_types)
-    df_scores = round_df_scores(df_scores, score_types)
+
+    # round the dataframe
+    map_score_precision = {st.name: st.precision for st in score_types}
+    df_scores = df_scores.round(map_score_precision)
     print_df_scores(df_scores, indent='\t')
 
 
