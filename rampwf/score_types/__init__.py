@@ -23,7 +23,7 @@ from .make_combined import MakeCombined
 from .mare import MARE
 from .matthews_corrcoef import MatthewsCorrcoef
 from .medae import MedAE
-from .negative_log_likelihood import NegativeLogLikelihood
+from .negative_log_likelihood import LogLikelihood, NegativeLogLikelihood
 from .normalized_gini import NormalizedGini
 from .normalized_rmse import NormalizedRMSE
 from .relative_rmse import RelativeRMSE
@@ -54,6 +54,7 @@ __all__ = [
     'F1Above',
     'Gini',
     'Kappa',
+    'LogLikelihood',
     'MacroAveragedRecall',
     'MakeCombined',
     'MADCenter',
