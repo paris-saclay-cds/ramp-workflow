@@ -11,6 +11,9 @@ from .detection import (
     OSPA, SCP, DetectionPrecision, DetectionRecall, MADCenter, MADRadius,
     AverageDetectionPrecision, DetectionAveragePrecision)
 from .f1_above import F1Above
+from .generative_regression import (
+    MDNegativeLogLikelihood, MDLikelihoodRatio, MDRMSE,
+    MDR2, MDKSCalibration, MDOutlierRate)
 from .macro_averaged_recall import MacroAveragedRecall
 from .make_combined import MakeCombined
 from .mare import MARE
@@ -20,6 +23,7 @@ from .normalized_rmse import NormalizedRMSE
 from .relative_rmse import RelativeRMSE
 from .rmse import RMSE
 from .roc_auc import ROCAUC
+from .r2 import R2
 from .soft_accuracy import SoftAccuracy
 
 __all__ = [
@@ -43,6 +47,12 @@ __all__ = [
     'MADCenter',
     'MADRadius',
     'MARE',
+    'MDKSCalibration',
+    'MDLikelihoodRatio',
+    'MDNegativeLogLikelihood',
+    'MDOutlierRate',
+    'MDRMSE',
+    'MDR2',
     'NegativeLogLikelihood',
     'NormalizedGini',
     'NormalizedRMSE',
@@ -50,6 +60,7 @@ __all__ = [
     'RelativeRMSE',
     'RMSE',
     'ROCAUC',
+    'R2',
     'SCP',
     'SoftAccuracy',
-]
+ ]

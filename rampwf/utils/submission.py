@@ -133,7 +133,6 @@ def train_test_submission(problem, module_path, X_train, y_train, X_test,
         if not is_pickled:
             print_warning("Can't pickle workflow into "
                           f'{output_path}/{trained_model_name}.')
-
     # Validate
     params = signature(problem.workflow.test_submission).parameters
     is_fold_passed_to_test = (len(params) == 3 and list(params)[2] == 'fold')
@@ -339,6 +338,8 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
+            filename = os.path.join(output_path, 'retrain_scores.csv')
+            df_scores.to_csv(filename)
             save_submissions(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=output_path, suffix='retrain_train')
@@ -355,6 +356,8 @@ def run_submission_on_full_train(problem, module_path, X_train, y_train,
         print_df_scores(df_scores_rounded, indent='\t')
 
         if save_output:
+            filename = os.path.join(output_path, 'retrain_scores.csv')
+            df_scores.to_csv(filename)
             save_submissions(
                 problem, y_pred_train, data_path=ramp_data_dir,
                 output_path=output_path, suffix='retrain_train')

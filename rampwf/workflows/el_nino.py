@@ -19,12 +19,15 @@ from .regressor import Regressor
 
 
 class ElNino(object):
-    def __init__(self, check_sizes, check_indexs, workflow_element_names=[
-            'ts_feature_extractor', 'regressor']):
+    def __init__(self, check_sizes, check_indexs,
+                 restart_name=None, n_burn_in=0, n_lookahead=1,
+                 workflow_element_names=['ts_feature_extractor', 'regressor']):
         self.element_names = workflow_element_names
         self.ts_feature_extractor_workflow = TimeSeriesFeatureExtractor(
-            check_sizes, check_indexs, [self.element_names[0]])
+            check_sizes, check_indexs, restart_name, n_burn_in, n_lookahead,
+            [self.element_names[0]])
         self.regressor_workflow = Regressor([self.element_names[1]])
+        self.n_burn_in = n_burn_in
 
     def train_submission(self, module_path, X_ds, y_array, train_is=None):
         """
@@ -43,11 +46,10 @@ class ElNino(object):
         ts_fe = self.ts_feature_extractor_workflow.train_submission(
             module_path, X_ds, y_array)
 
-        n_burn_in = X_ds.n_burn_in
         # X_ds contains burn-in so it needs to be extended by n_burn_in
         # timesteps. This assumes that train_is is a block of consecutive
         # time points.
-        burn_in_range = np.arange(train_is[-1], train_is[-1] + n_burn_in)
+        burn_in_range = np.arange(train_is[-1], train_is[-1] + self.n_burn_in)
         extended_train_is = np.concatenate((train_is, burn_in_range))
         X_train_ds = X_ds.isel(time=extended_train_is)
         # At this point X_train_ds is n_burn_in longer than y_array[train_is]
